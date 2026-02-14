@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<idea-plugin>
+  <id>com.fortressoptimizer.intellij</id>
+  <name>Fortress Token Optimizer</name>
+  <vendor email="support@fortress-optimizer.com" url="https://fortress-optimizer.com">
+    Fortress
+  </vendor>
+
+  <description><![CDATA[
+    Optimize your prompts for token efficiency directly in your JetBrains IDE.
+    
+    Features:
+    - Real-time token optimization
+    - Multiple optimization levels
+    - Token usage tracking
+    - Editor integration
+    - Context menu support
+  ]]></description>
+
+  <depends>com.intellij.modules.platform</depends>
+
+  <application-components>
+    <component>
+      <implementation-class>com.fortressoptimizer.FortressApplicationComponent</implementation-class>
+    </component>
+  </application-components>
+
+  <project-components>
+    <component>
+      <implementation-class>com.fortressoptimizer.FortressProjectComponent</implementation-class>
+    </component>
+  </project-components>
+
+  <actions>
+    <action id="FortressOptimize" 
+            class="com.fortressoptimizer.actions.OptimizeAction"
+            text="Optimize with Fortress"
+            description="Optimize selected text for token efficiency">
+      <add-to-group group-id="EditorPopupMenu" anchor="last"/>
+      <keyboard-shortcut keymap="$default" first-keystroke="ctrl shift o"/>
+    </action>
+
+    <action id="FortressUsage"
+            class="com.fortressoptimizer.actions.ShowUsageAction"
+            text="Show Fortress Usage"
+            description="Show token usage statistics">
+      <add-to-group group-id="ToolsMenu" anchor="last"/>
+    </action>
+  </actions>
+
+  <extensions defaultExtensionNs="com.intellij">
+    <applicationConfigurable 
+      parentId="tools"
+      id="com.fortressoptimizer.FortressSettings"
+      displayName="Fortress Token Optimizer"
+      instance="com.fortressoptimizer.settings.FortressSettingsConfigurable"/>
+
+    <statuspanel.widget 
+      id="com.fortressoptimizer.StatusWidget"
+      implementation="com.fortressoptimizer.ui.FortressStatusWidget"/>
+  </extensions>
+</idea-plugin>

@@ -1,0 +1,118 @@
+{
+  "version": "1.0.0",
+  "name": "Fortress Token Optimizer",
+  "description": "Optimize prompts for token efficiency in Zapier workflows",
+  "zapier": {
+    "version": 1,
+    "platformVersion": "14.3.0"
+  },
+  "authentication": {
+    "type": "custom",
+    "fields": [
+      {
+        "computed": false,
+        "key": "api_key",
+        "required": true,
+        "label": "API Key",
+        "placeholder": "Enter your Fortress API key"
+      }
+    ],
+    "connectionLabel": "{{profile_first_name}} {{profile_last_name}}"
+  },
+  "creates": {
+    "create_optimization": {
+      "display": {
+        "label": "Optimize Prompt",
+        "description": "Optimize a prompt for token efficiency",
+        "hidden": false
+      },
+      "operation": {
+        "perform": {
+          "url": "https://api.fortress-optimizer.com/api/optimize",
+          "method": "POST",
+          "headers": {
+            "Authorization": "Bearer {{bundle.authData.api_key}}",
+            "Content-Type": "application/json"
+          },
+          "body": {
+            "prompt": "{{bundle.inputData.prompt}}",
+            "level": "{{bundle.inputData.level}}",
+            "provider": "{{bundle.inputData.provider}}"
+          }
+        }
+      },
+      "inputFields": [
+        {
+          "key": "prompt",
+          "label": "Prompt",
+          "type": "text",
+          "helpText": "Text to optimize",
+          "required": true
+        },
+        {
+          "key": "level",
+          "label": "Optimization Level",
+          "type": "string",
+          "choices": {
+            "conservative": "Conservative",
+            "balanced": "Balanced",
+            "aggressive": "Aggressive"
+          },
+          "default": "balanced"
+        },
+        {
+          "key": "provider",
+          "label": "LLM Provider",
+          "type": "string",
+          "choices": {
+            "openai": "OpenAI",
+            "anthropic": "Anthropic",
+            "azure": "Azure",
+            "gemini": "Gemini",
+            "groq": "Groq"
+          },
+          "default": "openai"
+        }
+      ],
+      "outputFields": [
+        {
+          "key": "optimized_prompt",
+          "label": "Optimized Prompt"
+        },
+        {
+          "key": "original_tokens",
+          "label": "Original Token Count",
+          "type": "integer"
+        },
+        {
+          "key": "optimized_tokens",
+          "label": "Optimized Token Count",
+          "type": "integer"
+        },
+        {
+          "key": "tokens_saved",
+          "label": "Tokens Saved",
+          "type": "integer"
+        },
+        {
+          "key": "savings_percentage",
+          "label": "Savings Percentage",
+          "type": "number"
+        },
+        {
+          "key": "technique",
+          "label": "Optimization Technique"
+        }
+      ]
+    }
+  },
+  "triggers": {
+    "new_optimization": {
+      "display": {
+        "label": "New Optimization",
+        "description": "Trigger when a prompt is optimized",
+        "hidden": true
+      }
+    }
+  }
+}

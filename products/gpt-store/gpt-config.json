@@ -1,0 +1,13 @@
+{
+  "schema_version": "1.0",
+  "namespace": "fortress",
+  "display_name": "Fortress Token Optimizer",
+  "description": "Real-time token optimization for your prompts",
+  "auth": {
+    "type": "oauth",
+    "client_id": "fortress-gpt-store"
+  },
+  "logo_url": "https://fortress-optimizer.com/logo.png",
+  "contact_email": "support@fortress-optimizer.com",
+  "legal_info_url": "https://fortress-optimizer.com/legal"
+}
