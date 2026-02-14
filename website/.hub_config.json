@@ -1,0 +1,9 @@
+{
+  "hub_endpoint": "http://127.0.0.1:3333",
+  "timeout": 10,
+  "retry_attempts": 3,
+  "retry_delay": 2,
+  "enable_local_fallback": true,
+  "installed_at": "2026-02-14T14:22:22.1771078942Z",
+  "installer_version": "1.0"
+}

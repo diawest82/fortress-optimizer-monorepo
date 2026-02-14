@@ -1,0 +1,22 @@
+{
+  "workspace_id": "website",
+  "workspace_path": "/Users/diawest/projects/fortress-optimizer-monorepo/website",
+  "timestamp": "2026-02-14T14:23:56.429912Z",
+  "python_version": "3.9",
+  "working_directory": "/Users/diawest/projects/fortress-optimizer-monorepo/website",
+  "environment": "base",
+  "hub_endpoint": "http://127.0.0.1:3333",
+  "status": "connected",
+  "hub_response": {
+    "mode": "local_fallback",
+    "message": "Hub unreachable, saved locally",
+    "payload": {
+      "workspace_id": "website",
+      "workspace_path": "/Users/diawest/projects/fortress-optimizer-monorepo/website",
+      "fingerprint": "fa0198630107ac75",
+      "python_version": "3.9",
+      "environment": "base",
+      "timestamp": "2026-02-14T14:23:52.410785Z"
+    }
+  }
+}

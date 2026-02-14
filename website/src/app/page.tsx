@@ -1,139 +1,97 @@
-'use client';
+import Link from "next/link";
+import HowItWorks from "@/components/how-it-works";
+import ProductDemoGrid from "@/components/product-demo-grid";
 
-import { useState, useEffect } from 'react';
-import { ArrowRight, Zap, Code2, Brain } from 'lucide-react';
-
-export default function LiveDemo() {
-  const [inputText, setInputText] = useState('Tell me about the history of artificial intelligence and its impact on modern society.');
-  const [originalTokens, setOriginalTokens] = useState(0);
-  const [optimizedTokens, setOptimizedTokens] = useState(0);
-  const [isProcessing, setIsProcessing] = useState(false);
-
-  useEffect(() => {
-    setOriginalTokens(inputText.split(/\s+/).length * 1.3);
-  }, [inputText]);
-
-  const handleOptimize = async () => {
-    setIsProcessing(true);
-    await new Promise(r => setTimeout(r, 1500));
-    setOptimizedTokens(Math.floor(originalTokens * 0.65));
-    setIsProcessing(false);
-  };
-
-  const savings = Math.round(((originalTokens - optimizedTokens) / originalTokens) * 100);
-  const costSavings = (originalTokens * 0.002 - optimizedTokens * 0.002).toFixed(4);
-
+export default function Home() {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-black via-zinc-900 to-black">
-      {/* Hero */}
-      <div className="max-w-7xl mx-auto px-6 pt-20 pb-12">
-        <div className="text-center mb-16">
-          <h1 className="text-6xl font-bold mb-6">
-            <span className="gradient-text">Reduce AI Token Usage</span>
-            <br />
-            <span className="text-white">By Up to 35%</span>
-          </h1>
-          <p className="text-xl text-zinc-400 max-w-2xl mx-auto">
-            Fortress optimizes every token in your AI prompts. Lower costs, faster responses, same results.
+    <div className="flex flex-col gap-16">
+      <section className="grid gap-10 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
+        <div className="space-y-6">
+          <p className="text-xs uppercase tracking-[0.4em] text-emerald-300">
+            Fortress Token Optimizer
           </p>
-        </div>
-
-        {/* Live Demo */}
-        <div className="card-dark p-8 mb-12">
-          <div className="grid md:grid-cols-2 gap-8">
-            {/* Input */}
-            <div>
-              <label className="block text-sm font-semibold mb-3">Your Prompt</label>
-              <textarea
-                value={inputText}
-                onChange={(e) => setInputText(e.target.value)}
-                className="w-full h-40 bg-zinc-950 border border-zinc-700 rounded-lg p-4 text-white resize-none focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500/50"
-              />
-              <div className="mt-3 flex items-center gap-2 text-zinc-400">
-                <Zap className="w-4 h-4 text-yellow-500" />
-                <span className="text-sm">{Math.round(originalTokens)} tokens</span>
-              </div>
-            </div>
-
-            {/* Output */}
-            <div>
-              <label className="block text-sm font-semibold mb-3">Optimized</label>
-              <div className="w-full h-40 bg-zinc-950 border border-zinc-700 rounded-lg p-4 overflow-auto">
-                {optimizedTokens > 0 ? (
-                  <p className="text-green-400 text-sm leading-relaxed">
-                    Tell me the history of AI and its societal impact.
-                  </p>
-                ) : (
-                  <p className="text-zinc-500 text-sm">Click "Optimize" to see the result</p>
-                )}
-              </div>
-              <div className="mt-3 flex items-center gap-2 text-zinc-400">
-                <Zap className="w-4 h-4 text-green-500" />
-                <span className="text-sm">{Math.round(optimizedTokens)} tokens</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Stats */}
-          <div className="grid grid-cols-3 gap-4 mt-8 pt-8 border-t border-zinc-800">
-            <div className="text-center">
-              <div className="text-3xl font-bold text-green-400">{savings}%</div>
-              <div className="text-sm text-zinc-400 mt-1">Token Reduction</div>
-            </div>
-            <div className="text-center">
-              <div className="text-3xl font-bold text-blue-400">${costSavings}</div>
-              <div className="text-sm text-zinc-400 mt-1">Cost Saved (per prompt)</div>
-            </div>
-            <div className="text-center">
-              <div className="text-3xl font-bold text-purple-400">1.5x</div>
-              <div className="text-sm text-zinc-400 mt-1">Faster Response</div>
-            </div>
-          </div>
-
-          {/* Button */}
-          <button
-            onClick={handleOptimize}
-            disabled={isProcessing}
-            className="w-full mt-8 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 disabled:opacity-50 text-white font-semibold py-3 rounded-lg transition flex items-center justify-center gap-2 glow"
-          >
-            {isProcessing ? (
-              <>
-                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                Optimizing...
-              </>
-            ) : (
-              <>
-                <Zap className="w-5 h-5" />
-                Optimize
-              </>
-            )}
-          </button>
-        </div>
-
-        {/* Product Grid */}
-        <div className="grid md:grid-cols-4 gap-6">
-          <div className="card-dark p-6">
-            <Code2 className="w-8 h-8 text-blue-400 mb-3" />
-            <h3 className="font-semibold mb-2">npm Package</h3>
-            <p className="text-sm text-zinc-400">Integrate in seconds</p>
-          </div>
-          <div className="card-dark p-6">
-            <Brain className="w-8 h-8 text-purple-400 mb-3" />
-            <h3 className="font-semibold mb-2">GitHub Copilot</h3>
-            <p className="text-sm text-zinc-400">Built-in optimization</p>
-          </div>
-          <div className="card-dark p-6">
-            <Zap className="w-8 h-8 text-yellow-400 mb-3" />
-            <h3 className="font-semibold mb-2">Slack Bot</h3>
-            <p className="text-sm text-zinc-400">Team collaboration</p>
-          </div>
-          <div className="card-dark p-6">
-            <ArrowRight className="w-8 h-8 text-green-400 mb-3" />
-            <h3 className="font-semibold mb-2">15+ Platforms</h3>
-            <p className="text-sm text-zinc-400">Plus many more...</p>
+          <h1 className="text-4xl font-semibold text-white md:text-5xl">
+            Live token optimization for every AI surface
+          </h1>
+          <p className="max-w-2xl text-base text-slate-300">
+            Compress prompts in realtime across npm, Copilot, VS Code, Slack, and
+            Claude Desktop. Keep fidelity high while cutting usage costs and
+            latency.
+          </p>
+          <div className="flex flex-wrap gap-4">
+            <Link
+              href="/pricing"
+              className="rounded-full bg-emerald-400/20 px-6 py-3 text-sm font-semibold text-emerald-100 transition hover:bg-emerald-400/30"
+            >
+              View pricing
+            </Link>
+            <Link
+              href="/install"
+              className="rounded-full border border-slate-700 px-6 py-3 text-sm font-semibold text-slate-200 transition hover:border-emerald-400/60"
+            >
+              Install guides
+            </Link>
           </div>
         </div>
-      </div>
+        <div className="grid gap-4">
+          <div className="rounded-3xl border border-emerald-500/30 bg-emerald-500/10 p-6">
+            <p className="text-xs uppercase tracking-[0.35em] text-emerald-200">
+              Live savings
+            </p>
+            <p className="mt-3 text-4xl font-semibold text-white">20%</p>
+            <p className="mt-2 text-sm text-emerald-100">
+              Average token reduction across active teams.
+            </p>
+          </div>
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-5">
+              <p className="text-xs uppercase tracking-[0.35em] text-slate-500">
+                Latency
+              </p>
+              <p className="mt-3 text-2xl font-semibold text-white">68ms</p>
+              <p className="mt-1 text-xs text-slate-400">Median optimization time.</p>
+            </div>
+            <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-5">
+              <p className="text-xs uppercase tracking-[0.35em] text-slate-500">
+                Coverage
+              </p>
+              <p className="mt-3 text-2xl font-semibold text-white">5</p>
+              <p className="mt-1 text-xs text-slate-400">Channels with live demos.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <HowItWorks />
+
+      <ProductDemoGrid />
+
+      <section className="rounded-3xl border border-slate-800 bg-slate-950/70 p-8">
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <div>
+            <h2 className="text-2xl font-semibold text-white">
+              Ready to see the savings on your stack?
+            </h2>
+            <p className="mt-2 text-sm text-slate-400">
+              Start with the free tier or explore realtime usage metrics.
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-4">
+            <Link
+              href="/dashboard"
+              className="rounded-full border border-emerald-500/40 bg-emerald-500/10 px-5 py-3 text-sm font-semibold text-emerald-100"
+            >
+              View dashboard
+            </Link>
+            <Link
+              href="/install"
+              className="rounded-full border border-slate-700 px-5 py-3 text-sm font-semibold text-slate-200"
+            >
+              Install now
+            </Link>
+          </div>
+        </div>
+      </section>
     </div>
   );
 }
