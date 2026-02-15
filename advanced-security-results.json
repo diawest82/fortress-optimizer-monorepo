@@ -1,0 +1,30 @@
+[
+  {
+    "test": "Info: Swagger/API Docs Exposed",
+    "severity": "MEDIUM",
+    "status": "VULNERABLE",
+    "payload": "",
+    "response_snippet": ""
+  },
+  {
+    "test": "BRAC: Directory Listing",
+    "severity": "MEDIUM",
+    "status": "BLOCKED",
+    "payload": "",
+    "response_snippet": ""
+  },
+  {
+    "test": "BRAC: Hidden Admin Endpoint",
+    "severity": "HIGH",
+    "status": "BLOCKED",
+    "payload": "",
+    "response_snippet": ""
+  },
+  {
+    "test": "Crypto: HTTP Instead of HTTPS",
+    "severity": "HIGH",
+    "status": "VULNERABLE",
+    "payload": "",
+    "response_snippet": ""
+  }
+]
