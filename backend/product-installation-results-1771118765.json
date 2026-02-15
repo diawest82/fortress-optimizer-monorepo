@@ -1,0 +1,21 @@
+{
+  "timestamp": "1771118765",
+  "backend_url": "http://localhost:8000",
+  "total_products": 11,
+  "passed": 4,
+  "failed": 7,
+  "score": 36,
+  "results": {
+    "npm": "FAIL",
+    "anthropic": "PASS",
+    "slack": "FAIL",
+    "neovim": "FAIL",
+    "sublime": "FAIL",
+    "gpt-store": "PASS",
+    "chatgpt-plugin": "PASS",
+    "make-zapier": "FAIL",
+    "claude-desktop": "PASS",
+    "jetbrains": "FAIL",
+    "vscode": "FAIL"
+  }
+}

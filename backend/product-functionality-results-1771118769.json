@@ -1,0 +1,75 @@
+{
+  "timestamp": "1771118769",
+  "backend_url": "http://localhost:8000",
+  "test_count": 20,
+  "passed": 8,
+  "failed": 12,
+  "score": 40,
+  "products_tested": [
+    {
+      "name": "npm",
+      "status": "FAIL"
+    }
+,
+    {
+      "name": "anthropic",
+      "status": "FAIL"
+    }
+,
+    {
+      "name": "slack",
+      "status": "FAIL"
+    }
+,
+    {
+      "name": "neovim",
+      "status": "FAIL"
+    }
+,
+    {
+      "name": "sublime",
+      "status": "FAIL"
+    }
+,
+    {
+      "name": "gpt-store",
+      "status": "store_result:-FAIL"
+    }
+,
+    {
+      "name": "chatgpt-plugin",
+      "status": "plugin_result:-FAIL"
+    }
+,
+    {
+      "name": "make-zapier",
+      "status": "zapier_result:-FAIL"
+    }
+,
+    {
+      "name": "claude-desktop",
+      "status": "desktop_result:-FAIL"
+    }
+,
+    {
+      "name": "jetbrains",
+      "status": "FAIL"
+    }
+,
+    {
+      "name": "vscode",
+      "status": "FAIL"
+    }
+  ],
+  "detailed_tests": {
+    "backend_health": "PASS",
+    "authentication": "PASS",
+    "token_optimization": "FAIL",
+    "rate_limiting": "PASS",
+    "usage_endpoint": "PASS",
+    "providers_endpoint": "PASS",
+    "error_handling": "PASS",
+    "response_format": "PASS",
+    "security_headers": "PASS"
+  }
+}

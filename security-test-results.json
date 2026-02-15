@@ -1,1 +1,7 @@
-{"summary":{"passed":7,"failed":3,"total":10,"passRate":70},"tests":[{"test":"Health Endpoint","status":"PASS","details":""},{"test":"Empty Payload Handling","status":"PASS","details":"Request properly rejected"},{"test":"SQL Injection Prevention","status":"PASS","details":"Malicious input rejected"},{"test":"XSS Prevention","status":"PASS","details":"Script tags properly escaped"},{"test":"Malformed JSON Handling","status":"PASS","details":"Invalid JSON rejected"},{"test":"Rate Limiting","status":"FAIL","details":"Should implement rate limiting"},{"test":"HTTPS Enforcement","status":"WARN","details":"Not using HTTPS (acceptable for dev/testing)"},{"test":"CORS Headers","status":"PASS","details":"CORS headers present"},{"test":"Authorization Check","status":"INFO","details":"Token validation may be optional (status: 200)"},{"test":"Security Headers","status":"PASS","details":"3 security headers found"}]}
+{
+  "passed": 8,
+  "failed": 2,
+  "total": 10,
+  "score": "80%",
+  "timestamp": "Sat Feb 14 19:21:56 CST 2026"
+}

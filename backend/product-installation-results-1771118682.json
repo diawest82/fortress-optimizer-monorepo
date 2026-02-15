@@ -1,0 +1,64 @@
+{
+  "timestamp": "1771118682",
+  "backend_url": "http://localhost:8000",
+  "total_products": 11,
+  "passed": 4,
+  "failed": 7,
+  "score": 36,
+  "results": {
+    "npm": {
+      "status": "FAIL",
+      "path": "N/A"
+    }
+,
+    "anthropic": {
+      "status": "FAIL",
+      "path": "N/A"
+    }
+,
+    "slack": {
+      "status": "FAIL",
+      "path": "N/A"
+    }
+,
+    "neovim": {
+      "status": "FAIL",
+      "path": "N/A"
+    }
+,
+    "sublime": {
+      "status": "FAIL",
+      "path": "N/A"
+    }
+,
+    "gpt-store": {
+      "status": "FAIL",
+      "path": "N/A"
+    }
+,
+    "chatgpt-plugin": {
+      "status": "FAIL",
+      "path": "N/A"
+    }
+,
+    "make-zapier": {
+      "status": "FAIL",
+      "path": "N/A"
+    }
+,
+    "claude-desktop": {
+      "status": "FAIL",
+      "path": "N/A"
+    }
+,
+    "jetbrains": {
+      "status": "FAIL",
+      "path": "N/A"
+    }
+,
+    "vscode": {
+      "status": "FAIL",
+      "path": "N/A"
+    }
+  }
+}

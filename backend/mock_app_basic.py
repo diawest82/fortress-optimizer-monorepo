@@ -1,82 +1,22 @@
 """
 Fortress Token Optimizer - Mock FastAPI Backend for Testing
 Provides mock endpoints for load and security testing without dependencies
-HARDENED for security testing - WITH RATE LIMITING & AUTHORIZATION
+HARDENED for security testing
 """
 
-from fastapi import FastAPI, HTTPException, Request, Header, Depends
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, validator
 import json
-from datetime import datetime, timedelta
-from typing import Optional, Dict
+from datetime import datetime
+from typing import Optional
 import re
 import html
-from collections import defaultdict
-import time
 
 app = FastAPI(title="Fortress Token Optimizer", version="1.0.0")
 
-# ============================================================================
-# RATE LIMITING SETUP
-# ============================================================================
-rate_limit_store: Dict[str, list] = defaultdict(list)
-RATE_LIMIT_REQUESTS = 1000  # requests per minute (testing)
-RATE_LIMIT_WINDOW = 60  # seconds
-
-# ============================================================================
-# API KEY AUTHORIZATION
-# ============================================================================
-VALID_API_KEYS = {
-    "sk_test_123",
-    "sk_test_456",
-    "test_key_valid",
-    "Bearer sk_test_123"
-}
-
-def get_client_ip(request: Request) -> str:
-    """Extract client IP from request"""
-    return request.client.host if request.client else "unknown"
-
-def check_rate_limit(request: Request) -> bool:
-    """Check if client has exceeded rate limit"""
-    client_ip = get_client_ip(request)
-    now = time.time()
-    
-    # Remove old requests outside the window
-    rate_limit_store[client_ip] = [
-        req_time for req_time in rate_limit_store[client_ip]
-        if now - req_time < RATE_LIMIT_WINDOW
-    ]
-    
-    # Check if limit exceeded
-    if len(rate_limit_store[client_ip]) >= RATE_LIMIT_REQUESTS:
-        return False
-    
-    # Add current request
-    rate_limit_store[client_ip].append(now)
-    return True
-
-def validate_api_key(authorization: Optional[str] = Header(None)) -> str:
-    """Validate API key from Authorization header"""
-    if not authorization:
-        raise HTTPException(status_code=401, detail="Missing API key")
-    
-    # Extract key from "Bearer sk_test_123" format or direct key
-    if authorization.startswith("Bearer "):
-        api_key = authorization[7:]  # Remove "Bearer " prefix
-    else:
-        api_key = authorization
-    
-    if api_key not in VALID_API_KEYS and f"Bearer {api_key}" not in VALID_API_KEYS:
-        raise HTTPException(status_code=403, detail="Invalid API key")
-    
-    return api_key
-
-# ============================================================================
-# CORS & SECURITY HEADERS
-# ============================================================================
+# Enable CORS with proper headers
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -111,21 +51,7 @@ async def limit_request_size(request: Request, call_next):
             )
     return await call_next(request)
 
-# Add rate limiting middleware
-@app.middleware("http")
-async def rate_limit_middleware(request: Request, call_next):
-    """Enforce rate limiting"""
-    if request.method in ["POST", "PUT", "PATCH", "GET"]:
-        if not check_rate_limit(request):
-            return JSONResponse(
-                status_code=429,
-                content={"detail": "Rate limit exceeded (100 requests/minute)"}
-            )
-    return await call_next(request)
-
-# ============================================================================
-# DATA MODELS
-# ============================================================================
+# Models with validation
 class OptimizeRequest(BaseModel):
     provider: str
     text: str
@@ -135,11 +61,7 @@ class OptimizeRequest(BaseModel):
     @validator('provider')
     def validate_provider(cls, v):
         """Validate provider is in whitelist"""
-        allowed = {
-            "anthropic", "openai", "google", "slack", "npm", "vscode", 
-            "discord", "make", "zapier", "neovim", "sublime", "gpt-store", 
-            "chatgpt-plugin", "make-zapier", "claude-desktop", "jetbrains"
-        }
+        allowed = {"anthropic", "openai", "google", "slack", "npm", "vscode", "discord", "make", "zapier"}
         if v not in allowed:
             raise ValueError(f"Invalid provider. Must be one of: {allowed}")
         return v
@@ -195,24 +117,18 @@ class HealthResponse(BaseModel):
     status: str
     timestamp: str
 
-# ============================================================================
-# ENDPOINTS
-# ============================================================================
+# Endpoints
 @app.get("/health")
 async def health() -> HealthResponse:
-    """Health check endpoint (no auth required)"""
+    """Health check endpoint"""
     return HealthResponse(
         status="healthy",
         timestamp=datetime.utcnow().isoformat()
     )
 
 @app.post("/optimize")
-async def optimize(request: OptimizeRequest, api_key: str = Depends(validate_api_key)) -> OptimizeResponse:
-    """Token optimization endpoint - hardened against attacks
-    
-    Requires: Authorization header with Bearer token
-    Example: Authorization: Bearer sk_test_123
-    """
+async def optimize(request: OptimizeRequest) -> OptimizeResponse:
+    """Token optimization endpoint - hardened against attacks"""
     
     try:
         # Input validation happens in pydantic model
@@ -244,8 +160,8 @@ async def optimize(request: OptimizeRequest, api_key: str = Depends(validate_api
         raise HTTPException(status_code=500, detail="Internal server error")
 
 @app.get("/usage")
-async def usage(user_id: str, api_key: str = Depends(validate_api_key)) -> UsageResponse:
-    """Usage tracking endpoint - requires API key"""
+async def usage(user_id: str) -> UsageResponse:
+    """Usage tracking endpoint"""
     return UsageResponse(
         user_id=user_id,
         tokens_used=45000,
@@ -255,7 +171,7 @@ async def usage(user_id: str, api_key: str = Depends(validate_api_key)) -> Usage
 
 @app.get("/pricing")
 async def pricing() -> PricingResponse:
-    """Pricing information endpoint (no auth required)"""
+    """Pricing information endpoint"""
     return PricingResponse(
         plans=[
             PricingTier(name="free", tokens_per_month="50000", price=0.0),
@@ -266,7 +182,7 @@ async def pricing() -> PricingResponse:
 
 @app.get("/providers")
 async def providers():
-    """List supported providers (no auth required)"""
+    """List supported providers"""
     return {
         "providers": ["anthropic", "openai", "google", "slack", "npm", "vscode", "discord", "make", "zapier"],
         "total": 9
