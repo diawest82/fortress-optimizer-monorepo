@@ -143,6 +143,10 @@ echo "════════════════════════�
 echo "5️⃣  USAGE TRACKING TEST"
 echo "════════════════════════════════════════════════════════════════"
 
+# DEBUG: Print the API key being used
+echo "DEBUG: TEST_API_KEY variable = '$TEST_API_KEY'"
+echo "DEBUG: Length = ${#TEST_API_KEY}"
+
 USAGE_RESPONSE=$(curl -s -X GET "$BACKEND_URL/usage" \
   -H "Authorization: Bearer $TEST_API_KEY" \
   -w "\n%{http_code}")

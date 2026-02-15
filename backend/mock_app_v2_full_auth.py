@@ -284,41 +284,115 @@ async def add_security_headers(request: Request, call_next):
 
 def verify_api_key_with_tier(authorization: Optional[str] = Header(None)) -> dict:
     """Verify API key and return user tier information"""
-    if not authorization:
-        raise HTTPException(status_code=401, detail="Missing API key")
-    
-    # Extract key from "Bearer sk_..." format
-    if authorization.startswith("Bearer "):
-        api_key = authorization[7:]
-    else:
-        api_key = authorization
-    
-    # Hash and look up in API keys DB
-    api_key_hash = hash_api_key(api_key)
-    
-    if api_key_hash not in api_keys_db:
-        raise HTTPException(status_code=403, detail="Invalid API key")
-    
-    api_key_record = api_keys_db[api_key_hash]
-    user_id = api_key_record["user_id"]
-    
-    if user_id not in users_db:
-        raise HTTPException(status_code=403, detail="User not found")
-    
-    user = users_db[user_id]
-    subscription = subscriptions_db.get(user_id, {})
-    
-    # Get usage for current month
-    month_key = f"{user_id}:{get_current_month_year()}"
-    usage = usage_db[month_key]
-    
-    return {
-        "user_id": user_id,
-        "email": user["email"],
-        "tier": subscription.get("tier", "free"),
-        "usage": usage,
-        "api_key": api_key
-    }
+    try:
+        print(f"\n=== VERIFY_API_KEY_WITH_TIER START ===")
+        
+        if not authorization:
+            print("STEP 1 FAIL: No authorization header")
+            raise HTTPException(status_code=401, detail="Missing API key")
+        
+        print(f"STEP 1: Got authorization header")
+        
+        # Extract key from "Bearer sk_..." format
+        if authorization.startswith("Bearer "):
+            api_key = authorization[7:]
+        else:
+            api_key = authorization
+        
+        print(f"STEP 2: Extracted API key: {api_key[:20]}...")
+        
+        # Hash and look up in API keys DB
+        try:
+            api_key_hash = hash_api_key(api_key)
+            print(f"STEP 3: Computed hash: {api_key_hash}")
+        except Exception as e:
+            print(f"STEP 3 ERROR: {type(e).__name__}: {e}")
+            raise
+        
+        try:
+            if api_key_hash not in api_keys_db:
+                print(f"STEP 4 FAIL: Hash not in DB. Available: {list(api_keys_db.keys())}")
+                raise HTTPException(status_code=403, detail="Invalid API key")
+            print(f"STEP 4: Hash found in DB ({len(api_keys_db)} keys)")
+        except HTTPException:
+            raise
+        except Exception as e:
+            print(f"STEP 4 ERROR: {type(e).__name__}: {e}")
+            raise
+        
+        try:
+            api_key_record = api_keys_db[api_key_hash]
+            print(f"STEP 5: Got API key record")
+        except Exception as e:
+            print(f"STEP 5 ERROR: {type(e).__name__}: {e}")
+            raise
+        
+        try:
+            user_id = api_key_record["user_id"]
+            print(f"STEP 6: Extracted user_id: {user_id}")
+        except Exception as e:
+            print(f"STEP 6 ERROR: {type(e).__name__}: {e}")
+            raise
+        
+        try:
+            if user_id not in users_db:
+                print(f"STEP 7 FAIL: User not in DB. Available: {list(users_db.keys())}")
+                raise HTTPException(status_code=403, detail="User not found")
+            print(f"STEP 7: User found ({len(users_db)} users)")
+        except HTTPException:
+            raise
+        except Exception as e:
+            print(f"STEP 7 ERROR: {type(e).__name__}: {e}")
+            raise
+        
+        try:
+            user = users_db[user_id]
+            print(f"STEP 8: Retrieved user record")
+        except Exception as e:
+            print(f"STEP 8 ERROR: {type(e).__name__}: {e}")
+            raise
+        
+        try:
+            subscription = subscriptions_db.get(user_id, {})
+            tier = subscription.get("tier", "free")
+            print(f"STEP 9: Got subscription (tier={tier})")
+        except Exception as e:
+            print(f"STEP 9 ERROR: {type(e).__name__}: {e}")
+            raise
+        
+        try:
+            month_key = f"{user_id}:{get_current_month_year()}"
+            print(f"STEP 10: Created month_key: {month_key}")
+        except Exception as e:
+            print(f"STEP 10 ERROR: {type(e).__name__}: {e}")
+            raise
+        
+        try:
+            usage = usage_db[month_key]
+            print(f"STEP 11: Got usage data")
+        except Exception as e:
+            print(f"STEP 11 ERROR: {type(e).__name__}: {e}")
+            raise
+        
+        result = {
+            "user_id": user_id,
+            "email": user["email"],
+            "tier": tier,
+            "usage": usage,
+            "api_key": api_key
+        }
+        print(f"✓ All steps complete. Returning user_info")
+        print(f"=== VERIFY_API_KEY_WITH_TIER SUCCESS ===\n")
+        return result
+        
+    except HTTPException as e:
+        print(f"✗ HTTPException: {e.detail}")
+        print(f"=== VERIFY_API_KEY_WITH_TIER FAILED ===\n")
+        raise
+    except Exception as e:
+        print(f"✗ Unexpected error: {type(e).__name__}: {e}")
+        print(f"=== VERIFY_API_KEY_WITH_TIER ERROR ===\n")
+        raise HTTPException(status_code=403, detail="Invalid API key") from e
 
 def verify_jwt_token(authorization: Optional[str] = Header(None)) -> dict:
     """Verify JWT token from Authorization header"""
@@ -384,6 +458,13 @@ async def signup(request: SignupRequest):
         "created_at": datetime.now(timezone.utc).isoformat(),
         "expires_at": None
     }
+    
+    print(f"\n=== SIGNUP DEBUG ===")
+    print(f"Generated API key: {api_key}")
+    print(f"API key hash: {api_key_hash}")
+    print(f"Total keys in DB after signup: {len(api_keys_db)}")
+    print(f"API keys DB contents: {list(api_keys_db.keys())}")
+    print(f"=== END DEBUG ===\n")
     
     # Generate JWT
     token = generate_jwt(user_id)
@@ -577,6 +658,10 @@ async def delete_api_key(key_name: str, user = Depends(verify_jwt_token)):
 @app.get("/usage", response_model=UsageResponse)
 async def get_usage(user_info = Depends(verify_api_key_with_tier)):
     """Get usage for current month"""
+    print(f"\n=== GET_USAGE ENDPOINT ===")
+    print(f"user_info received: {user_info}")
+    print(f"=== END GET_USAGE ===\n")
+    
     user_id = user_info["user_id"]
     tier = user_info["tier"]
     usage = user_info["usage"]
