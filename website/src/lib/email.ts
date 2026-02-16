@@ -1,9 +1,16 @@
 import { Resend } from 'resend';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-
 const FROM_EMAIL = process.env.FROM_EMAIL || 'onboarding@resend.dev';
 const SUPPORT_EMAIL = 'support@fortress-optimizer.com';
+
+// Lazy-load Resend to avoid errors during build when API key is not set
+function getResendClient() {
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) {
+    throw new Error('Email service not configured (RESEND_API_KEY not set)');
+  }
+  return new Resend(apiKey);
+}
 
 export interface EmailOptions {
   to: string;
@@ -24,6 +31,7 @@ export async function sendEmail({
   }
 
   try {
+    const resend = getResendClient();
     const result = await resend.emails.send({
       from: FROM_EMAIL,
       to,
