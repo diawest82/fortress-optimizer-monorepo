@@ -1,6 +1,7 @@
 import { NextAuthOptions, Session } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
+import GitHubProvider from "next-auth/providers/github";
 import bcrypt from "bcryptjs";
 import { JWT } from "next-auth/jwt";
 
@@ -12,6 +13,7 @@ declare module "next-auth" {
       name?: string | null;
       email?: string | null;
       image?: string | null;
+      provider?: string;
     };
   }
 }
@@ -58,21 +60,34 @@ export const authConfig: NextAuthOptions = {
       clientId: process.env.GOOGLE_CLIENT_ID || "",
       clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
     }),
+    GitHubProvider({
+      clientId: process.env.GITHUB_ID || "",
+      clientSecret: process.env.GITHUB_SECRET || "",
+    }),
   ],
   pages: {
-    signIn: "/auth/login",
+    signIn: "/auth/signin",
     error: "/auth/error",
   },
   callbacks: {
     async session({ session, token }) {
       if (session.user) {
         session.user.id = token.sub || "";
+        (session.user as any).provider = (token as any).provider;
       }
       return session;
     },
-    async jwt({ token, user }) {
+    async jwt({ token, user, account, profile }) {
       if (user) {
         token.sub = user.id;
+      }
+      if (account) {
+        (token as any).provider = account.provider;
+        (token as any).providerAccountId = account.providerAccountId;
+      }
+      // Auto-enable MFA for OAuth users
+      if (account && account.type === 'oauth') {
+        (token as any).mfaEnabled = true;
       }
       return token;
     },
