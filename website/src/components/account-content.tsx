@@ -1,52 +1,136 @@
 "use client";
 
-import { useSession, signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { useAuth } from "@/context/AuthContext";
+import { apiClient } from "@/lib/api";
 
 interface ApiKey {
-  id: string;
+  key_id?: string;
+  id?: string;
   name: string;
-  key: string;
+  key?: string;
   masked: string;
-  created: string;
-  lastUsed: string | null;
+  created_at: string;
+  last_used: string | null;
+}
+
+interface SubscriptionData {
+  tier: string;
+  tokens_limit: number;
+  tokens_used: number;
+  next_billing_date: string;
+  status: string;
 }
 
 export default function AccountContent() {
-  const { data: session, status } = useSession();
+  const { user, isLoading, logout } = useAuth();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState("overview");
-  const [apiKeys, setApiKeys] = useState<ApiKey[]>([
-    {
-      id: "key_1",
-      name: "Production API Key",
-      key: "fk_prod_abc123def456ghi789jkl012mno345",
-      masked: "fk_prod_abc123def456••••••••••••••••••••",
-      created: "2024-01-15",
-      lastUsed: "2024-01-20"
-    },
-    {
-      id: "key_2",
-      name: "Development Key",
-      key: "fk_dev_xyz789uvw456rst123pqr890stu567",
-      masked: "fk_dev_xyz789uvw456••••••••••••••••••••",
-      created: "2024-01-10",
-      lastUsed: null
-    }
-  ]);
+  const [apiKeys, setApiKeys] = useState<ApiKey[]>([]);
+  const [subscription, setSubscription] = useState<SubscriptionData | null>(null);
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
   const [showNewKeyForm, setShowNewKeyForm] = useState(false);
   const [newKeyName, setNewKeyName] = useState("");
+  const [apiKeysLoading, setApiKeysLoading] = useState(false);
+  const [apiKeysError, setApiKeysError] = useState<string | null>(null);
+  const [passwordData, setPasswordData] = useState({ old: "", new: "", confirm: "" });
+  const [passwordChangeError, setPasswordChangeError] = useState<string | null>(null);
+  const [passwordChangeSuccess, setPasswordChangeSuccess] = useState(false);
 
   useEffect(() => {
-    if (status === "unauthenticated") {
+    if (!isLoading && !user) {
       router.push("/auth/login");
     }
-  }, [status, router]);
+  }, [isLoading, user, router]);
 
-  if (!session) {
+  useEffect(() => {
+    if (activeTab === "api-keys" && user) {
+      loadApiKeys();
+    }
+    if (activeTab === "billing" && user) {
+      loadSubscription();
+    }
+  }, [activeTab, user]);
+
+  const loadApiKeys = async () => {
+    setApiKeysLoading(true);
+    setApiKeysError(null);
+    try {
+      const keys = await apiClient.getAPIKeys();
+      setApiKeys(Array.isArray(keys) ? keys : []);
+    } catch (error) {
+      setApiKeysError(error instanceof Error ? error.message : "Failed to load API keys");
+      setApiKeys([]);
+    } finally {
+      setApiKeysLoading(false);
+    }
+  };
+
+  const loadSubscription = async () => {
+    try {
+      const sub = await apiClient.getSubscription();
+      setSubscription(sub as SubscriptionData);
+    } catch {
+      console.error("Failed to load subscription");
+    }
+  };
+
+  const generateNewKey = async () => {
+    if (!newKeyName.trim()) return;
+    
+    try {
+      const response = await apiClient.generateAPIKey(newKeyName);
+      setApiKeys([...apiKeys, response as ApiKey]);
+      setNewKeyName("");
+      setShowNewKeyForm(false);
+    } catch (error) {
+      setApiKeysError(error instanceof Error ? error.message : "Failed to generate API key");
+    }
+  };
+
+  const revokeKey = async (keyId: string, keyName: string) => {
+    try {
+      await apiClient.revokeAPIKey(keyName);
+      setApiKeys(apiKeys.filter(k => (k.key_id || k.id) !== keyId));
+    } catch (error) {
+      setApiKeysError(error instanceof Error ? error.message : "Failed to revoke API key");
+    }
+  };
+
+  const changePassword = async () => {
+    if (passwordData.new !== passwordData.confirm) {
+      setPasswordChangeError("Passwords do not match");
+      return;
+    }
+    
+    if (passwordData.new.length < 8) {
+      setPasswordChangeError("Password must be at least 8 characters");
+      return;
+    }
+    
+    try {
+      await apiClient.changePassword(passwordData.old, passwordData.new);
+      setPasswordChangeSuccess(true);
+      setPasswordData({ old: "", new: "", confirm: "" });
+      setPasswordChangeError(null);
+      setTimeout(() => setPasswordChangeSuccess(false), 3000);
+    } catch (error) {
+      setPasswordChangeError(error instanceof Error ? error.message : "Failed to change password");
+    }
+  };
+
+  const handleLogout = () => {
+    logout();
+    router.push("/");
+  };
+
+  if (isLoading) {
+    return null;
+  }
+
+  if (!user) {
     return null;
   }
 
@@ -66,9 +150,9 @@ export default function AccountContent() {
             Fortress
           </Link>
           <div className="flex items-center gap-4">
-            <span className="text-slate-400">{session.user?.email}</span>
+            <span className="text-slate-400">{user.email}</span>
             <button
-              onClick={() => signOut({ callbackUrl: "/" })}
+              onClick={handleLogout}
               className="px-4 py-2 text-sm bg-slate-800 text-white rounded-lg hover:bg-slate-700"
             >
               Log out
@@ -86,10 +170,11 @@ export default function AccountContent() {
               {/* User Card */}
               <div className="mb-8 pb-8 border-b border-slate-700">
                 <div className="w-12 h-12 rounded-full bg-gradient-to-br from-emerald-500 to-cyan-500 flex items-center justify-center text-white font-bold mb-3">
-                  {session.user?.name?.charAt(0) || "U"}
+                  {user.name?.charAt(0) || "U"}
                 </div>
-                <h3 className="font-semibold text-white">{session.user?.name}</h3>
-                <p className="text-xs text-slate-400">{session.user?.email}</p>
+                <h3 className="font-semibold text-white">{user.name}</h3>
+                <p className="text-xs text-slate-400">{user.email}</p>
+                <p className="text-xs text-emerald-400 mt-2 capitalize">{user.tier} Tier</p>
               </div>
 
               {/* Navigation */}
@@ -115,51 +200,38 @@ export default function AccountContent() {
           <div className="lg:col-span-3">
             {activeTab === "overview" && (
               <div className="space-y-6">
-                <h1 className="text-3xl font-bold text-white">Dashboard</h1>
+                <h1 className="text-3xl font-bold text-white">Account Dashboard</h1>
 
                 {/* Tier Badge */}
                 <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-6">
                   <p className="text-sm text-emerald-300 mb-2">Current Plan</p>
-                  <h2 className="text-2xl font-bold text-white">Free</h2>
-                  <p className="text-slate-400 mt-1">50K tokens/month • No credit card required</p>
+                  <h2 className="text-2xl font-bold text-white capitalize">{user.tier}</h2>
+                  <p className="text-slate-400 mt-1">Account created {new Date(user.created_at).toLocaleDateString()}</p>
                 </div>
 
-                {/* Usage Stats */}
-                <div className="grid gap-4">
-                  <div className="rounded-2xl border border-slate-800 bg-slate-900/50 p-6">
-                    <p className="text-sm text-slate-400 mb-2">Tokens Used This Month</p>
-                    <div className="flex items-baseline gap-2">
-                      <p className="text-3xl font-bold text-white">12.4M</p>
-                      <span className="text-slate-400">/ Unlimited</span>
-                    </div>
-                    <div className="w-full bg-slate-800 rounded-full h-2 mt-4">
-                      <div className="bg-emerald-500 h-2 rounded-full" style={{ width: "24%" }}></div>
-                    </div>
+                {/* Quick Stats */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="rounded-2xl border border-slate-800 bg-slate-900/50 p-4">
+                    <p className="text-xs text-slate-400 mb-2">Email Verified</p>
+                    <p className="text-lg font-bold text-emerald-400">✓</p>
                   </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="rounded-2xl border border-slate-800 bg-slate-900/50 p-4">
-                      <p className="text-xs text-slate-400 mb-1">Requests</p>
-                      <p className="text-2xl font-bold text-white">3,245</p>
-                    </div>
-                    <div className="rounded-2xl border border-slate-800 bg-slate-900/50 p-4">
-                      <p className="text-xs text-slate-400 mb-1">Channels Active</p>
-                      <p className="text-2xl font-bold text-white">2/5</p>
-                    </div>
+                  <div className="rounded-2xl border border-slate-800 bg-slate-900/50 p-4">
+                    <p className="text-xs text-slate-400 mb-2">API Keys</p>
+                    <p className="text-lg font-bold text-white">{apiKeys.length}</p>
                   </div>
                 </div>
 
                 {/* CTA */}
                 <div className="rounded-2xl border border-cyan-500/30 bg-cyan-500/10 p-6">
-                  <h3 className="font-semibold text-white mb-2">Ready to scale?</h3>
+                  <h3 className="font-semibold text-white mb-2">Upgrade your plan</h3>
                   <p className="text-slate-400 text-sm mb-4">
-                    Upgrade to Pro for unlimited tokens and advanced analytics.
+                    Get more tokens, priority support, and advanced features.
                   </p>
                   <Link
                     href="/pricing"
                     className="inline-block px-4 py-2 bg-cyan-500 text-white rounded-lg hover:bg-cyan-600"
                   >
-                    View Pro Pricing
+                    View Pricing
                   </Link>
                 </div>
               </div>
@@ -176,6 +248,12 @@ export default function AccountContent() {
                     {showNewKeyForm ? "Cancel" : "Generate Key"}
                   </button>
                 </div>
+
+                {apiKeysError && (
+                  <div className="rounded-lg bg-red-500/10 border border-red-500/30 p-4 text-red-400 text-sm">
+                    {apiKeysError}
+                  </div>
+                )}
 
                 {showNewKeyForm && (
                   <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-6">
@@ -197,65 +275,60 @@ export default function AccountContent() {
                         Provide a descriptive name to identify what this key is used for.
                       </p>
                       <button
-                        onClick={() => {
-                          if (newKeyName.trim()) {
-                            const newKey: ApiKey = {
-                              id: `key_${Date.now()}`,
-                              name: newKeyName,
-                              key: `fk_prod_${Math.random().toString(36).substring(2, 15)}${Math.random().toString(36).substring(2, 15)}`,
-                              masked: `fk_prod_${Math.random().toString(36).substring(2, 15).substring(0, 6)}••••••••••••••••••••`,
-                              created: new Date().toISOString().split('T')[0],
-                              lastUsed: null
-                            };
-                            setApiKeys([...apiKeys, newKey]);
-                            setNewKeyName("");
-                            setShowNewKeyForm(false);
-                          }
-                        }}
-                        className="px-4 py-2 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 font-medium"
+                        onClick={generateNewKey}
+                        disabled={!newKeyName.trim() || apiKeysLoading}
+                        className="px-4 py-2 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 font-medium disabled:opacity-50"
                       >
-                        Create Key
+                        {apiKeysLoading ? "Creating..." : "Create Key"}
                       </button>
                     </div>
                   </div>
                 )}
 
-                {apiKeys.length > 0 ? (
+                {apiKeysLoading ? (
+                  <div className="rounded-2xl border border-slate-800 bg-slate-900/50 p-6">
+                    <p className="text-slate-400">Loading API keys...</p>
+                  </div>
+                ) : apiKeys.length > 0 ? (
                   <div className="space-y-4">
                     {apiKeys.map((apiKey) => (
-                      <div key={apiKey.id} className="rounded-2xl border border-slate-800 bg-slate-900/50 p-6">
+                      <div key={apiKey.key_id || apiKey.id} className="rounded-2xl border border-slate-800 bg-slate-900/50 p-6">
                         <div className="flex justify-between items-start mb-4">
                           <div>
                             <h3 className="font-semibold text-white">{apiKey.name}</h3>
-                            <p className="text-xs text-slate-400">Created {apiKey.created}</p>
+                            <p className="text-xs text-slate-400">Created {new Date(apiKey.created_at).toLocaleDateString()}</p>
                           </div>
                           <button
-                            onClick={() => setApiKeys(apiKeys.filter(k => k.id !== apiKey.id))}
+                            onClick={() => revokeKey(apiKey.key_id || apiKey.id || "", apiKey.name)}
                             className="px-3 py-1 text-xs bg-red-500/20 text-red-400 rounded hover:bg-red-500/30"
                           >
                             Revoke
                           </button>
                         </div>
 
-                        <div className="bg-slate-950/50 rounded-lg p-3 mb-3 border border-slate-700">
-                          <div className="flex justify-between items-center">
-                            <code className="text-sm text-slate-300 font-mono">{apiKey.masked}</code>
-                            <button
-                              onClick={() => {
-                                navigator.clipboard.writeText(apiKey.key);
-                                setCopiedKey(apiKey.id);
-                                setTimeout(() => setCopiedKey(null), 2000);
-                              }}
-                              className="ml-2 px-3 py-1 text-xs bg-slate-800 text-slate-300 rounded hover:bg-slate-700"
-                            >
-                              {copiedKey === apiKey.id ? "Copied!" : "Copy"}
-                            </button>
+                        {apiKey.key && (
+                          <div className="bg-slate-950/50 rounded-lg p-3 mb-3 border border-slate-700">
+                            <div className="flex justify-between items-center">
+                              <code className="text-sm text-slate-300 font-mono">{apiKey.masked}</code>
+                              <button
+                                onClick={() => {
+                                  if (apiKey.key) {
+                                    navigator.clipboard.writeText(apiKey.key);
+                                    setCopiedKey(apiKey.key_id || apiKey.id || "");
+                                    setTimeout(() => setCopiedKey(null), 2000);
+                                  }
+                                }}
+                                className="ml-2 px-3 py-1 text-xs bg-slate-800 text-slate-300 rounded hover:bg-slate-700"
+                              >
+                                {copiedKey === (apiKey.key_id || apiKey.id) ? "Copied!" : "Copy"}
+                              </button>
+                            </div>
                           </div>
-                        </div>
+                        )}
 
-                        {apiKey.lastUsed ? (
+                        {apiKey.last_used ? (
                           <p className="text-xs text-slate-400">
-                            Last used: <span className="text-slate-300">{apiKey.lastUsed}</span>
+                            Last used: <span className="text-slate-300">{new Date(apiKey.last_used).toLocaleDateString()}</span>
                           </p>
                         ) : (
                           <p className="text-xs text-slate-500">Never used</p>
@@ -274,71 +347,149 @@ export default function AccountContent() {
                     </button>
                   </div>
                 )}
-
-                <div className="rounded-2xl border border-slate-800 bg-slate-900/50 p-6">
-                  <h3 className="font-semibold text-white mb-3">How to Use Your API Key</h3>
-                  <div className="space-y-3 text-sm">
-                    <div>
-                      <p className="text-slate-400 mb-2">
-                        Add your API key to your tool&apos;s configuration:
-                      </p>
-                      <code className="block bg-slate-950 p-2 rounded text-slate-300 font-mono text-xs overflow-x-auto">
-                        FORTRESS_API_KEY=fk_prod_abc123def456...
-                      </code>
-                    </div>
-                    <p className="text-slate-400">
-                      Visit <Link href="/docs" className="text-emerald-400 hover:underline">our documentation</Link> for integration guides with npm, VS Code, GitHub Copilot, Slack, and Claude Desktop.
-                    </p>
-                  </div>
-                </div>
               </div>
             )}
 
             {activeTab === "billing" && (
               <div className="space-y-6">
                 <h1 className="text-3xl font-bold text-white">Billing & Usage</h1>
-                <div className="rounded-2xl border border-slate-800 bg-slate-900/50 p-6">
-                  <p className="text-slate-400 mb-4">You&apos;re on the Free plan.</p>
-                  <p className="text-slate-400 text-sm mb-4">Upgrade to Pro or Team to see billing details.</p>
-                  <Link
-                    href="/pricing"
-                    className="inline-block px-4 py-2 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600"
-                  >
-                    View Pricing
-                  </Link>
-                </div>
+                
+                {subscription ? (
+                  <>
+                    <div className="rounded-2xl border border-slate-800 bg-slate-900/50 p-6">
+                      <p className="text-sm text-slate-400 mb-2">Current Tier</p>
+                      <h2 className="text-2xl font-bold text-white capitalize">{subscription.tier}</h2>
+                      <div className="mt-4 space-y-3">
+                        <div className="flex justify-between items-center">
+                          <span className="text-slate-400">Tokens Used</span>
+                          <span className="text-white font-bold">{subscription.tokens_used.toLocaleString()} / {subscription.tokens_limit.toLocaleString()}</span>
+                        </div>
+                        <div className="w-full bg-slate-800 rounded-full h-3">
+                          <div 
+                            className="bg-emerald-500 h-3 rounded-full" 
+                            style={{ width: `${Math.min(100, (subscription.tokens_used / subscription.tokens_limit) * 100)}%` }}
+                          ></div>
+                        </div>
+                        <p className="text-xs text-slate-400">
+                          Next billing: {new Date(subscription.next_billing_date).toLocaleDateString()}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="rounded-2xl border border-cyan-500/30 bg-cyan-500/10 p-6">
+                      <h3 className="font-semibold text-white mb-2">Upgrade or Downgrade</h3>
+                      <p className="text-slate-400 text-sm mb-4">
+                        Change your subscription tier to adjust your token limits.
+                      </p>
+                      <Link
+                        href="/pricing"
+                        className="inline-block px-4 py-2 bg-cyan-500 text-white rounded-lg hover:bg-cyan-600"
+                      >
+                        View All Plans
+                      </Link>
+                    </div>
+                  </>
+                ) : (
+                  <div className="rounded-2xl border border-slate-800 bg-slate-900/50 p-6">
+                    <p className="text-slate-400">Loading billing information...</p>
+                  </div>
+                )}
               </div>
             )}
 
             {activeTab === "settings" && (
               <div className="space-y-6">
                 <h1 className="text-3xl font-bold text-white">Account Settings</h1>
-                <div className="rounded-2xl border border-slate-800 bg-slate-900/50 p-6 space-y-4">
+                
+                <div className="rounded-2xl border border-slate-800 bg-slate-900/50 p-6 space-y-6">
                   <div>
-                    <label className="block text-sm font-medium text-slate-200 mb-2">
-                      Email
-                    </label>
-                    <input
-                      type="email"
-                      value={session.user?.email || ""}
-                      disabled
-                      className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-slate-400"
-                    />
+                    <h3 className="font-semibold text-white mb-4">Account Information</h3>
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium text-slate-200 mb-2">
+                          Email
+                        </label>
+                        <input
+                          type="email"
+                          value={user.email}
+                          disabled
+                          className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-slate-400"
+                        />
+                        <p className="text-xs text-slate-500 mt-1">✓ Email verified</p>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-slate-200 mb-2">
+                          Display Name
+                        </label>
+                        <input
+                          type="text"
+                          value={user.name}
+                          disabled
+                          className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-slate-400"
+                        />
+                      </div>
+                    </div>
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-slate-200 mb-2">
-                      Display Name
-                    </label>
-                    <input
-                      type="text"
-                      value={session.user?.name || ""}
-                      disabled
-                      className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-slate-400"
-                    />
+
+                  <div className="border-t border-slate-700 pt-6">
+                    <h3 className="font-semibold text-white mb-4">Change Password</h3>
+                    
+                    {passwordChangeSuccess && (
+                      <div className="rounded-lg bg-emerald-500/10 border border-emerald-500/30 p-4 text-emerald-400 text-sm mb-4">
+                        Password changed successfully!
+                      </div>
+                    )}
+                    
+                    {passwordChangeError && (
+                      <div className="rounded-lg bg-red-500/10 border border-red-500/30 p-4 text-red-400 text-sm mb-4">
+                        {passwordChangeError}
+                      </div>
+                    )}
+                    
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium text-slate-200 mb-2">
+                          Current Password
+                        </label>
+                        <input
+                          type="password"
+                          value={passwordData.old}
+                          onChange={(e) => setPasswordData({ ...passwordData, old: e.target.value })}
+                          className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-white placeholder-slate-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-slate-200 mb-2">
+                          New Password
+                        </label>
+                        <input
+                          type="password"
+                          value={passwordData.new}
+                          onChange={(e) => setPasswordData({ ...passwordData, new: e.target.value })}
+                          placeholder="At least 8 characters"
+                          className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-white placeholder-slate-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-slate-200 mb-2">
+                          Confirm New Password
+                        </label>
+                        <input
+                          type="password"
+                          value={passwordData.confirm}
+                          onChange={(e) => setPasswordData({ ...passwordData, confirm: e.target.value })}
+                          className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-white placeholder-slate-500"
+                        />
+                      </div>
+                      <button
+                        onClick={changePassword}
+                        disabled={!passwordData.old || !passwordData.new || !passwordData.confirm}
+                        className="px-4 py-2 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 font-medium disabled:opacity-50"
+                      >
+                        Update Password
+                      </button>
+                    </div>
                   </div>
-                  <button className="px-4 py-2 bg-slate-800 text-white rounded-lg hover:bg-slate-700">
-                    Change Password
-                  </button>
                 </div>
               </div>
             )}
