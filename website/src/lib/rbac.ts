@@ -136,8 +136,8 @@ export function canPerformAction(
   resourceOwnerId?: string,
   userId?: string
 ): boolean {
-  // Admins can do anything
-  if (userRole === 'admin') {
+  // Admins and moderators can do anything
+  if (userRole === 'admin' || userRole === 'moderator') {
     return true;
   }
 
@@ -148,7 +148,7 @@ export function canPerformAction(
 
   // For resource-specific actions, check ownership
   if (resourceOwnerId && userId) {
-    return userId === resourceOwnerId || userRole === 'admin' || userRole === 'moderator';
+    return userId === resourceOwnerId;
   }
 
   return true;
@@ -179,7 +179,8 @@ export function getDefaultRole(): UserRole {
  * Get role hierarchy
  */
 export function getRoleHierarchy(): UserRole[] {
-  return ['admin', 'moderator', 'user', 'viewer'].sort(
+  const roles = Object.keys(ROLE_DEFINITIONS) as UserRole[];
+  return roles.sort(
     (a, b) => ROLE_DEFINITIONS[b].priority - ROLE_DEFINITIONS[a].priority
   );
 }

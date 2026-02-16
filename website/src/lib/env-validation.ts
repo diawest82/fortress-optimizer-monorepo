@@ -17,9 +17,9 @@ export function validateEnvironment(): EnvConfig {
   const errors: string[] = [];
 
   // Check required variables
-  const nodeEnv = process.env.NODE_ENV;
-  if (!nodeEnv) {
-    errors.push('NODE_ENV is not defined');
+  const nodeEnv = process.env.NODE_ENV || 'development';
+  if (!process.env.NODE_ENV) {
+    console.warn('NODE_ENV not explicitly set, defaulting to "development"');
   }
 
   const jwtSecret = process.env.JWT_SECRET;
@@ -57,7 +57,7 @@ export function validateEnvironment(): EnvConfig {
 
   return {
     nodeEnv,
-    jwtSecret,
+    jwtSecret: jwtSecret || '',
     apiUrl,
     frontendUrl,
     resendApiKey,
