@@ -40,6 +40,63 @@ API_KEY_PREFIX = "sk_"
 STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY", "sk_test_...")
 STRIPE_PUBLISHABLE_KEY = os.getenv("STRIPE_PUBLISHABLE_KEY", "pk_test_...")
 
+# ============================================================================
+# SAVINGS BAND CONFIGURATION (Extensible for future features)
+# ============================================================================
+# Base savings percentages by tier - can be enhanced with new features
+SAVINGS_BANDS = {
+    "base": {
+        "name": "Base Token Optimization",
+        "description": "Core prompt compression and optimization",
+        "savings_percent": 20,
+        "enabled": True,
+        "introduced": "2.0.0",
+    },
+    "intelligent_chunking": {
+        "name": "Intelligent Chunking",
+        "description": "Smart context fragmentation for large documents",
+        "savings_percent": 5,
+        "enabled": False,  # Future feature
+        "introduced": "2.1.0",
+    },
+    "cache_optimization": {
+        "name": "Cache-Aware Optimization",
+        "description": "KV-cache aware token reduction",
+        "savings_percent": 8,
+        "enabled": False,  # Future feature
+        "introduced": "2.2.0",
+    },
+    "semantic_compression": {
+        "name": "Semantic Compression",
+        "description": "AI-driven semantic deduplication",
+        "savings_percent": 12,
+        "enabled": False,  # Future feature
+        "introduced": "2.3.0",
+    }
+}
+
+# Tier-specific savings multipliers (how much of each feature is available per tier)
+TIER_SAVINGS_MULTIPLIERS = {
+    "free": {
+        "base": 1.0,  # Full base savings
+        "intelligent_chunking": 0.0,  # Not available
+        "cache_optimization": 0.0,  # Not available
+        "semantic_compression": 0.0,  # Not available
+    },
+    "pro": {
+        "base": 1.0,  # Full base savings
+        "intelligent_chunking": 1.0,  # Full (when enabled)
+        "cache_optimization": 1.0,  # Full (when enabled)
+        "semantic_compression": 0.5,  # 50% (limited to pro)
+    },
+    "team": {
+        "base": 1.0,  # Full base savings
+        "intelligent_chunking": 1.0,  # Full (when enabled)
+        "cache_optimization": 1.0,  # Full (when enabled)
+        "semantic_compression": 1.0,  # Full (when enabled)
+    }
+}
+
 # Tier configuration
 TIER_LIMITS = {
     "free": {
@@ -47,6 +104,7 @@ TIER_LIMITS = {
         "monthly_price": 0,
         "yearly_price": 0,
         "requests_per_minute": 10,
+        "max_savings_percent": 20,  # Maximum possible savings
         "features": {
             "optimization": True,
             "all_providers": False,
@@ -60,6 +118,7 @@ TIER_LIMITS = {
         "monthly_price": 9.99,
         "yearly_price": 99.90,
         "requests_per_minute": 100,
+        "max_savings_percent": 45,  # Can stack multiple features
         "features": {
             "optimization": True,
             "all_providers": True,
@@ -73,6 +132,7 @@ TIER_LIMITS = {
         "monthly_price": 99.0,
         "yearly_price": 990.0,
         "requests_per_minute": 1000,
+        "max_savings_percent": 50,  # Maximum possible stacked savings
         "features": {
             "optimization": True,
             "all_providers": True,
@@ -105,6 +165,16 @@ class SignupRequest(BaseModel):
     def validate_password(cls, v):
         if len(v) < 8:
             raise ValueError('Password must be at least 8 characters')
+        weak_passwords = ['password', '123456', '12345678', 'qwerty', 'abc123', 'letmein', 'welcome']
+        if v.lower() in weak_passwords:
+            raise ValueError('Password too common. Please choose a stronger password')
+        if len(set(v)) == 1:
+            raise ValueError('Password cannot use the same character repeated')
+        has_letter = any(c.isalpha() for c in v)
+        has_number = any(c.isdigit() for c in v)
+        has_special = any(c in '!@#$%^&*()_+-=[]{}|;:,.<>?' for c in v)
+        if not (has_letter and (has_number or has_special)):
+            raise ValueError('Password must contain letters and numbers or special characters')
         return v
 
 class LoginRequest(BaseModel):
@@ -115,7 +185,7 @@ class AuthResponse(BaseModel):
     access_token: str
     token_type: str
     user: dict
-    api_key: str
+    api_key: Optional[str] = None
     tier: str
 
 class APIKeyResponse(BaseModel):
@@ -188,6 +258,33 @@ class PricingTier(BaseModel):
     monthly_tokens: int
     requests_per_minute: int
     features: dict
+    max_savings_percent: float
+
+class SavingsBand(BaseModel):
+    """Individual savings feature/band configuration"""
+    id: str
+    name: str
+    description: str
+    savings_percent: float
+    enabled: bool
+    introduced: str
+
+class SavingsBandResponse(BaseModel):
+    """Response containing all available savings bands and tier access"""
+    available_bands: List[SavingsBand]
+    tier: str
+    maximum_savings_percent: float
+    current_savings_percent: float
+    tier_multipliers: Dict[str, float]
+    stacking_info: str
+
+class TierSavingsInfo(BaseModel):
+    """Information about savings available for a specific tier"""
+    tier: str
+    base_savings_percent: float
+    max_possible_savings_percent: float
+    available_features: List[str]
+    disabled_features: List[str]
 
 class PricingResponse(BaseModel):
     plans: List[PricingTier]
@@ -289,7 +386,7 @@ def verify_api_key_with_tier(authorization: Optional[str] = Header(None)) -> dic
         
         if not authorization:
             print("STEP 1 FAIL: No authorization header")
-            raise HTTPException(status_code=401, detail="Missing API key")
+            raise HTTPException(status_code=403, detail="Missing API key")
         
         print(f"STEP 1: Got authorization header")
         
@@ -415,6 +512,24 @@ def verify_jwt_token(authorization: Optional[str] = Header(None)) -> dict:
         "tier": subscription.get("tier", "free")
     }
 
+async def get_current_user(authorization: Optional[str] = Header(None)) -> dict:
+    """Get current user from JWT or API key"""
+    if not authorization:
+        raise HTTPException(status_code=401, detail="Missing authorization")
+    
+    # Try JWT first
+    if authorization.startswith("Bearer "):
+        try:
+            return verify_jwt_token(authorization)
+        except:
+            pass
+    
+    # Try API key
+    try:
+        return verify_api_key_with_tier(authorization)
+    except:
+        raise HTTPException(status_code=401, detail="Invalid authorization")
+
 # ============================================================================
 # AUTHENTICATION ENDPOINTS
 # ============================================================================
@@ -500,34 +615,13 @@ async def login(request: LoginRequest):
     # Get subscription
     subscription = subscriptions_db.get(user_id, {"tier": "free"})
     
-    # Get primary API key
-    primary_key = None
-    for key_hash, key_record in api_keys_db.items():
-        if key_record["user_id"] == user_id and key_record["name"] == "Default":
-            # We can't retrieve the original key, so generate new one
-            primary_key = generate_api_key()
-            api_keys_db[hash_api_key(primary_key)] = {
-                "api_key_hash": hash_api_key(primary_key),
-                "user_id": user_id,
-                "name": "Default",
-                "created_at": datetime.now(timezone.utc).isoformat(),
-                "expires_at": None
-            }
-            # Remove old one
-            del api_keys_db[key_hash]
-            break
-    
-    if not primary_key:
-        primary_key = generate_api_key()
-        api_keys_db[hash_api_key(primary_key)] = {
-            "api_key_hash": hash_api_key(primary_key),
-            "user_id": user_id,
-            "name": "Default",
-            "created_at": datetime.now(timezone.utc).isoformat(),
-            "expires_at": None
-        }
+    token = generate_jwt(user_id)
     
     token = generate_jwt(user_id)
+    
+    # Note: We do NOT regenerate API keys on login - the client should use their existing key
+    # or request a new one from the /api-keys endpoint
+    # Return None for API key since we don't expose the raw key after login
     
     return AuthResponse(
         access_token=token,
@@ -537,7 +631,7 @@ async def login(request: LoginRequest):
             "email": user["email"],
             "tier": subscription.get("tier", "free")
         },
-        api_key=primary_key,
+        api_key=None,
         tier=subscription.get("tier", "free")
     )
 
@@ -763,21 +857,184 @@ async def cancel_subscription(user = Depends(verify_jwt_token)):
 # PRICING ENDPOINTS
 # ============================================================================
 
-@app.get("/pricing", response_model=PricingResponse)
+@app.get("/pricing")
 async def get_pricing():
     """Get pricing information for all tiers"""
-    plans = []
+    pricing_data = {}
     for tier_name, tier_config in TIER_LIMITS.items():
-        plans.append(PricingTier(
-            name=tier_name,
-            monthly_price=tier_config["monthly_price"],
-            yearly_price=tier_config["yearly_price"],
-            monthly_tokens=tier_config["monthly_tokens"],
-            requests_per_minute=tier_config["requests_per_minute"],
-            features=tier_config["features"]
+        pricing_data[tier_name] = {
+            "name": tier_name,
+            "monthly_price": tier_config["monthly_price"],
+            "yearly_price": tier_config["yearly_price"],
+            "monthly_tokens": tier_config["monthly_tokens"],
+            "requests_per_minute": tier_config["requests_per_minute"],
+            "max_savings_percent": tier_config["max_savings_percent"],
+            "features": tier_config["features"]
+        }
+    return pricing_data
+
+# ============================================================================
+# SAVINGS BANDS ENDPOINTS (NEW FEATURE MANAGEMENT)
+# ============================================================================
+
+@app.get("/savings-bands")
+async def get_savings_bands(
+    user_info = Depends(verify_api_key_with_tier),
+    show_roadmap: bool = Query(False, description="Admin only: show disabled/future features")
+):
+    """Get available savings bands and tier-specific access information
+    
+    By default, only shows enabled features.
+    Set show_roadmap=true (admin only) to see future features
+    """
+    user_tier = user_info["tier"]
+    
+    # Build available bands list - only enabled features by default
+    available_bands = []
+    for band_id, band_config in SAVINGS_BANDS.items():
+        # Skip disabled features unless show_roadmap is true
+        if not band_config["enabled"] and not show_roadmap:
+            continue
+            
+        available_bands.append(SavingsBand(
+            id=band_id,
+            name=band_config["name"],
+            description=band_config["description"],
+            savings_percent=band_config["savings_percent"],
+            enabled=band_config["enabled"],
+            introduced=band_config["introduced"]
         ))
     
-    return PricingResponse(plans=plans)
+    # Calculate current maximum savings for this tier
+    max_savings = calculate_max_savings_for_tier(user_tier)
+    current_savings = calculate_current_savings_for_tier(user_tier)
+    
+    return SavingsBandResponse(
+        available_bands=available_bands,
+        tier=user_tier,
+        maximum_savings_percent=max_savings,
+        current_savings_percent=current_savings,
+        tier_multipliers=TIER_SAVINGS_MULTIPLIERS[user_tier],
+        stacking_info=f"Your {user_tier} tier can stack up to {max_savings}% in savings from available features."
+    )
+
+@app.get("/savings-bands/tier/{tier_name}")
+async def get_tier_savings_info(
+    tier_name: str,
+    show_roadmap: bool = Query(False, description="Admin only: show disabled/future features")
+):
+    """Get savings band information for a specific tier
+    
+    By default, only shows enabled features.
+    Set show_roadmap=true (admin only) to see future features
+    """
+    if tier_name not in TIER_LIMITS:
+        raise HTTPException(status_code=400, detail="Invalid tier name")
+    
+    multipliers = TIER_SAVINGS_MULTIPLIERS[tier_name]
+    available_features = [band_id for band_id, mult in multipliers.items() if mult > 0 and SAVINGS_BANDS[band_id]["enabled"]]
+    disabled_features = [band_id for band_id, mult in multipliers.items() if mult == 0 and SAVINGS_BANDS[band_id]["enabled"]] if show_roadmap else []
+    
+    max_savings = TIER_LIMITS[tier_name]["max_savings_percent"]
+    
+    return TierSavingsInfo(
+        tier=tier_name,
+        base_savings_percent=SAVINGS_BANDS["base"]["savings_percent"],
+        max_possible_savings_percent=max_savings,
+        available_features=available_features,
+        disabled_features=disabled_features
+    )
+
+@app.get("/savings-bands/status")
+async def get_savings_status(
+    user_info = Depends(verify_api_key_with_tier),
+    show_roadmap: bool = Query(False, description="Admin only: show disabled/future features")
+):
+    """Get current savings status for authenticated user
+    
+    By default, only shows enabled features.
+    Set show_roadmap=true (admin only) to see future features
+    """
+    user_tier = user_info["tier"]
+    
+    result = {
+        "tier": user_tier,
+        "base_savings_percent": SAVINGS_BANDS["base"]["savings_percent"],
+        "max_possible_savings": TIER_LIMITS[user_tier]["max_savings_percent"],
+        "active_features": [],
+        "available_features": [],
+        "locked_features": []
+    }
+    
+    multipliers = TIER_SAVINGS_MULTIPLIERS[user_tier]
+    for band_id, band_config in SAVINGS_BANDS.items():
+        multiplier = multipliers.get(band_id, 0)
+        
+        if band_config["enabled"]:
+            if multiplier > 0:
+                result["active_features"].append({
+                    "id": band_id,
+                    "name": band_config["name"],
+                    "savings_percent": band_config["savings_percent"] * multiplier,
+                    "access_level": f"{int(multiplier * 100)}%"
+                })
+            else:
+                result["locked_features"].append({
+                    "id": band_id,
+                    "name": band_config["name"],
+                    "savings_percent": band_config["savings_percent"],
+                    "reason": f"Available in higher tiers"
+                })
+        else:
+            # Only show future features if show_roadmap is true
+            if show_roadmap:
+                result["available_features"].append({
+                    "id": band_id,
+                    "name": band_config["name"],
+                    "savings_percent": band_config["savings_percent"],
+                    "status": "coming_soon",
+                    "introduced": band_config["introduced"]
+                })
+    
+    return result
+
+# ============================================================================
+# HELPER FUNCTIONS FOR SAVINGS CALCULATION
+# ============================================================================
+
+def calculate_max_savings_for_tier(tier: str) -> float:
+    """Calculate maximum possible savings for a tier by stacking available features"""
+    if tier not in TIER_SAVINGS_MULTIPLIERS:
+        return 0
+    
+    multipliers = TIER_SAVINGS_MULTIPLIERS[tier]
+    total_savings = 0
+    
+    for band_id, band_config in SAVINGS_BANDS.items():
+        if band_config["enabled"]:
+            multiplier = multipliers.get(band_id, 0)
+            total_savings += band_config["savings_percent"] * multiplier
+    
+    # Cap at tier maximum
+    max_allowed = TIER_LIMITS[tier]["max_savings_percent"]
+    return min(total_savings, max_allowed)
+
+def calculate_current_savings_for_tier(tier: str) -> float:
+    """Calculate current savings for a tier (only enabled features)"""
+    if tier not in TIER_SAVINGS_MULTIPLIERS:
+        return 0
+    
+    multipliers = TIER_SAVINGS_MULTIPLIERS[tier]
+    total_savings = 0
+    
+    for band_id, band_config in SAVINGS_BANDS.items():
+        if band_config["enabled"]:
+            multiplier = multipliers.get(band_id, 0)
+            total_savings += band_config["savings_percent"] * multiplier
+    
+    # Cap at tier maximum
+    max_allowed = TIER_LIMITS[tier]["max_savings_percent"]
+    return min(total_savings, max_allowed)
 
 # ============================================================================
 # RATE LIMITING (PER TIER)
@@ -913,6 +1170,123 @@ async def get_analytics(user = Depends(verify_jwt_token)):
         "tokens_limit": TIER_LIMITS[subscription["tier"]]["monthly_tokens"],
         "percentage_used": (usage.get("tokens", 0) / TIER_LIMITS[subscription["tier"]]["monthly_tokens"] * 100) if TIER_LIMITS[subscription["tier"]]["monthly_tokens"] > 0 else 0
     }
+
+# ============================================================================
+# PROVIDER INTELLIGENCE ENDPOINTS (NEW FEATURES)
+# ============================================================================
+
+# Import new modules
+import sys
+sys.path.insert(0, '/Users/diawest/projects/fortress-optimizer-monorepo/backend')
+
+try:
+    from provider_intelligence import get_provider_intelligence
+    from cost_predictor import get_cost_predictor
+    print("✅ Provider intelligence and cost predictor modules loaded")
+except ImportError as e:
+    print(f"⚠️ Could not load ML modules: {e}")
+    get_provider_intelligence = None
+    get_cost_predictor = None
+
+class ProviderRecommendationRequest(BaseModel):
+    """Request for provider recommendations"""
+    text: str
+    user_preferences: Optional[Dict] = {
+        "priority": "cost",  # cost, speed, quality
+        "budget_limit": 1.0
+    }
+
+@app.post("/api/provider-recommendations")
+async def get_provider_recommendations(
+    request: ProviderRecommendationRequest,
+    current_user: dict = Depends(get_current_user)
+):
+    """
+    Get provider recommendations for text optimization.
+    
+    Patent: Adaptive provider intelligence system
+    
+    Analyzes text and recommends providers based on:
+    - Cost per token
+    - Speed ranking
+    - Quality ranking
+    - User preferences
+    """
+    if not get_provider_intelligence:
+        raise HTTPException(status_code=503, detail="Provider intelligence not available")
+    
+    engine = get_provider_intelligence()
+    
+    try:
+        recommendations = engine.get_provider_recommendations(
+            request.text,
+            request.user_preferences
+        )
+        
+        return {
+            "status": "success",
+            "recommendations": recommendations,
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "user_id": current_user["user_id"]
+        }
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@app.get("/api/cost-prediction")
+async def get_cost_prediction(
+    current_user: dict = Depends(get_current_user)
+):
+    """
+    Get cost prediction and recommendations.
+    
+    Patent: Machine learning-based cost prediction
+    
+    Returns:
+    - Projected monthly cost
+    - Daily average spending
+    - Anomalies detected
+    - Cost reduction recommendations
+    """
+    if not get_cost_predictor:
+        raise HTTPException(status_code=503, detail="Cost predictor not available")
+    
+    predictor = get_cost_predictor()
+    user_id = current_user["user_id"]
+    
+    try:
+        prediction = predictor.predict_monthly_cost(user_id)
+        anomalies = predictor.detect_anomalies(user_id, lookback_days=7)
+        recommendations = predictor.recommend_cost_reduction(user_id)
+        efficiency = predictor.get_efficiency_score(user_id)
+        
+        return {
+            "status": "success",
+            "prediction": {
+                "daily_average": prediction.daily_average,
+                "current_period_cost": prediction.current_period_cost,
+                "projected_period_end": prediction.projected_period_end,
+                "days_remaining": prediction.days_remaining,
+                "confidence": prediction.confidence,
+                "trend": prediction.trend
+            },
+            "anomalies": [
+                {
+                    "date": a.date,
+                    "type": a.type,
+                    "normal_cost": a.normal_cost,
+                    "actual_cost": a.actual_cost,
+                    "severity": a.severity,
+                    "message": a.message
+                }
+                for a in anomalies
+            ],
+            "recommendations": recommendations,
+            "efficiency_score": efficiency,
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "user_id": user_id
+        }
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 # ============================================================================
 # HEALTH & INFO ENDPOINTS

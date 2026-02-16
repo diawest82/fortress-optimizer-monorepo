@@ -9,6 +9,7 @@ const navItems = [
   { label: "Dashboard", href: "/dashboard" },
   { label: "Install", href: "/install" },
   { label: "Pricing", href: "/pricing" },
+  { label: "Support", href: "/support" },
 ];
 
 export default function SiteHeader() {

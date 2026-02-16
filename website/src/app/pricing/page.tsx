@@ -21,40 +21,22 @@ export default function Pricing() {
       badge: "Try it now",
     },
     {
-      name: "Pro",
-      description: "For individual developers",
-      price: "9.99",
+      name: "Team",
+      description: "For teams and organizations",
+      price: "99",
       color: "cyan",
       colorHex: "#06b6d4",
-      features: [
-        "Unlimited tokens",
-        "All integration channels",
-        "Advanced analytics",
-        "Email support",
-        "API access",
-        "Saves $7-15/month",
-      ],
-      cta: "Subscribe now",
-      ctaPrimary: true,
-      badge: "Most Popular",
-    },
-    {
-      name: "Team",
-      description: "For startups and small teams",
-      price: "99",
-      color: "blue",
-      colorHex: "#3b82f6",
       features: [
         "Unlimited tokens",
         "Team seat management",
         "Advanced analytics",
         "Priority email support",
         "Slack integration",
-        "Saves $30-90/month per team",
+        "Saves $30-150+/month per team",
       ],
       cta: "Subscribe now",
-      ctaPrimary: false,
-      badge: "Team pricing",
+      ctaPrimary: true,
+      badge: "Most Popular",
     },
     {
       name: "Enterprise",
@@ -104,13 +86,13 @@ export default function Pricing() {
           </p>
         </div>
 
-        <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-8 md:grid-cols-3 max-w-5xl mx-auto w-full">
           {tiers.map((tier) => (
             <div
               key={tier.name}
-              className={`relative rounded-3xl border p-8 transition-all duration-300 ${
+              className={`relative rounded-3xl border p-8 transition-all duration-300 flex flex-col ${
                 tier.ctaPrimary
-                  ? `border-cyan-500/60 bg-gradient-to-br from-cyan-500/10 to-slate-900/20 shadow-lg shadow-cyan-500/20 md:col-span-1 lg:scale-105`
+                  ? `border-cyan-500/60 bg-gradient-to-br from-cyan-500/10 to-slate-900/20 shadow-lg shadow-cyan-500/20 md:scale-105`
                   : `border-slate-700 bg-gradient-to-br from-slate-950/60 to-slate-900/40 hover:border-slate-600`
               }`}
             >
