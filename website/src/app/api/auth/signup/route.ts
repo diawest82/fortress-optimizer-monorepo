@@ -1,6 +1,8 @@
 import { createUser } from "@/lib/auth-config";
 import { checkSignupRateLimit } from "@/lib/rate-limit";
 import { logSignupEvent, logSuspiciousActivity } from "@/lib/audit-log";
+import { validatePassword } from "@/lib/password-validation";
+import { ErrorResponses } from "@/lib/error-handler";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
@@ -48,22 +50,16 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Validate password strength
-    if (password.length < 8) {
-      return NextResponse.json(
-        { error: "Password must be at least 8 characters" },
-        { status: 400 }
-      );
+    // ============ PHASE 4: Validate password strength ============
+    const passwordValidation = validatePassword(password);
+    if (!passwordValidation.isValid) {
+      // Return structured error response with feedback
+      const errorResponse = ErrorResponses.INVALID_PASSWORD(passwordValidation.feedback);
+      return NextResponse.json(errorResponse.body, { status: errorResponse.status });
     }
 
-    // Check for common weak passwords
-    const weakPasswords = ['password', '12345678', 'qwerty', 'abc123456'];
-    if (weakPasswords.some(wp => password.toLowerCase().includes(wp))) {
-      return NextResponse.json(
-        { error: "Password is too common. Please choose a stronger password" },
-        { status: 400 }
-      );
-    }
+    // Log password strength score for analytics
+    console.log(`✓ Signup password strength: ${passwordValidation.score}/100`);
 
     // Create user
     const user = await createUser(email, password, name);
