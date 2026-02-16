@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { Copy, Check } from 'lucide-react';
 
-interface TOTPSetupData {
+export interface TOTPSetupData {
   method: string;
   secret: string;
   qrCode: string;

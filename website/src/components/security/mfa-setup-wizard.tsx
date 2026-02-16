@@ -2,17 +2,15 @@
 
 import { useState } from 'react';
 import { ChevronRight, CheckCircle, Smartphone, Mail } from 'lucide-react';
-import TOTPSetup from './mfa/totp-setup';
+import TOTPSetup, { type TOTPSetupData } from './mfa/totp-setup';
 import MFAVerification from './mfa/mfa-verification';
 import BackupCodesDisplay from './mfa/backup-codes-display';
 
 type MFAStep = 'method' | 'setup' | 'verify' | 'backup' | 'complete';
 type MFAMethod = 'totp' | 'sms' | 'email';
 
-interface SetupData {
+interface SetupData extends TOTPSetupData {
   method: MFAMethod;
-  secret?: string;
-  qrCode?: string;
 }
 
 export default function MFASetupWizard() {
@@ -20,15 +18,14 @@ export default function MFASetupWizard() {
   const [method, setMethod] = useState<MFAMethod>('totp');
   const [setupData, setSetupData] = useState<SetupData | null>(null);
   const [backupCodes, setBackupCodes] = useState<string[]>([]);
-  const [loading, setLoading] = useState(false);
 
   const handleMethodSelect = (selectedMethod: MFAMethod) => {
     setMethod(selectedMethod);
     setStep('setup');
   };
 
-  const handleSetupComplete = (data: SetupData) => {
-    setSetupData(data);
+  const handleSetupComplete = (data: TOTPSetupData) => {
+    setSetupData(data as SetupData);
     setStep('verify');
   };
 
