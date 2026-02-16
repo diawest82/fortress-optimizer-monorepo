@@ -8,8 +8,8 @@ export default function Pricing() {
       name: "Free",
       description: "Try Fortress risk-free",
       price: "0",
-      color: "emerald",
-      colorHex: "#10b981",
+      color: "slate",
+      colorHex: "#64748b",
       features: [
         "50K tokens/month",
         "All 5 integration channels",
@@ -18,10 +18,28 @@ export default function Pricing() {
       ],
       cta: "Get started free",
       ctaPrimary: false,
-      badge: "Try it now",
+      badge: "Get Started",
     },
     {
-      name: "Team",
+      name: "Sign Up",
+      description: "For individual developers",
+      price: "9.99",
+      color: "blue",
+      colorHex: "#3b82f6",
+      features: [
+        "500K tokens/month",
+        "All 5 integration channels",
+        "Real-time optimization",
+        "Advanced analytics dashboard",
+        "Email support",
+        "API access",
+      ],
+      cta: "Subscribe now",
+      ctaPrimary: false,
+      badge: null,
+    },
+    {
+      name: "Teams",
       description: "For teams and organizations",
       price: "99",
       color: "cyan",
@@ -54,7 +72,7 @@ export default function Pricing() {
       ],
       cta: "Contact sales",
       ctaPrimary: false,
-      badge: "Enterprise",
+      badge: null,
     },
   ];
 
@@ -86,7 +104,7 @@ export default function Pricing() {
           </p>
         </div>
 
-        <div className="grid gap-8 md:grid-cols-3 max-w-5xl mx-auto w-full">
+        <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4 max-w-7xl mx-auto w-full">
           {tiers.map((tier) => (
             <div
               key={tier.name}
