@@ -1,153 +1,170 @@
-"use client";
+'use client';
 
-import { useState, Suspense } from "react";
-import { signIn } from "next-auth/react";
-import { useRouter, useSearchParams } from "next/navigation";
-import Link from "next/link";
+import { useState, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import Link from 'next/link';
+import { useAuth } from '@/context/AuthContext';
 
-function LoginForm() {
+function LoginContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState(searchParams.get("error") || "");
+  const { login, error: authError, clearError } = useAuth();
   const [loading, setLoading] = useState(false);
+  const [formData, setFormData] = useState({
+    email: '',
+    password: '',
+  });
+  const [fieldErrors, setFieldErrors] = useState({
+    email: '',
+    password: '',
+  });
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const validateForm = () => {
+    const errors = { email: '', password: '' };
+    let isValid = true;
+
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!formData.email) {
+      errors.email = 'Email is required';
+      isValid = false;
+    } else if (!emailRegex.test(formData.email)) {
+      errors.email = 'Please enter a valid email';
+      isValid = false;
+    }
+
+    // Password validation
+    if (!formData.password) {
+      errors.password = 'Password is required';
+      isValid = false;
+    }
+
+    setFieldErrors(errors);
+    return isValid;
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+    // Clear field error when user starts typing
+    setFieldErrors((prev) => ({ ...prev, [name]: '' }));
+    clearError();
+  };
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setError("");
+
+    if (!validateForm()) {
+      return;
+    }
+
     setLoading(true);
-
     try {
-      const result = await signIn("credentials", {
-        email,
-        password,
-        redirect: false,
-      });
-
-      if (result?.error) {
-        setError("Invalid email or password");
-        return;
-      }
-
-      router.push(searchParams.get("callbackUrl") || "/account");
+      await login(formData.email, formData.password);
+      // Login successful, redirect to dashboard (or callback URL)
+      const callbackUrl = searchParams.get('callbackUrl') || '/dashboard';
+      router.push(callbackUrl);
+    } catch (error) {
+      // Error is handled by AuthContext and stored in authError
+      console.error('Login failed:', error);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      {/* Email Input */}
-      <div>
-        <label className="block text-sm font-medium text-slate-200 mb-2">
-          Email
-        </label>
-        <input
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          placeholder="you@example.com"
-          className="w-full px-4 py-2 bg-slate-950 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500"
-          required
-        />
-      </div>
-
-      {/* Password Input */}
-      <div>
-        <div className="flex justify-between items-center mb-2">
-          <label className="block text-sm font-medium text-slate-200">
-            Password
-          </label>
-          <Link
-            href="/auth/forgot-password"
-            className="text-xs text-emerald-400 hover:text-emerald-300"
-          >
-            Forgot?
-          </Link>
-        </div>
-        <input
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          placeholder="Your password"
-          className="w-full px-4 py-2 bg-slate-950 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500"
-          required
-        />
-      </div>
-
-      {/* Stay Logged In */}
-      <label className="flex items-center gap-2">
-        <input
-          type="checkbox"
-          className="w-4 h-4 rounded bg-slate-950 border-slate-700 text-emerald-500"
-        />
-        <span className="text-sm text-slate-300">Stay logged in</span>
-      </label>
-
-      {/* Error Message */}
-      {error && (
-        <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-lg">
-          <p className="text-sm text-red-400">{error}</p>
-        </div>
-      )}
-
-      {/* Log In Button */}
-      <button
-        type="submit"
-        disabled={loading}
-        className="w-full py-2 px-4 bg-slate-800 text-white font-semibold rounded-lg hover:bg-slate-700 transition-colors disabled:opacity-50"
-      >
-        {loading ? "Logging in..." : "Log in"}
-      </button>
-
-      {/* Divider */}
-      <div className="relative">
-        <div className="absolute inset-0 flex items-center">
-          <div className="w-full border-t border-slate-700"></div>
-        </div>
-        <div className="relative flex justify-center text-xs uppercase">
-          <span className="px-2 bg-slate-900/50 text-slate-400">Or</span>
-        </div>
-      </div>
-
-      {/* Google Sign In */}
-      <button
-        type="button"
-        onClick={() => signIn("google", { callbackUrl: "/account" })}
-        className="w-full py-2 px-4 border border-slate-700 text-slate-300 font-semibold rounded-lg hover:border-slate-600 transition-colors"
-      >
-        Log in with Google
-      </button>
-    </form>
-  );
-}
-
-export default function LogInPage() {
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 to-slate-900 flex items-center justify-center px-4">
+    <div className="min-h-screen bg-black text-white flex items-center justify-center px-4">
       <div className="w-full max-w-md">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-white mb-2">Welcome back</h1>
-          <p className="text-slate-400">Optimize faster than ever</p>
+          <h1 className="text-3xl font-bold mb-2">Welcome Back</h1>
+          <p className="text-zinc-400">Log in to your Fortress account</p>
         </div>
 
         {/* Form */}
-        <div className="bg-slate-900/50 border border-slate-800 rounded-2xl p-8 backdrop-blur">
-          <Suspense fallback={<div className="text-white">Loading...</div>}>
-            <LoginForm />
-          </Suspense>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Error message */}
+          {authError && (
+            <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400 text-sm">
+              {authError}
+            </div>
+          )}
 
-          {/* Sign Up Link */}
-          <p className="text-center text-sm text-slate-400 mt-6">
-            Don&apos;t have an account?{" "}
-            <Link href="/auth/signup" className="text-emerald-400 hover:text-emerald-300">
+          {/* Email field */}
+          <div>
+            <label htmlFor="email" className="block text-sm font-medium mb-2">
+              Email Address
+            </label>
+            <input
+              id="email"
+              type="email"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              placeholder="you@example.com"
+              className="w-full px-4 py-2 bg-zinc-900 border border-zinc-800 rounded-lg focus:outline-none focus:border-blue-500 transition"
+            />
+            {fieldErrors.email && (
+              <p className="text-red-400 text-sm mt-1">{fieldErrors.email}</p>
+            )}
+          </div>
+
+          {/* Password field */}
+          <div>
+            <label htmlFor="password" className="block text-sm font-medium mb-2">
+              Password
+            </label>
+            <input
+              id="password"
+              type="password"
+              name="password"
+              value={formData.password}
+              onChange={handleChange}
+              placeholder="Your password"
+              className="w-full px-4 py-2 bg-zinc-900 border border-zinc-800 rounded-lg focus:outline-none focus:border-blue-500 transition"
+            />
+            {fieldErrors.password && (
+              <p className="text-red-400 text-sm mt-1">{fieldErrors.password}</p>
+            )}
+          </div>
+
+          {/* Submit button */}
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium rounded-lg transition"
+          >
+            {loading ? 'Logging in...' : 'Log In'}
+          </button>
+        </form>
+
+        {/* Footer */}
+        <div className="mt-6 text-center">
+          <p className="text-zinc-400 text-sm">
+            Don't have an account?{' '}
+            <Link href="/auth/signup" className="text-blue-400 hover:text-blue-300 transition">
               Sign up
             </Link>
           </p>
         </div>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-black flex items-center justify-center">
+          <div className="text-white text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mb-4 mx-auto"></div>
+            <p>Loading...</p>
+          </div>
+        </div>
+      }
+    >
+      <LoginContent />
+    </Suspense>
   );
 }

@@ -2,8 +2,17 @@
 
 import { useState } from 'react';
 import { TrendingUp, Users, Zap, DollarSign } from 'lucide-react';
+import { ProtectedRoute } from '@/components/ProtectedRoute';
 
-export default function Dashboard() {
+export default function DashboardPage() {
+  return (
+    <ProtectedRoute>
+      <DashboardContent />
+    </ProtectedRoute>
+  );
+}
+
+function DashboardContent() {
   const [timeRange, setTimeRange] = useState<'24h' | '7d' | '30d' | '90d'>('7d');
   const [selectedPlatform, setSelectedPlatform] = useState('all');
 
