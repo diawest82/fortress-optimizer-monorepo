@@ -4,7 +4,40 @@ const nextConfig = {
     unoptimized: true,
   },
   headers: async () => {
+    const corsHeaders = [
+      {
+        key: 'Access-Control-Allow-Origin',
+        value: process.env.NEXT_PUBLIC_FRONTEND_URL || 'http://localhost:3000',
+      },
+      {
+        key: 'Access-Control-Allow-Methods',
+        value: 'GET, POST, PUT, DELETE, PATCH, OPTIONS',
+      },
+      {
+        key: 'Access-Control-Allow-Headers',
+        value: 'Content-Type, Authorization, X-CSRF-Token, X-API-Key',
+      },
+      {
+        key: 'Access-Control-Allow-Credentials',
+        value: 'true',
+      },
+      {
+        key: 'Access-Control-Max-Age',
+        value: '86400', // 24 hours
+      },
+    ];
+
     return [
+      {
+        source: '/api/:path*',
+        headers: [
+          ...corsHeaders,
+          {
+            key: 'Content-Type',
+            value: 'application/json',
+          },
+        ],
+      },
       {
         source: '/:path*',
         headers: [
