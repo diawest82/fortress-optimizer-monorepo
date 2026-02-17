@@ -28,6 +28,18 @@ export function SiteNav() {
 
   return (
     <nav className="flex gap-6 items-center">
+      <Link className="text-slate-300 hover:text-white transition" href="/">
+        Home
+      </Link>
+      <Link className="text-slate-300 hover:text-white transition" href="/dashboard">
+        Dashboard
+      </Link>
+      <Link className="text-slate-300 hover:text-white transition" href="/install">
+        Install
+      </Link>
+      <Link className="text-slate-300 hover:text-white transition" href="/pricing">
+        Pricing
+      </Link>
       <Link className="text-slate-300 hover:text-white transition" href="/support">
         Support
       </Link>
