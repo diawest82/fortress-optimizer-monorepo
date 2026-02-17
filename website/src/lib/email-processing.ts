@@ -18,8 +18,9 @@ export interface EmailAnalysis {
 
 /**
  * Detect if email is from an enterprise (company with >999 users)
+ * Note: Enterprise threshold is configurable via Settings model
  */
-function detectEnterpriseQuery(email: { subject: string; body: string; from?: string }): {
+function detectEnterpriseQuery(email: { subject: string; body: string; from?: string }, enterpriseThreshold: number = 999): {
   isEnterprise: boolean;
   companySize?: number;
   signals: string[];
@@ -49,7 +50,7 @@ function detectEnterpriseQuery(email: { subject: string; body: string; from?: st
       const sizeMatch = content.match(/\b(>|greater than|over|more than)?\s*(\d+)\s*(?:employees?|users?|team|developers?|employees|seats)\b/i);
       if (sizeMatch) {
         const size = parseInt(sizeMatch[2]);
-        if (size > 999) {
+        if (size > enterpriseThreshold) {
           isEnterprise = true;
           maxCompanySize = Math.max(maxCompanySize, size);
         }
@@ -65,7 +66,7 @@ function detectEnterpriseQuery(email: { subject: string; body: string; from?: st
   
   return {
     isEnterprise,
-    companySize: maxCompanySize > 999 ? maxCompanySize : undefined,
+    companySize: maxCompanySize > enterpriseThreshold ? maxCompanySize : undefined,
     signals,
   };
 }
@@ -169,8 +170,11 @@ export async function analyzeEmail(email: {
   subject: string;
   body: string;
   from?: string;
-}): Promise<EmailAnalysis> {
-  const enterpriseDetection = detectEnterpriseQuery(email);
+}, enterpriseThreshold?: number): Promise<EmailAnalysis> {
+  // Use default threshold of 999 if not provided
+  const threshold = enterpriseThreshold ?? 999;
+  
+  const enterpriseDetection = detectEnterpriseQuery(email, threshold);
   const category = categorizeEmail(email);
   const summary = generateEmailSummary(email);
   const requiresHuman = requiresHumanHandling({

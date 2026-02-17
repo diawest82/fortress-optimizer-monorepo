@@ -109,22 +109,27 @@ export default function EmailAdmin() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950">
-      <div className="max-w-7xl mx-auto p-8">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-white flex items-center gap-2">
-              <Mail className="w-8 h-8" />
-              Email Admin Dashboard
-            </h1>
-            <p className="text-slate-400 mt-2">Received emails with AI-powered analysis</p>
+    <div className="min-h-screen bg-black text-white">
+      {/* Header */}
+      <div className="border-b border-zinc-800 sticky top-16 z-40 bg-black/95 backdrop-blur">
+        <div className="max-w-7xl mx-auto px-6 py-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-white mb-2">📧 Email Dashboard</h1>
+              <p className="text-slate-400">Manage incoming customer emails and inquiries</p>
+            </div>
+            <Link
+              href="/admin"
+              className="rounded-lg bg-blue-600 hover:bg-blue-500 px-6 py-3 text-sm font-semibold text-white transition"
+            >
+              📊 View Metrics
+            </Link>
           </div>
-          <Link href="/" className="text-blue-400 hover:text-blue-300">
-            ← Back to Home
-          </Link>
         </div>
+      </div>
 
+      {/* Content */}
+      <div className="max-w-7xl mx-auto px-6 py-12">
         {/* Stats */}
         <div className="grid grid-cols-4 gap-4 mb-8">
           <div className="bg-blue-950/40 border border-blue-500/30 rounded-lg p-4">

@@ -1,0 +1,93 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./fortress.db"
+}
+
+// Admin Users
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String?
+  password      String
+  role          String    @default("admin") // admin, moderator, viewer
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  // Relations
+  emailReplies  EmailReply[]
+  
+  @@map("users")
+}
+
+// Received Emails
+model Email {
+  id              String    @id @default(cuid())
+  from            String
+  to              String
+  subject         String
+  body            String
+  html            String?
+  timestamp       DateTime  @default(now())
+  status          String    @default("unread") // unread, read, replied, archived
+  
+  // AI Analysis
+  category        String?   // support, sales, enterprise, feedback, general
+  isEnterprise    Boolean   @default(false)
+  companySize     Int?
+  aiSummary       String?
+  aiRecommendation String?
+  requiresHuman   Boolean   @default(false)
+  
+  // Relations
+  replies         EmailReply[]
+  
+  @@index([status])
+  @@index([isEnterprise])
+  @@index([timestamp])
+  @@map("emails")
+}
+
+// Email Replies (responses you send)
+model EmailReply {
+  id          String    @id @default(cuid())
+  emailId     String
+  email       Email     @relation(fields: [emailId], references: [id], onDelete: Cascade)
+  
+  userId      String
+  user        User      @relation(fields: [userId], references: [id])
+  
+  to          String
+  subject     String
+  body        String
+  html        String?
+  status      String    @default("draft") // draft, sent, scheduled
+  sentAt      DateTime?
+  
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  
+  @@index([emailId])
+  @@map("email_replies")
+}
+
+// Admin Settings
+model Settings {
+  id                    String    @id @default(cuid())
+  enterpriseThreshold   Int       @default(999) // Companies with >X users are enterprise
+  autoResponseEnabled   Boolean   @default(false)
+  defaultAutoResponse   String?
+  notifyOnEnterprise    Boolean   @default(true)
+  notifyEmail           String?
+  
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+  
+  @@map("settings")
+}

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { SiteNav } from "@/components/site-nav";
 
 export const metadata: Metadata = {
   title: "Fortress Token Optimizer - Coming Soon | Cut Token Costs by 20%",
@@ -87,11 +88,7 @@ export default function RootLayout({
               </svg>
               <span className="text-lg font-bold tracking-tight">Fortress</span>
             </div>
-            <div className="flex gap-8">
-              <a href="/" className="hover:text-blue-400 transition">Home</a>
-              <a href="/dashboard" className="hover:text-blue-400 transition">Dashboard</a>
-              <a href="/install" className="hover:text-blue-400 transition">Install</a>
-            </div>
+            <SiteNav />
           </div>
         </nav>
         {children}

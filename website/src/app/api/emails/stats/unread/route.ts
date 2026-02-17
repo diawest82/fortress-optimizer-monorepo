@@ -4,11 +4,14 @@
  */
 
 import { NextResponse } from 'next/server';
-import { getUnreadCount } from '@/lib/email-storage';
+import { prisma } from '@/lib/prisma';
 
 export async function GET() {
   try {
-    const count = await getUnreadCount();
+    const count = await prisma.email.count({
+      where: { status: 'unread' },
+    });
+
     return NextResponse.json({
       success: true,
       unreadCount: count,

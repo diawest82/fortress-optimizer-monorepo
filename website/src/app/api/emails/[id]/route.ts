@@ -4,25 +4,27 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import {
-  getEmail,
-  updateEmailStatus,
-} from '@/lib/email-storage';
-
-interface RouteParams {
-  params: {
-    id: string;
-  };
-}
+import { prisma } from '@/lib/prisma';
 
 /**
  * GET /api/emails/[id]
  * Get a specific email by ID
  */
-export async function GET(_request: NextRequest, { params }: RouteParams) {
+export async function GET(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const { id } = params;
-    const email = await getEmail(id);
+    const { id } = await params;
+    const email = await prisma.email.findUnique({
+      where: { id },
+      include: {
+        replies: {
+          include: {
+            user: {
+              select: { id: true, name: true, email: true },
+            },
+          },
+        },
+      },
+    });
 
     if (!email) {
       return NextResponse.json(
@@ -54,10 +56,10 @@ export async function GET(_request: NextRequest, { params }: RouteParams) {
  */
 export async function PATCH(
   request: NextRequest,
-  { params }: RouteParams
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params;
+    const { id } = await params;
     const body = await request.json();
     const { status } = body;
 
@@ -68,18 +70,23 @@ export async function PATCH(
       );
     }
 
-    const updated = await updateEmailStatus(id, status);
-
-    if (!updated) {
-      return NextResponse.json(
-        { error: 'Email not found' },
-        { status: 404 }
-      );
-    }
+    const email = await prisma.email.update({
+      where: { id },
+      data: { status },
+      include: {
+        replies: {
+          include: {
+            user: {
+              select: { id: true, name: true, email: true },
+            },
+          },
+        },
+      },
+    });
 
     return NextResponse.json({
       success: true,
-      email: updated,
+      email,
     });
   } catch (error) {
     console.error('Error updating email:', error);

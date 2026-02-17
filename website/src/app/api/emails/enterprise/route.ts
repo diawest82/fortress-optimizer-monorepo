@@ -4,11 +4,24 @@
  */
 
 import { NextResponse } from 'next/server';
-import { getEnterpriseQueries } from '@/lib/email-storage';
+import { prisma } from '@/lib/prisma';
 
 export async function GET() {
   try {
-    const emails = await getEnterpriseQueries();
+    const emails = await prisma.email.findMany({
+      where: { isEnterprise: true },
+      orderBy: { timestamp: 'desc' },
+      include: {
+        replies: {
+          select: {
+            id: true,
+            status: true,
+            createdAt: true,
+          },
+        },
+      },
+    });
+
     return NextResponse.json({
       success: true,
       count: emails.length,
