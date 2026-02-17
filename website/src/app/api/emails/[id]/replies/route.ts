@@ -48,9 +48,9 @@ export async function POST(
 
     const { to, subject, body: replyBody, status, userId } = body;
 
-    if (!to || !subject || !replyBody || !userId) {
+    if (!to || !subject || !replyBody) {
       return NextResponse.json(
-        { error: 'Missing required fields: to, subject, body, userId' },
+        { error: 'Missing required fields: to, subject, body' },
         { status: 400 }
       );
     }

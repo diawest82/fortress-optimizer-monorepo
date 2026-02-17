@@ -60,8 +60,8 @@ model EmailReply {
   emailId     String
   email       Email     @relation(fields: [emailId], references: [id], onDelete: Cascade)
   
-  userId      String
-  user        User      @relation(fields: [userId], references: [id])
+  userId      String?
+  user        User?     @relation(fields: [userId], references: [id])
   
   to          String
   subject     String

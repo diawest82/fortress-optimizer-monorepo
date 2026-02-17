@@ -114,7 +114,7 @@ test_endpoint "Get Emails with Limit" "GET" "/api/emails?limit=10&offset=0" "" "
 echo -e "\n${YELLOW}PHASE 4: Email Statistics${NC}"
 # ─────────────────────────────────────────────────────────────────
 
-test_endpoint "Get Email Stats" "GET" "/api/emails/stats" "" "200"
+test_endpoint "Get Email Stats" "GET" "/api/emails/stats/unread" "" "200"
 
 test_endpoint "Get Enterprise Stats" "GET" "/api/emails/enterprise" "" "200"
 
@@ -122,16 +122,36 @@ test_endpoint "Get Enterprise Stats" "GET" "/api/emails/enterprise" "" "200"
 echo -e "\n${YELLOW}PHASE 5: Email Replies${NC}"
 # ─────────────────────────────────────────────────────────────────
 
-# Create a draft reply
-REPLY_PAYLOAD='{
-  "emailId": "test-email-id",
-  "content": "Thank you for your interest. We are excited to work with you.",
-  "status": "draft"
-}'
+# Get first email ID to test replies
+EMAILS_RESPONSE=$(curl -s "$BASE_URL/api/emails?limit=1")
+FIRST_EMAIL_ID=$(echo "$EMAILS_RESPONSE" | grep -o '"id":"[^"]*"' | head -1 | sed 's/"id":"\([^"]*\)"/\1/')
 
-test_endpoint "Create Email Reply (Draft)" "POST" "/api/emails/replies" "$REPLY_PAYLOAD" "201"
+if [ -n "$FIRST_EMAIL_ID" ]; then
+  # Create a draft reply for the first email
+  REPLY_PAYLOAD='{
+    "to": "sender@example.com",
+    "subject": "Re: Test Email",
+    "body": "Thank you for your interest. We are excited to work with you.",
+    "status": "draft",
+    "userId": "admin"
+  }'
 
-test_endpoint "Get Email Replies" "GET" "/api/emails/replies" "" "200"
+  test_endpoint "Create Email Reply (Draft)" "POST" "/api/emails/$FIRST_EMAIL_ID/replies" "$REPLY_PAYLOAD" "201"
+
+  test_endpoint "Get Email Replies" "GET" "/api/emails/$FIRST_EMAIL_ID/replies" "" "200"
+else
+  echo -e "\n${YELLOW}Test 11: Create Email Reply (Draft)${NC}"
+  echo "  Method: POST"
+  echo "  Endpoint: /api/emails/[id]/replies"
+  echo "  Status: SKIPPED (no emails in database)"
+  echo -e "  ${YELLOW}⚠️  SKIPPED${NC}"
+
+  echo -e "\n${YELLOW}Test 12: Get Email Replies${NC}"
+  echo "  Method: GET"
+  echo "  Endpoint: /api/emails/[id]/replies"
+  echo "  Status: SKIPPED (no emails in database)"
+  echo -e "  ${YELLOW}⚠️  SKIPPED${NC}"
+fi
 
 # ─────────────────────────────────────────────────────────────────
 echo -e "\n${YELLOW}SUMMARY${NC}"
