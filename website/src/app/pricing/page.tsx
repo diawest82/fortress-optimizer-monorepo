@@ -13,7 +13,7 @@ export default function Pricing() {
             Simple Pricing. Real Savings.
           </h1>
           <p className="mt-4 text-base text-slate-300 max-w-2xl">
-            Stop paying for verbose prompts. Join 500+ teams saving 25% on token costs immediately. Choose your plan and start optimizing today.
+            Stop paying for verbose prompts. Join 500+ teams saving 20% on token costs immediately. Choose your plan and start optimizing today.
           </p>
         </div>
       </div>

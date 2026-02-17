@@ -96,7 +96,7 @@ function SignUpContent() {
         <div className="text-center mb-8">
           <p className="text-xs uppercase tracking-[0.35em] text-blue-300 font-semibold mb-3">� Join Early Access</p>
           <h1 className="text-3xl font-bold text-white mb-2">Create your account</h1>
-          <p className="text-slate-300">Stop wasting tokens on verbose prompts. Sign up now and save 25% instantly.</p>
+          <p className="text-slate-300">Stop wasting tokens on verbose prompts. Sign up now and save 20% instantly.</p>
         </div>
 
         {/* Form */}
