@@ -14,13 +14,16 @@ export default function AdminLayout({
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const token = localStorage.getItem('adminToken');
-    if (!token) {
-      router.push('/admin/login');
-      return;
-    }
-    setIsAuthenticated(true);
-    setIsLoading(false);
+    // Quick non-blocking check
+    setTimeout(() => {
+      const token = localStorage.getItem('adminToken');
+      if (!token) {
+        router.push('/admin/login');
+        return;
+      }
+      setIsAuthenticated(true);
+      setIsLoading(false);
+    }, 0);
   }, [router]);
 
   if (isLoading) {
@@ -43,7 +46,7 @@ export default function AdminLayout({
       {/* Admin Navigation Bar */}
       <nav className="border-b border-zinc-800 bg-zinc-950/50 backdrop-blur sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          <Link href="/admin" className="flex items-center gap-3">
+          <Link href="/" className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-lg bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center">
               <span className="text-white font-bold">A</span>
             </div>
