@@ -103,10 +103,15 @@ export class ApiClient {
     };
   }
 
-  // TODO: Implement /api/auth/change-password endpoint
-  // async changePassword(currentPassword: string, newPassword: string): Promise<{ message: string }> {
-  //   const response = await fetch(`${this.baseUrl}/api/auth/change-password`, { ... });
-  // }
+  // Change Password
+  async changePassword(currentPassword: string, newPassword: string): Promise<{ message: string }> {
+    const response = await fetch(`${this.baseUrl}/api/auth/change-password`, {
+      method: 'POST',
+      headers: this.getHeaders(),
+      body: JSON.stringify({ currentPassword, newPassword }),
+    });
+    return this.handleResponse<{ message: string }>(response);
+  }
 
   // ============ EMAIL MANAGEMENT ENDPOINTS ============
   async getEmails(options?: { status?: string; category?: string; limit?: number }): Promise<any> {
@@ -158,74 +163,94 @@ export class ApiClient {
   }
 
   // ============ TODO: User Profile Endpoints (NOT YET IMPLEMENTED) ============
-  // These need to be created:
-  // - POST /api/users/profile - Create/update profile
-  // - GET /api/users/profile - Get current user profile
-  // - DELETE /api/users/profile - Delete user account
-  
-  // async getProfile(): Promise<any> {
-  //   const response = await fetch(`${this.baseUrl}/api/users/profile`, {
-  //     method: 'GET',
-  //     headers: this.getHeaders(),
-  //   });
-  //   return this.handleResponse<any>(response);
-  // }
+  async getProfile(): Promise<any> {
+    const response = await fetch(`${this.baseUrl}/api/users/profile`, {
+      method: 'GET',
+      headers: this.getHeaders(),
+    });
+    return this.handleResponse<any>(response);
+  }
 
-  // async updateProfile(data: any): Promise<any> {
-  //   const response = await fetch(`${this.baseUrl}/api/users/profile`, {
-  //     method: 'PUT',
-  //     headers: this.getHeaders(),
-  //     body: JSON.stringify(data),
-  //   });
-  //   return this.handleResponse<any>(response);
-  // }
+  async updateProfile(data: any): Promise<any> {
+    const response = await fetch(`${this.baseUrl}/api/users/profile`, {
+      method: 'POST',
+      headers: this.getHeaders(),
+      body: JSON.stringify(data),
+    });
+    return this.handleResponse<any>(response);
+  }
 
-  // ============ TODO: API Key Management (NOT YET IMPLEMENTED) ============
-  // These need to be created:
-  // - POST /api/api-keys - Generate new key
-  // - GET /api/api-keys - List all keys
-  // - DELETE /api/api-keys/[id] - Delete key
-  
-  // async generateApiKey(): Promise<{ api_key: string }> {
-  //   const response = await fetch(`${this.baseUrl}/api/api-keys`, {
-  //     method: 'POST',
-  //     headers: this.getHeaders(),
-  //   });
-  //   const data = await this.handleResponse<{ api_key: string }>(response);
-  //   this.setApiKey(data.api_key);
-  //   return data;
-  // }
+  // ============ API Key Management ============
+  async generateApiKey(name: string): Promise<{ id: string; apiKey: string; message: string }> {
+    const response = await fetch(`${this.baseUrl}/api/api-keys`, {
+      method: 'POST',
+      headers: this.getHeaders(),
+      body: JSON.stringify({ name }),
+    });
+    const data = await this.handleResponse<{ id: string; apiKey: string; message: string }>(response);
+    return data;
+  }
 
-  // async listApiKeys(): Promise<{ keys: any[] }> {
-  //   const response = await fetch(`${this.baseUrl}/api/api-keys`, {
-  //     method: 'GET',
-  //     headers: this.getHeaders(),
-  //   });
-  //   return this.handleResponse<{ keys: any[] }>(response);
-  // }
+  async listApiKeys(): Promise<{ keys: any[]; count: number }> {
+    const response = await fetch(`${this.baseUrl}/api/api-keys`, {
+      method: 'GET',
+      headers: this.getHeaders(),
+    });
+    return this.handleResponse<{ keys: any[]; count: number }>(response);
+  }
 
-  // async deleteApiKey(keyId: string): Promise<{ message: string }> {
-  //   const response = await fetch(`${this.baseUrl}/api/api-keys/${keyId}`, {
-  //     method: 'DELETE',
-  //     headers: this.getHeaders(),
-  //   });
-  //   return this.handleResponse<{ message: string }>(response);
-  // }
+  async deleteApiKey(keyId: string): Promise<{ message: string }> {
+    const response = await fetch(`${this.baseUrl}/api/api-keys/${keyId}`, {
+      method: 'DELETE',
+      headers: this.getHeaders(),
+    });
+    return this.handleResponse<{ message: string }>(response);
+  }
 
-  // ============ TODO: Subscription Management (NOT YET IMPLEMENTED) ============
-  // These need to be created:
-  // - GET /api/subscriptions - Get current subscription
-  // - POST /api/subscriptions/upgrade - Upgrade tier
-  // - POST /api/subscriptions/downgrade - Downgrade tier
-  // - POST /api/subscriptions/cancel - Cancel subscription
-  
-  // async getCurrentSubscription(): Promise<any> { ... }
-  // async upgradeTier(newTier: string): Promise<any> { ... }
-  // async downgradeTier(): Promise<any> { ... }
-  // async cancelSubscription(): Promise<any> { ... }
+  // ============ Subscription Management ============
+  async getCurrentSubscription(): Promise<any> {
+    const response = await fetch(`${this.baseUrl}/api/subscriptions`, {
+      method: 'GET',
+      headers: this.getHeaders(),
+    });
+    return this.handleResponse<any>(response);
+  }
 
-  // ============ TODO: Optimization Engine (NOT YET IMPLEMENTED) ============
-  // async optimize(text: string, provider: string, model: string): Promise<any> { ... }
+  async upgradeTier(newTier: string): Promise<any> {
+    const response = await fetch(`${this.baseUrl}/api/subscriptions/upgrade`, {
+      method: 'POST',
+      headers: this.getHeaders(),
+      body: JSON.stringify({ newTier }),
+    });
+    return this.handleResponse<any>(response);
+  }
+
+  async downgradeTier(newTier: string): Promise<any> {
+    const response = await fetch(`${this.baseUrl}/api/subscriptions/downgrade`, {
+      method: 'POST',
+      headers: this.getHeaders(),
+      body: JSON.stringify({ newTier }),
+    });
+    return this.handleResponse<any>(response);
+  }
+
+  async cancelSubscription(): Promise<any> {
+    const response = await fetch(`${this.baseUrl}/api/subscriptions/cancel`, {
+      method: 'POST',
+      headers: this.getHeaders(),
+    });
+    return this.handleResponse<any>(response);
+  }
+
+  // ============ Optimization Engine ============
+  async optimize(text: string, provider: string, model: string): Promise<any> {
+    const response = await fetch(`${this.baseUrl}/api/optimize`, {
+      method: 'POST',
+      headers: this.getHeaders(),
+      body: JSON.stringify({ text, provider, model }),
+    });
+    return this.handleResponse<any>(response);
+  }
 
   // ============ TODO: Pricing API (NOT YET IMPLEMENTED) ============
   // async getPricing(): Promise<any> { ... }
