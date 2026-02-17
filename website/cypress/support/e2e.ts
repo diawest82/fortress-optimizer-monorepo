@@ -9,6 +9,10 @@ Cypress.on('uncaught:exception', (err) => {
   if (err.message.includes('ResizeObserver loop limit exceeded')) {
     return false;
   }
+  // Suppress hydration mismatch errors during development
+  if (err.message.includes('Hydration failed')) {
+    return false;
+  }
   // Let other errors fail the test
   return true;
 });

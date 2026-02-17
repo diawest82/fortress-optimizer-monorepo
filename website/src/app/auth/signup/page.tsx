@@ -1,13 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, Suspense } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { useAuth } from '@/context/AuthContext';
+import { useAuthContext } from '@/context/AuthContext';
 
-export default function SignUp() {
+function SignUpContent() {
   const router = useRouter();
-  const { signup, error: authError, clearError } = useAuth();
+  const { signup, error: authError } = useAuthContext();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
@@ -61,7 +61,6 @@ export default function SignUp() {
     setFormData((prev) => ({ ...prev, [name]: value }));
     // Clear field error when user starts typing
     setFieldErrors((prev) => ({ ...prev, [name]: '' }));
-    clearError();
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -73,7 +72,7 @@ export default function SignUp() {
 
     setLoading(true);
     try {
-      await signup(formData.email, formData.password, formData.name);
+      await signup(formData.email, formData.password);
       // Signup successful, redirect to dashboard
       router.push('/dashboard');
     } catch (error) {
@@ -193,5 +192,22 @@ export default function SignUp() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function SignUp() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-black flex items-center justify-center">
+          <div className="text-white text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mb-4 mx-auto"></div>
+            <p>Loading...</p>
+          </div>
+        </div>
+      }
+    >
+      <SignUpContent />
+    </Suspense>
   );
 }

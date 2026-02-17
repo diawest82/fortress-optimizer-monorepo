@@ -88,14 +88,34 @@ export default function Home() {
               🎯 Get Early Access →
             </Link>
             <Link
-              href="/support"
+              href="/dashboard"
               className="rounded-full border border-slate-600 px-6 py-3 text-sm font-semibold text-slate-200 transition hover:border-slate-400 hover:bg-slate-900/50 whitespace-nowrap"
             >
-              Contact Us
+              See Demo
             </Link>
           </div>
         </div>
       </section>
+
+      <footer className="border-t border-zinc-800 mt-16 pt-8 pb-8">
+        <div className="max-w-7xl mx-auto flex flex-col gap-8 md:flex-row md:items-center md:justify-between">
+          <div className="flex items-center gap-3">
+            <span className="text-lg font-bold">Fortress</span>
+            <p className="text-sm text-zinc-400">© 2026 Fortress Token Optimizer. All rights reserved.</p>
+          </div>
+          <div className="flex gap-6">
+            <Link href="/support" className="text-sm text-zinc-400 hover:text-white transition">
+              Support
+            </Link>
+            <Link href="/pricing" className="text-sm text-zinc-400 hover:text-white transition">
+              Pricing
+            </Link>
+            <Link href="/install" className="text-sm text-zinc-400 hover:text-white transition">
+              Install
+            </Link>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }

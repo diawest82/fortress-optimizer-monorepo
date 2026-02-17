@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { useAuth } from "@/context/AuthContext";
+import { useAuthContext } from "@/context/AuthContext";
 import { apiClient } from "@/lib/api";
 
 interface ApiKey {
@@ -25,7 +25,7 @@ interface SubscriptionData {
 }
 
 export default function AccountContent() {
-  const { user, isLoading, logout } = useAuth();
+  const { user, loading, logout } = useAuthContext();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState("overview");
   const [apiKeys, setApiKeys] = useState<ApiKey[]>([]);
@@ -40,10 +40,10 @@ export default function AccountContent() {
   const [passwordChangeSuccess, setPasswordChangeSuccess] = useState(false);
 
   useEffect(() => {
-    if (!isLoading && !user) {
+    if (!loading && !user) {
       router.push("/auth/login");
     }
-  }, [isLoading, user, router]);
+  }, [loading, user, router]);
 
   useEffect(() => {
     if (activeTab === "api-keys" && user) {
@@ -126,7 +126,7 @@ export default function AccountContent() {
     router.push("/");
   };
 
-  if (isLoading) {
+  if (loading) {
     return null;
   }
 

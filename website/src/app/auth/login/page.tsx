@@ -3,12 +3,12 @@
 import { useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { useAuth } from '@/context/AuthContext';
+import { useAuthContext } from '@/context/AuthContext';
 
 function LoginContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { login, error: authError, clearError } = useAuth();
+  const { login, error: authError } = useAuthContext();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
@@ -48,7 +48,6 @@ function LoginContent() {
     setFormData((prev) => ({ ...prev, [name]: value }));
     // Clear field error when user starts typing
     setFieldErrors((prev) => ({ ...prev, [name]: '' }));
-    clearError();
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
