@@ -41,10 +41,31 @@ function calculatePasswordStrength(password: string): { score: number; feedback:
 
 export async function POST(request: NextRequest) {
   try {
-    const { password } = await request.json();
+    let password: string;
+    
+    try {
+      const body = await request.json();
+      password = body.password;
+    } catch {
+      return NextResponse.json(
+        { 
+          error: 'Invalid JSON in request body',
+          score: 0,
+          feedback: ['Request body must be valid JSON']
+        },
+        { status: 400 }
+      );
+    }
 
     if (!password || typeof password !== 'string') {
-      return NextResponse.json({ error: 'Invalid password' }, { status: 400 });
+      return NextResponse.json(
+        { 
+          error: 'Invalid password',
+          score: 0,
+          feedback: ['Password is required and must be a string']
+        }, 
+        { status: 400 }
+      );
     }
 
     const { score, feedback } = calculatePasswordStrength(password);
@@ -57,7 +78,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Password validation error:', error);
     return NextResponse.json(
-      { error: 'Validation failed' },
+      { error: 'Validation failed', score: 0, feedback: [] },
       { status: 500 }
     );
   }

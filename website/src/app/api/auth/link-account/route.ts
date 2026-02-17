@@ -76,7 +76,7 @@ export async function GET(request: NextRequest) {
     }
 
     const accounts = linkedAccounts.get(email) || [];
-    return NextResponse.json({ linked: accounts });
+    return NextResponse.json(accounts);
   } catch (error) {
     console.error('Error fetching linked accounts:', error);
     return NextResponse.json(
