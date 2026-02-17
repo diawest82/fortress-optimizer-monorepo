@@ -5,19 +5,6 @@ import ProductDemoGrid from "@/components/product-demo-grid";
 export default function Home() {
   return (
     <div className="flex flex-col gap-16">
-      {/* Header Navigation */}
-      <header className="flex items-center justify-between mb-8">
-        <div className="text-2xl font-bold">Fortress</div>
-        <nav className="flex gap-6 items-center">
-          <Link href="/support" className="text-slate-300 hover:text-white transition">
-            Support
-          </Link>
-          <Link href="/auth/login" className="text-slate-300 hover:text-white transition">
-            Sign In
-          </Link>
-        </nav>
-      </header>
-
       {/* Hero Section */}
       <section className="rounded-3xl border border-blue-500/30 bg-gradient-to-r from-blue-950/40 to-purple-950/40 p-12">
         <div className="space-y-8">
