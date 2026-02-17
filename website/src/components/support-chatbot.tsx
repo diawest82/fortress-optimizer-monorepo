@@ -24,7 +24,7 @@ const commonQuestions = [
 const botResponses: { [key: string]: string } = {
   install: 'You can install Fortress Optimizer via npm, GitHub Copilot, VS Code, Slack, or Claude Desktop. Visit our installation guides page for step-by-step instructions for each platform.',
   pricing: 'We offer three plans: Starter ($29/mo), Growth ($99/mo), and Enterprise (custom). All plans include real-time token optimization across supported platforms.',
-  save: 'Our customers see an average of 20% token reduction, with some seeing up to 40% depending on their use case. Check your dashboard for personalized metrics.',
+  save: 'Our customers see an average of 25% token reduction, with some seeing up to 40% depending on their use case. Check your dashboard for personalized metrics.',
   trial: 'Yes! You can try Fortress Optimizer free for 14 days with full access to all features. No credit card required.',
   platforms: 'We support npm packages, GitHub Copilot, VS Code extensions, Slack integrations, and Claude Desktop. More platforms coming soon!',
   password: 'Click the "Forgot password" link on the login page. We\'ll send you a reset link via email within minutes.',

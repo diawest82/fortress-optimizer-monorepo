@@ -91,7 +91,7 @@ export default function Support() {
           {[
             {
               q: 'How much can I save with Fortress?',
-              a: 'On average, teams save 20% on token costs. The exact amount depends on your prompt patterns and usage frequency. See the dashboard for your specific savings.',
+              a: 'On average, teams save 25% on token costs. The exact amount depends on your prompt patterns and usage frequency. See the dashboard for your specific savings.',
             },
             {
               q: 'Which platforms are supported?',

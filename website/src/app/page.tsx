@@ -29,7 +29,7 @@ export default function Home() {
               Real token optimization for every AI surface
             </h1>
             <p className="max-w-2xl text-lg text-slate-300 mb-8">
-              Stop paying for verbose prompts. Compress your prompts in realtime across npm, Copilot, VS Code, Slack, and Claude Desktop while keeping quality high. Join 500+ teams saving 20% on token costs instantly.
+              Stop paying for verbose prompts. Compress your prompts in realtime across npm, Copilot, VS Code, Slack, and Claude Desktop while keeping quality high. Join 500+ teams saving 25% on token costs instantly.
             </p>
             <div className="flex flex-wrap gap-4">
               <Link
@@ -53,7 +53,7 @@ export default function Home() {
               <p className="text-xs uppercase tracking-[0.35em] text-blue-200 mb-2">
                 Live savings
               </p>
-              <p className="text-4xl font-bold text-white">20%</p>
+              <p className="text-4xl font-bold text-white">25%</p>
               <p className="text-sm text-blue-200 mt-1">Average token reduction</p>
             </div>
             <div className="rounded-2xl border border-blue-500/30 bg-blue-950/20 p-6">
