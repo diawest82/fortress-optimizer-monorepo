@@ -34,9 +34,10 @@ function extractUserIdFromToken(req: NextRequest): string | null {
 
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id: keyId } = await params;
     const userId = extractUserIdFromToken(req);
     if (!userId) {
       return NextResponse.json(
@@ -45,7 +46,6 @@ export async function DELETE(
       );
     }
 
-    const keyId = params.id;
     const key = apiKeys.get(keyId);
 
     if (!key) {
