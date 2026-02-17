@@ -1,6 +1,79 @@
 {
+  "name": "fortress-optimizer",
+  "version": "0.1.0",
   "buildCommand": "npm run build",
   "devCommand": "npm run dev",
   "installCommand": "npm install",
-  "framework": "nextjs"
+  "framework": "nextjs",
+  "public": false,
+  "env": [
+    {
+      "key": "NEXT_PUBLIC_SENTRY_DSN",
+      "description": "Sentry DSN for error tracking (client-side)"
+    },
+    {
+      "key": "SENTRY_DSN",
+      "description": "Sentry DSN for error tracking (server-side)"
+    },
+    {
+      "key": "NEXT_PUBLIC_SENTRY_ENV",
+      "description": "Sentry environment (development, staging, production)"
+    },
+    {
+      "key": "SENTRY_ENV",
+      "description": "Sentry environment for server"
+    },
+    {
+      "key": "NEXTAUTH_SECRET",
+      "description": "NextAuth.js secret for session signing"
+    },
+    {
+      "key": "NEXTAUTH_URL",
+      "description": "NextAuth.js URL (set automatically by Vercel)"
+    },
+    {
+      "key": "DATABASE_URL",
+      "description": "PostgreSQL database connection string"
+    }
+  ],
+  "buildOutputDirectory": ".next",
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "/api/$1"
+    }
+  ],
+  "redirects": [
+    {
+      "source": "/docs",
+      "destination": "/install"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "Strict-Transport-Security",
+          "value": "max-age=31536000; includeSubDomains"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-XSS-Protection",
+          "value": "1; mode=block"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        }
+      ]
+    }
+  ]
 }

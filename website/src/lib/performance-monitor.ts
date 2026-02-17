@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Web Vitals and Performance Monitoring
  * Tracks Core Web Vitals and custom performance metrics
@@ -41,8 +42,8 @@ export function reportWebVitals(metric: any) {
   }
 
   // Send to analytics
-  if (window.gtag) {
-    window.gtag('event', metric.name, {
+  if (typeof window !== 'undefined' && (window as any).gtag) {
+    (window as any).gtag('event', metric.name, {
       event_category: 'Web Vitals',
       value: Math.round(metric.value),
       event_label: metric.id,
@@ -84,8 +85,8 @@ export function measureApiCall(endpoint: string, duration: number) {
   }
 
   // Send to monitoring
-  if (window.gtag) {
-    window.gtag('event', 'api_call', {
+  if (typeof window !== 'undefined' && (window as any).gtag) {
+    (window as any).gtag('event', 'api_call', {
       endpoint,
       duration: Math.round(duration),
       event_category: 'Performance',
@@ -117,15 +118,16 @@ export function getNavigationMetrics() {
  * Get memory usage (if available)
  */
 export function getMemoryMetrics() {
-  if (!performance.memory) {
+  if (typeof performance === 'undefined' || !(performance as any).memory) {
     return null;
   }
 
+  const mem = (performance as any).memory;
   return {
-    usedJSHeapSize: performance.memory.usedJSHeapSize,
-    totalJSHeapSize: performance.memory.totalJSHeapSize,
-    jsHeapSizeLimit: performance.memory.jsHeapSizeLimit,
-    percentage: (performance.memory.usedJSHeapSize / performance.memory.jsHeapSizeLimit) * 100,
+    usedJSHeapSize: mem.usedJSHeapSize,
+    totalJSHeapSize: mem.totalJSHeapSize,
+    jsHeapSizeLimit: mem.jsHeapSizeLimit,
+    percentage: (mem.usedJSHeapSize / mem.jsHeapSizeLimit) * 100,
   };
 }
 
@@ -154,7 +156,7 @@ export function setupLongTaskMonitoring() {
       });
 
       observer.observe({ entryTypes: ['longtask'] });
-    } catch (error) {
+    } catch {
       console.debug('Long task monitoring not supported');
     }
   }
@@ -188,13 +190,13 @@ export function setupResourceMonitoring() {
       });
 
       observer.observe({ entryTypes: ['resource'] });
-    } catch (error) {
+    } catch {
       console.debug('Resource monitoring not supported');
     }
   }
 }
 
-export default {
+const performanceMonitor = {
   reportWebVitals,
   measureApiCall,
   getNavigationMetrics,
@@ -202,3 +204,5 @@ export default {
   setupLongTaskMonitoring,
   setupResourceMonitoring,
 };
+
+export default performanceMonitor;
