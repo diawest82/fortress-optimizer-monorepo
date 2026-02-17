@@ -132,8 +132,7 @@ if [ -n "$FIRST_EMAIL_ID" ]; then
     "to": "sender@example.com",
     "subject": "Re: Test Email",
     "body": "Thank you for your interest. We are excited to work with you.",
-    "status": "draft",
-    "userId": "admin"
+    "status": "draft"
   }'
 
   test_endpoint "Create Email Reply (Draft)" "POST" "/api/emails/$FIRST_EMAIL_ID/replies" "$REPLY_PAYLOAD" "201"

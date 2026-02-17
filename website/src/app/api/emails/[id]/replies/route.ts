@@ -97,7 +97,7 @@ export async function POST(
       });
     }
 
-    return NextResponse.json(reply);
+    return NextResponse.json(reply, { status: 201 });
   } catch (error) {
     console.error('Error creating reply:', error);
     return NextResponse.json(
