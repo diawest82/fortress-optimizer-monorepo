@@ -1,13 +1,14 @@
 /**
  * API Client for Fortress Backend
- * Handles all HTTP communication with the FastAPI backend
+ * Handles all HTTP communication with the Next.js backend
  */
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+const API_BASE_URL = typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000';
 
 interface ApiError {
-  detail: string;
-  status: number;
+  detail?: string;
+  error?: string;
+  status?: number;
 }
 
 export class ApiClient {
@@ -69,7 +70,7 @@ export class ApiClient {
 
     if (!response.ok) {
       const error = data as ApiError;
-      throw new Error(error.detail || `API Error: ${response.status}`);
+      throw new Error(error.detail || error.error || `API Error: ${response.status}`);
     }
 
     return data as T;
@@ -77,7 +78,7 @@ export class ApiClient {
 
   // Authentication Endpoints
   async signup(email: string, password: string): Promise<{ api_key: string; user_id: string }> {
-    const response = await fetch(`${this.baseUrl}/auth/signup`, {
+    const response = await fetch(`${this.baseUrl}/api/auth/signup`, {
       method: 'POST',
       headers: this.getHeaders(),
       body: JSON.stringify({ email, password }),
@@ -87,8 +88,8 @@ export class ApiClient {
     return data;
   }
 
-  async login(email: string, password: string): Promise<{ token: string; user_id: string }> {
-    const response = await fetch(`${this.baseUrl}/auth/login`, {
+  async login(email: string, password: string): Promise<{ token: string; user_id?: string; user?: any }> {
+    const response = await fetch(`${this.baseUrl}/api/auth/login`, {
       method: 'POST',
       headers: this.getHeaders(),
       body: JSON.stringify({ email, password }),
@@ -99,7 +100,7 @@ export class ApiClient {
   }
 
   async changePassword(currentPassword: string, newPassword: string): Promise<{ message: string }> {
-    const response = await fetch(`${this.baseUrl}/auth/change-password`, {
+    const response = await fetch(`${this.baseUrl}/api/auth/change-password`, {
       method: 'POST',
       headers: this.getHeaders(),
       body: JSON.stringify({ current_password: currentPassword, new_password: newPassword }),
@@ -109,7 +110,7 @@ export class ApiClient {
 
   // User Endpoints
   async getProfile(): Promise<any> {
-    const response = await fetch(`${this.baseUrl}/users/profile`, {
+    const response = await fetch(`${this.baseUrl}/api/users/profile`, {
       method: 'GET',
       headers: this.getHeaders(),
     });

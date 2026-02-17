@@ -4,9 +4,7 @@ import { logLoginAttempt, logAccountLocked } from "@/lib/audit-log";
 import { setAuthTokenCookie } from "@/lib/secure-cookies";
 import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
-
-// In-memory user store (same as auth-config.ts)
-const users: Record<string, { id: string; email: string; password: string; name: string }> = {};
+import { prisma } from "@/lib/prisma";
 
 export async function POST(req: NextRequest) {
   try {
@@ -54,7 +52,10 @@ export async function POST(req: NextRequest) {
 
     // ============ Authenticate User ============
     try {
-      const user = users[email];
+      const user = await prisma.user.findUnique({
+        where: { email },
+      });
+
       if (!user) {
         throw new Error("Invalid credentials");
       }
