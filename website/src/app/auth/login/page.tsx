@@ -60,8 +60,8 @@ function LoginContent() {
     setLoading(true);
     try {
       await login(formData.email, formData.password);
-      // Login successful, redirect to dashboard (or callback URL)
-      const callbackUrl = searchParams.get('callbackUrl') || '/dashboard';
+      // Login successful, redirect to admin dashboard (or callback URL)
+      const callbackUrl = searchParams.get('callbackUrl') || '/admin';
       router.push(callbackUrl);
     } catch (error) {
       // Error is handled by AuthContext and stored in authError
