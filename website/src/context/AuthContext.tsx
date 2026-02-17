@@ -1,3 +1,5 @@
+'use client';
+
 import React, { createContext, useContext, ReactNode, useEffect } from 'react';
 import { useAuth } from '@/lib/hooks';
 
