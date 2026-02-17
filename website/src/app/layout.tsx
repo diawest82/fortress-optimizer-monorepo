@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { SiteNav } from "@/components/site-nav";
+import { AuthProvider } from "@/context/AuthContext";
 
 export const metadata: Metadata = {
   title: "Fortress Token Optimizer - Coming Soon | Cut Token Costs by 20%",
@@ -71,27 +72,29 @@ export default function RootLayout({
         />
       </head>
       <body className="bg-black text-white">
-        <nav className="border-b border-zinc-800 sticky top-0 z-50 bg-black/95 backdrop-blur">
-          <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <svg className="w-8 h-8" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <defs>
-                  <linearGradient id="fortress-shield" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" style={{stopColor: '#3B82F6', stopOpacity: 1}} />
-                    <stop offset="100%" style={{stopColor: '#A855F7', stopOpacity: 1}} />
-                  </linearGradient>
-                </defs>
-                {/* Shield background */}
-                <path d="M16 2L4 7V14C4 21.5 16 29 16 29C16 29 28 21.5 28 14V7L16 2Z" fill="url(#fortress-shield)" />
-                {/* F inside shield */}
-                <text x="16" y="16" fontSize="18" fontWeight="bold" fill="white" textAnchor="middle" dominantBaseline="middle">F</text>
-              </svg>
-              <span className="text-lg font-bold tracking-tight">Fortress</span>
+        <AuthProvider>
+          <nav className="border-b border-zinc-800 sticky top-0 z-50 bg-black/95 backdrop-blur">
+            <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <svg className="w-8 h-8" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <defs>
+                    <linearGradient id="fortress-shield" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" style={{stopColor: '#3B82F6', stopOpacity: 1}} />
+                      <stop offset="100%" style={{stopColor: '#A855F7', stopOpacity: 1}} />
+                    </linearGradient>
+                  </defs>
+                  {/* Shield background */}
+                  <path d="M16 2L4 7V14C4 21.5 16 29 16 29C16 29 28 21.5 28 14V7L16 2Z" fill="url(#fortress-shield)" />
+                  {/* F inside shield */}
+                  <text x="16" y="16" fontSize="18" fontWeight="bold" fill="white" textAnchor="middle" dominantBaseline="middle">F</text>
+                </svg>
+                <span className="text-lg font-bold tracking-tight">Fortress</span>
+              </div>
+              <SiteNav />
             </div>
-            <SiteNav />
-          </div>
-        </nav>
-        {children}
+          </nav>
+          {children}
+        </AuthProvider>
       </body>
     </html>
   );
