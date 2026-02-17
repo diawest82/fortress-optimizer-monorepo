@@ -1,9 +1,12 @@
 import ContactForm from '@/components/contact-form';
-import { Mail, BookOpen, MessageSquare, Clock } from 'lucide-react';
+import SupportChatbot from '@/components/support-chatbot';
+import { Mail, BookOpen, MessageSquare, Clock, MessageCircle } from 'lucide-react';
 
 export default function Support() {
   return (
-    <div className="flex flex-col gap-16">
+    <>
+      <SupportChatbot />
+      <div className="flex flex-col gap-16">
       {/* Header */}
       <section className="text-center space-y-4">
         <p className="text-xs uppercase tracking-[0.4em] text-emerald-300 font-semibold">
@@ -133,5 +136,6 @@ export default function Support() {
         </p>
       </section>
     </div>
+    </>
   );
 }
