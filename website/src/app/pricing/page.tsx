@@ -3,6 +3,22 @@
 import Link from "next/link";
 
 export default function Pricing() {
+  // Hero section component
+  const PricingHero = () => (
+    <section className="rounded-3xl border border-blue-500/30 bg-gradient-to-r from-blue-950/40 to-purple-950/40 p-8 mb-12">
+      <div className="flex flex-col gap-6">
+        <div>
+          <p className="text-xs uppercase tracking-[0.35em] text-blue-300 font-semibold">💰 Simple, Transparent Pricing</p>
+          <h1 className="mt-3 text-4xl font-bold text-white md:text-5xl">
+            Plans for every team size
+          </h1>
+          <p className="mt-4 text-base text-slate-300 max-w-2xl">
+            Join 500+ teams already saving 20% on token costs. Free tier includes 50k tokens/month with all 5 integration channels.
+          </p>
+        </div>
+      </div>
+    </section>
+  );
   const tiers = [
     {
       name: "Free",
@@ -92,17 +108,7 @@ export default function Pricing() {
     <div className="flex flex-col gap-16">
       {/* Pricing Cards */}
       <section className="space-y-12">
-        <div className="text-center space-y-4">
-          <p className="text-xs uppercase tracking-[0.4em] text-emerald-300 font-semibold">
-            Simple, transparent pricing
-          </p>
-          <h1 className="text-4xl font-semibold text-white md:text-5xl">
-            Choose your plan
-          </h1>
-          <p className="text-slate-400 max-w-2xl mx-auto">
-            Start with Free and upgrade anytime. No credit card required.
-          </p>
-        </div>
+        <PricingHero />
 
         <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4 max-w-7xl mx-auto w-full">
           {tiers.map((tier) => (

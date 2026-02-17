@@ -7,6 +7,21 @@ export default function Dashboard() {
   const [timeRange, setTimeRange] = useState('7d');
   const [selectedPlatform, setSelectedPlatform] = useState('all');
 
+  // Dashboard Hero Section
+  const DashboardHero = () => (
+    <section className="rounded-3xl border border-blue-500/30 bg-gradient-to-r from-blue-950/40 to-purple-950/40 p-8 mb-12">
+      <div className="flex flex-col gap-4">
+        <p className="text-xs uppercase tracking-[0.35em] text-blue-300 font-semibold">📊 Real-Time Analytics</p>
+        <h1 className="text-4xl font-bold text-white md:text-5xl">
+          Your optimization dashboard
+        </h1>
+        <p className="text-base text-slate-300 max-w-2xl">
+          Watch your token savings grow in real-time. Track optimization across all 5 integration channels and get instant insights.
+        </p>
+      </div>
+    </section>
+  );
+
   // Data sets for different time ranges
   const timeRangeData = {
     '24h': {
@@ -102,15 +117,9 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-black via-zinc-900 to-black">
-      <div className="max-w-7xl mx-auto px-6 py-12">
-        {/* Header */}
-        <div className="mb-12">
-          <h1 className="text-4xl font-bold mb-2">Dashboard</h1>
-          <p className="text-zinc-400">Real-time optimization metrics across all platforms</p>
-        </div>
+      <DashboardHero />
 
-        {/* Time Range Selector */}
-        <div className="flex flex-col sm:flex-row gap-4 mb-8">
+      <div className="flex flex-col gap-8">
           <div className="flex gap-2">
             {['24h', '7d', '30d', '90d'].map((range) => (
               <button

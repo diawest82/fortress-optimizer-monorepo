@@ -94,8 +94,9 @@ function SignUpContent() {
       <div className="w-full max-w-md">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold mb-2">Create Account</h1>
-          <p className="text-zinc-400">Join Fortress to start optimizing your tokens</p>
+          <p className="text-xs uppercase tracking-[0.35em] text-blue-300 font-semibold mb-3">🎯 Join Early Access</p>
+          <h1 className="text-3xl font-bold text-white mb-2">Create your account</h1>
+          <p className="text-slate-400">Start saving tokens in minutes. No credit card required.</p>
         </div>
 
         {/* Form */}

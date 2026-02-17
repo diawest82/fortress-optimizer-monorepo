@@ -12,6 +12,22 @@ export default function Install() {
     setTimeout(() => setCopied(null), 2000);
   };
 
+  const InstallHero = () => (
+    <section className="rounded-3xl border border-blue-500/30 bg-gradient-to-r from-blue-950/40 to-purple-950/40 p-8 mb-12">
+      <div className="flex flex-col gap-6">
+        <div>
+          <p className="text-xs uppercase tracking-[0.35em] text-blue-300 font-semibold">⚡ Get Started in Minutes</p>
+          <h1 className="mt-3 text-4xl font-bold text-white md:text-5xl">
+            Five ways to optimize
+          </h1>
+          <p className="mt-4 text-base text-slate-300 max-w-2xl">
+            Choose your platform and follow the simple setup guide. Real-time optimization starts immediately. No credit card required to get started.
+          </p>
+        </div>
+      </div>
+    </section>
+  );
+
   const installGuides = [
     {
       id: 'npm',
@@ -64,16 +80,11 @@ export default function Install() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-black via-zinc-900 to-black">
-      <div className="max-w-7xl mx-auto px-6 py-12">
-        {/* Header */}
-        <div className="mb-12">
-          <h1 className="text-4xl font-bold mb-2">Installation Guides</h1>
-          <p className="text-zinc-400">Get started with Fortress in your favorite platform</p>
-        </div>
+    <div className="flex flex-col gap-16">
+      <InstallHero />
 
-        {/* Guides Grid */}
-        <div className="grid md:grid-cols-2 gap-8">
+      {/* Guides Grid */}
+      <div className="grid md:grid-cols-2 gap-8">
           {installGuides.map((guide) => (
             <div key={guide.id} className="card-dark p-8">
               <div className="mb-6">
