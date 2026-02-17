@@ -5,89 +5,101 @@ import ProductDemoGrid from "@/components/product-demo-grid";
 export default function Home() {
   return (
     <div className="flex flex-col gap-16">
-      <section className="grid gap-10 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
-        <div className="space-y-6">
-          <p className="text-xs uppercase tracking-[0.4em] text-emerald-300">
-            Fortress Token Optimizer
-          </p>
-          <h1 className="text-4xl font-semibold text-white md:text-5xl">
-            Live token optimization for every AI surface
-          </h1>
-          <p className="max-w-2xl text-base text-slate-300">
-            Compress prompts in realtime across npm, Copilot, VS Code, Slack, and
-            Claude Desktop. Keep fidelity high while cutting usage costs and
-            latency.
-          </p>
-          <div className="flex flex-wrap gap-4">
-            <Link
-              href="/pricing"
-              className="rounded-full bg-emerald-400/20 px-6 py-3 text-sm font-semibold text-emerald-100 transition hover:bg-emerald-400/30"
-            >
-              View pricing
-            </Link>
-            <Link
-              href="/install"
-              className="rounded-full border border-slate-700 px-6 py-3 text-sm font-semibold text-slate-200 transition hover:border-emerald-400/60"
-            >
-              Install guides
-            </Link>
-          </div>
-        </div>
-        <div className="grid gap-4">
-          <div className="rounded-3xl border border-emerald-500/30 bg-emerald-500/10 p-6">
-            <p className="text-xs uppercase tracking-[0.35em] text-emerald-200">
-              Live savings
+      {/* Header Navigation */}
+      <header className="flex items-center justify-between mb-8">
+        <div className="text-2xl font-bold">Fortress</div>
+        <nav className="flex gap-6 items-center">
+          <Link href="/support" className="text-slate-300 hover:text-white transition">
+            Support
+          </Link>
+          <Link href="/auth/login" className="text-slate-300 hover:text-white transition">
+            Sign In
+          </Link>
+        </nav>
+      </header>
+
+      {/* Hero Section */}
+      <section className="rounded-3xl border border-blue-500/30 bg-gradient-to-r from-blue-950/40 to-purple-950/40 p-12">
+        <div className="space-y-8">
+          <div>
+            <p className="text-xs uppercase tracking-[0.4em] text-blue-300 font-semibold mb-4">
+              🚀 Stop Wasting Tokens
             </p>
-            <p className="mt-3 text-4xl font-semibold text-white">20%</p>
-            <p className="mt-2 text-sm text-emerald-100">
-              Average token reduction across active teams.
+            <h1 className="text-5xl font-bold text-white mb-4">
+              Real token optimization for every AI surface
+            </h1>
+            <p className="max-w-2xl text-lg text-slate-300 mb-8">
+              Stop paying for verbose prompts. Compress your prompts in realtime across npm, Copilot, VS Code, Slack, and Claude Desktop while keeping quality high. Join 500+ teams saving 20% on token costs instantly.
             </p>
+            <div className="flex flex-wrap gap-4">
+              <Link
+                href="/auth/signup"
+                className="rounded-full bg-blue-600 hover:bg-blue-500 px-8 py-3 text-sm font-semibold text-white transition"
+              >
+                🎉 Join Early Access
+              </Link>
+              <Link
+                href="/install"
+                className="rounded-full border border-blue-500 px-8 py-3 text-sm font-semibold text-blue-300 hover:bg-blue-950/30 transition"
+              >
+                🎯 View Install Guides
+              </Link>
+            </div>
           </div>
-          <div className="grid gap-4 md:grid-cols-2">
-            <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-5">
-              <p className="text-xs uppercase tracking-[0.35em] text-slate-500">
+          
+          {/* Stats */}
+          <div className="grid gap-4 md:grid-cols-3 pt-8">
+            <div className="rounded-2xl border border-blue-500/30 bg-blue-950/20 p-6">
+              <p className="text-xs uppercase tracking-[0.35em] text-blue-200 mb-2">
+                Live savings
+              </p>
+              <p className="text-4xl font-bold text-white">20%</p>
+              <p className="text-sm text-blue-200 mt-1">Average token reduction</p>
+            </div>
+            <div className="rounded-2xl border border-blue-500/30 bg-blue-950/20 p-6">
+              <p className="text-xs uppercase tracking-[0.35em] text-blue-200 mb-2">
                 Latency
               </p>
-              <p className="mt-3 text-2xl font-semibold text-white">68ms</p>
-              <p className="mt-1 text-xs text-slate-400">Median optimization time.</p>
+              <p className="text-4xl font-bold text-white">68ms</p>
+              <p className="text-sm text-blue-200 mt-1">Optimization time</p>
             </div>
-            <div className="rounded-2xl border border-slate-800 bg-slate-950/70 p-5">
-              <p className="text-xs uppercase tracking-[0.35em] text-slate-500">
+            <div className="rounded-2xl border border-blue-500/30 bg-blue-950/20 p-6">
+              <p className="text-xs uppercase tracking-[0.35em] text-blue-200 mb-2">
                 Coverage
               </p>
-              <p className="mt-3 text-2xl font-semibold text-white">5</p>
-              <p className="mt-1 text-xs text-slate-400">Channels with live demos.</p>
+              <p className="text-4xl font-bold text-white">5</p>
+              <p className="text-sm text-blue-200 mt-1">Integration channels</p>
             </div>
           </div>
         </div>
       </section>
 
       <HowItWorks />
-
       <ProductDemoGrid />
 
-      <section className="rounded-3xl border border-slate-800 bg-slate-950/70 p-8">
-        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-          <div>
-            <h2 className="text-2xl font-semibold text-white">
-              Ready to see the savings on your stack?
+      {/* CTA Section */}
+      <section className="rounded-3xl border border-blue-500/30 bg-gradient-to-r from-blue-950/40 to-purple-950/40 p-12">
+        <div className="flex flex-col items-center justify-between gap-8">
+          <div className="text-center">
+            <h2 className="text-3xl font-bold text-white mb-2">
+              Ready to stop wasting tokens?
             </h2>
-            <p className="mt-2 text-sm text-slate-400">
+            <p className="text-slate-300">
               Start with the install guides or explore realtime usage metrics.
             </p>
           </div>
-          <div className="flex flex-wrap gap-4">
+          <div className="flex flex-wrap gap-4 justify-center">
             <Link
               href="/dashboard"
-              className="rounded-full border border-emerald-500/40 bg-emerald-500/10 px-5 py-3 text-sm font-semibold text-emerald-100"
+              className="rounded-full border border-blue-500/40 bg-blue-500/10 px-6 py-3 text-sm font-semibold text-blue-300 hover:bg-blue-500/20 transition"
             >
-              View dashboard
+              📊 View Dashboard
             </Link>
             <Link
               href="/install"
-              className="rounded-full border border-slate-700 px-5 py-3 text-sm font-semibold text-slate-200"
+              className="rounded-full border border-blue-500 px-6 py-3 text-sm font-semibold text-blue-300 hover:bg-blue-950/30 transition"
             >
-              Install now
+              ⚡ Install Now
             </Link>
           </div>
         </div>

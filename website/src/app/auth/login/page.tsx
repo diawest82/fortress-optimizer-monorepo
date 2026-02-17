@@ -77,8 +77,11 @@ function LoginContent() {
         {/* Header */}
         <div className="text-center mb-8">
           <p className="text-xs uppercase tracking-[0.35em] text-blue-300 font-semibold mb-3">🔐 Secure Login</p>
-          <h1 className="text-3xl font-bold text-white mb-2">Welcome back</h1>
-          <p className="text-slate-400">Sign in to access your optimization dashboard</p>
+        {/* Header */}
+        <div className="text-center mb-8">
+          <p className="text-xs uppercase tracking-[0.35em] text-blue-300 font-semibold mb-3">🔐 Secure Access</p>
+          <h1 className="text-3xl font-bold text-white mb-2">Sign In</h1>
+          <p className="text-slate-300">Welcome back! Access your token optimization dashboard and start saving immediately.</p>
         </div>
 
         {/* Form */}

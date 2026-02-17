@@ -107,12 +107,12 @@ export default function Dashboard() {
         <section className="rounded-3xl border border-blue-500/30 bg-gradient-to-r from-blue-950/40 to-purple-950/40 p-8 mb-12">
           <div className="flex flex-col gap-6">
             <div>
-              <p className="text-xs uppercase tracking-[0.35em] text-blue-300 font-semibold">📊 Real-Time Analytics</p>
+              <p className="text-xs uppercase tracking-[0.35em] text-blue-300 font-semibold">📊 Watch Your Savings Grow</p>
               <h1 className="mt-3 text-4xl font-bold text-white md:text-5xl">
-                Optimization Dashboard
+                Real-Time Optimization Dashboard
               </h1>
               <p className="mt-4 text-base text-slate-300 max-w-2xl">
-                Track token usage and optimization across all platforms in real time. Watch your costs drop with every API call.
+                See exactly how much you're saving across all platforms. Every optimized token is money back in your pocket.
               </p>
             </div>
           </div>

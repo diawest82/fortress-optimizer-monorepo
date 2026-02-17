@@ -8,14 +8,14 @@ export default function Support() {
       <SupportChatbot />
       <div className="flex flex-col gap-16">
       {/* Header */}
-      <section className="text-center space-y-4">
-        <p className="text-xs uppercase tracking-[0.4em] text-emerald-300 font-semibold">
-          Help & Support
+      <section className="rounded-3xl border border-blue-500/30 bg-gradient-to-r from-blue-950/40 to-purple-950/40 p-12 text-center space-y-4">
+        <p className="text-xs uppercase tracking-[0.4em] text-blue-300 font-semibold">
+          💬 Help & Support
         </p>
         <h1 className="text-4xl font-semibold text-white md:text-5xl">
           We&apos;re here to help
         </h1>
-        <p className="text-slate-400 max-w-2xl mx-auto">
+        <p className="text-slate-300 max-w-2xl mx-auto">
           Get answers to your questions or reach out to our support team. We
           typically respond within 24 hours.
         </p>
@@ -27,38 +27,38 @@ export default function Support() {
           href="https://docs.fortress-optimizer.com"
           target="_blank"
           rel="noopener noreferrer"
-          className="rounded-2xl border border-slate-700 bg-slate-950/50 p-6 hover:border-emerald-500/50 transition group"
+          className="rounded-2xl border border-blue-500/30 bg-blue-950/20 p-6 hover:border-blue-500/60 transition group"
         >
-          <BookOpen className="w-8 h-8 text-emerald-400 mb-3 group-hover:scale-110 transition" />
+          <BookOpen className="w-8 h-8 text-blue-400 mb-3 group-hover:scale-110 transition" />
           <h3 className="font-semibold text-white mb-2">Documentation</h3>
-          <p className="text-sm text-slate-400">
+          <p className="text-sm text-blue-200">
             Comprehensive guides and API reference
           </p>
         </a>
 
         <a
           href="/install"
-          className="rounded-2xl border border-slate-700 bg-slate-950/50 p-6 hover:border-emerald-500/50 transition group"
+          className="rounded-2xl border border-blue-500/30 bg-blue-950/20 p-6 hover:border-blue-500/60 transition group"
         >
-          <MessageSquare className="w-8 h-8 text-emerald-400 mb-3 group-hover:scale-110 transition" />
+          <MessageSquare className="w-8 h-8 text-blue-400 mb-3 group-hover:scale-110 transition" />
           <h3 className="font-semibold text-white mb-2">Installation</h3>
-          <p className="text-sm text-slate-400">
+          <p className="text-sm text-blue-200">
             Step-by-step setup for your platform
           </p>
         </a>
 
-        <div className="rounded-2xl border border-slate-700 bg-slate-950/50 p-6">
-          <Clock className="w-8 h-8 text-emerald-400 mb-3" />
+        <div className="rounded-2xl border border-blue-500/30 bg-blue-950/20 p-6">
+          <Clock className="w-8 h-8 text-blue-400 mb-3" />
           <h3 className="font-semibold text-white mb-2">Response Time</h3>
-          <p className="text-sm text-slate-400">
+          <p className="text-sm text-blue-200">
             We respond within 24 hours
           </p>
         </div>
 
-        <div className="rounded-2xl border border-slate-700 bg-slate-950/50 p-6">
-          <Mail className="w-8 h-8 text-emerald-400 mb-3" />
+        <div className="rounded-2xl border border-blue-500/30 bg-blue-950/20 p-6">
+          <Mail className="w-8 h-8 text-blue-400 mb-3" />
           <h3 className="font-semibold text-white mb-2">Email</h3>
-          <p className="text-sm text-slate-400">
+          <p className="text-sm text-blue-200">
             support@fortress-optimizer.com
           </p>
         </div>
@@ -68,7 +68,7 @@ export default function Support() {
       <section className="space-y-8">
         <div className="text-center space-y-2">
           <h2 className="text-3xl font-semibold text-white">Get in Touch</h2>
-          <p className="text-slate-400">
+          <p className="text-slate-300">
             Have a question or need assistance? Fill out the form below.
           </p>
         </div>
@@ -82,7 +82,7 @@ export default function Support() {
           <h2 className="text-3xl font-semibold text-white">
             Frequently Asked Questions
           </h2>
-          <p className="text-slate-400">
+          <p className="text-slate-300">
             Find quick answers to common questions
           </p>
         </div>
@@ -116,21 +116,21 @@ export default function Support() {
           ].map((faq, idx) => (
             <div
               key={idx}
-              className="rounded-2xl border border-slate-700 bg-slate-950/50 p-6"
+              className="rounded-2xl border border-blue-500/30 bg-blue-950/20 p-6"
             >
               <h3 className="font-semibold text-white mb-3">{faq.q}</h3>
-              <p className="text-slate-400 text-sm">{faq.a}</p>
+              <p className="text-blue-200 text-sm">{faq.a}</p>
             </div>
           ))}
         </div>
       </section>
 
       {/* Additional Help */}
-      <section className="rounded-3xl border border-emerald-500/30 bg-emerald-500/10 p-8 text-center space-y-4">
+      <section className="rounded-3xl border border-blue-500/30 bg-gradient-to-r from-blue-950/40 to-purple-950/40 p-8 text-center space-y-4">
         <h2 className="text-2xl font-semibold text-white">
           Didn&apos;t find what you&apos;re looking for?
         </h2>
-        <p className="text-emerald-100 max-w-2xl mx-auto">
+        <p className="text-blue-200 max-w-2xl mx-auto">
           Our support team is always ready to help. Send us a message above and
           we&apos;ll get back to you as soon as possible.
         </p>

@@ -70,12 +70,12 @@ export default function Install() {
         <section className="rounded-3xl border border-blue-500/30 bg-gradient-to-r from-blue-950/40 to-purple-950/40 p-8 mb-12">
           <div className="flex flex-col gap-6">
             <div>
-              <p className="text-xs uppercase tracking-[0.35em] text-blue-300 font-semibold">⚡ Get Started in Minutes</p>
+              <p className="text-xs uppercase tracking-[0.35em] text-blue-300 font-semibold">⚡ Stop Wasting Tokens Now</p>
               <h1 className="mt-3 text-4xl font-bold text-white md:text-5xl">
                 Five ways to optimize
               </h1>
               <p className="mt-4 text-base text-slate-300 max-w-2xl">
-                Choose your platform and follow the simple setup guide. Real-time optimization starts immediately. No credit card required to get started.
+                Choose your platform and start saving immediately. Real-time optimization with zero setup hassle. No credit card required.
               </p>
             </div>
           </div>
