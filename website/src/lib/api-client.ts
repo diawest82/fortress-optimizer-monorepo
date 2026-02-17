@@ -94,9 +94,13 @@ export class ApiClient {
       headers: this.getHeaders(),
       body: JSON.stringify({ email, password }),
     });
-    const data = await this.handleResponse<{ token: string; user_id: string }>(response);
+    const data = await this.handleResponse<{ token: string; user?: any }>(response);
     this.setToken(data.token);
-    return data;
+    return {
+      token: data.token,
+      user_id: data.user?.id,
+      user: data.user,
+    };
   }
 
   async changePassword(currentPassword: string, newPassword: string): Promise<{ message: string }> {
