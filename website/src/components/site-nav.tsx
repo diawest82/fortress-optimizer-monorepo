@@ -36,36 +36,36 @@ export function SiteNav() {
   };
 
   return (
-    <nav className="flex gap-6 items-center">
-      <Link className="text-slate-300 hover:text-white transition" href="/">
+    <nav className="flex gap-8 items-center">
+      <Link className="text-sm text-slate-300 hover:text-white transition" href="/">
         Home
       </Link>
-      <Link className="text-slate-300 hover:text-white transition" href="/dashboard">
+      <Link className="text-sm text-slate-300 hover:text-white transition" href="/dashboard">
         Dashboard
       </Link>
-      <Link className="text-slate-300 hover:text-white transition" href="/install">
+      <Link className="text-sm text-slate-300 hover:text-white transition" href="/install">
         Install
       </Link>
-      <Link className="text-slate-300 hover:text-white transition" href="/pricing">
+      <Link className="text-sm text-slate-300 hover:text-white transition" href="/pricing">
         Pricing
       </Link>
-      <Link className="text-slate-300 hover:text-white transition" href="/support">
+      <Link className="text-sm text-slate-300 hover:text-white transition" href="/support">
         Support
       </Link>
       {isAuthenticated ? (
         <>
-          <Link className="text-slate-300 hover:text-white transition" href="/account">
+          <Link className="text-sm text-slate-300 hover:text-white transition" href="/account">
             Account
           </Link>
           <button
             onClick={handleSignOut}
-            className="text-slate-300 hover:text-white transition cursor-pointer"
+            className="text-sm text-slate-300 hover:text-white transition cursor-pointer"
           >
             Sign Out
           </button>
         </>
       ) : (
-        <Link className="text-slate-300 hover:text-white transition" href="/auth/login">
+        <Link className="text-sm text-slate-300 hover:text-white transition" href="/auth/login">
           Sign In
         </Link>
       )}
