@@ -11,32 +11,21 @@ export default function AdminLayout({
 }) {
   const router = useRouter();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Quick non-blocking check
-    setTimeout(() => {
-      const token = localStorage.getItem('adminToken');
-      if (!token) {
-        router.push('/admin/login');
-        return;
-      }
+    // Check auth immediately, no loading screen
+    const token = localStorage.getItem('adminToken');
+    if (!token) {
+      router.push('/admin/login');
+      return;
+    }
+    // Use microtask to avoid cascading renders
+    Promise.resolve().then(() => {
       setIsAuthenticated(true);
-      setIsLoading(false);
-    }, 0);
+    });
   }, [router]);
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mb-4 mx-auto"></div>
-          <p className="text-white">Loading admin panel...</p>
-        </div>
-      </div>
-    );
-  }
-
+  // Show nothing while checking auth (silent redirect)
   if (!isAuthenticated) {
     return null;
   }
