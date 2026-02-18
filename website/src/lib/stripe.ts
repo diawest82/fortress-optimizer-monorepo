@@ -78,6 +78,10 @@ export async function createCheckoutSession(
     throw new Error(`Invalid tier: ${tier}`);
   }
 
+  if (!tierConfig.stripeProductId) {
+    throw new Error(`Product ID not configured for tier: ${tier}`);
+  }
+
   // Get or create a price for this tier
   const prices = await stripe.prices.list({
     product: tierConfig.stripeProductId,
