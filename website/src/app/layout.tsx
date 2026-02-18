@@ -74,9 +74,9 @@ export default function RootLayout({
       <body className="bg-black text-white">
         <AuthProvider>
           <nav className="border-b border-zinc-800 sticky top-0 z-50 bg-black/95 backdrop-blur">
-            <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <svg className="w-8 h-8" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <div className="max-w-7xl mx-auto px-4 md:px-6 py-3 md:py-4 flex items-center justify-between">
+              <div className="flex items-center gap-2 md:gap-3 flex-shrink-0">
+                <svg className="w-6 h-6 md:w-8 md:h-8" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <defs>
                     <linearGradient id="fortress-shield" x1="0%" y1="0%" x2="100%" y2="100%">
                       <stop offset="0%" style={{stopColor: '#3B82F6', stopOpacity: 1}} />
@@ -88,7 +88,7 @@ export default function RootLayout({
                   {/* F inside shield */}
                   <text x="16" y="16" fontSize="18" fontWeight="bold" fill="white" textAnchor="middle" dominantBaseline="middle">F</text>
                 </svg>
-                <span className="text-lg font-bold tracking-tight">Fortress</span>
+                <span className="text-base md:text-lg font-bold tracking-tight">Fortress</span>
               </div>
               <SiteNav />
             </div>
