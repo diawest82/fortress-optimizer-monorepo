@@ -1,170 +1,138 @@
 /**
  * Subscriptions API
  * GET /api/subscriptions - Get current user subscription
- * POST /api/subscriptions/upgrade - Upgrade subscription tier
- * POST /api/subscriptions/downgrade - Downgrade subscription tier
- * POST /api/subscriptions/cancel - Cancel subscription
+ * POST /api/subscriptions - Create checkout session
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-
-// In-memory subscription store (replace with database in production)
-interface Subscription {
-  userId: string;
-  tier: 'free' | 'starter' | 'growth' | 'enterprise';
-  status: 'active' | 'cancelled' | 'suspended';
-  createdAt: Date;
-  renewalDate: Date;
-}
-
-const subscriptions: Map<string, Subscription> = new Map();
-
-function extractUserIdFromToken(req: NextRequest): string | null {
-  const authHeader = req.headers.get('authorization');
-  if (!authHeader?.startsWith('Bearer ')) {
-    return null;
-  }
-
-  try {
-    const token = authHeader.substring(7);
-    const decoded = JSON.parse(Buffer.from(token, 'base64').toString('utf-8'));
-    return decoded.id;
-  } catch {
-    return null;
-  }
-}
-
-function getDefaultSubscription(userId: string): Subscription {
-  return {
-    userId,
-    tier: 'free',
-    status: 'active',
-    createdAt: new Date(),
-    renewalDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-  };
-}
-
-export async function GET(req: NextRequest) {
-  try {
-    const userId = extractUserIdFromToken(req);
-    if (!userId) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
-    }
-
-    const subscription = subscriptions.get(userId) || getDefaultSubscription(userId);
-
-    return NextResponse.json({
-      tier: subscription.tier,
-      status: subscription.status,
-      createdAt: subscription.createdAt,
-      renewalDate: subscription.renewalDate,
-      features: getTierFeatures(subscription.tier),
-    });
-  } catch (error) {
-    const message = error instanceof Error ? error.message : 'Failed to fetch subscription';
-    return NextResponse.json({ error: message }, { status: 500 });
-  }
-}
+import { stripe, createCheckoutSession, getCustomerSubscription, PRICING_TIERS } from '@/lib/stripe';
+import prisma from '@/lib/prisma';
 
 function getTierFeatures(tier: string) {
   const features: Record<string, string[]> = {
-    free: ['Up to 100 emails/month', 'Basic analytics'],
-    starter: ['Up to 1000 emails/month', 'Advanced analytics', 'Email support'],
-    growth: ['Up to 10000 emails/month', 'Advanced analytics', 'Priority support', 'API access'],
-    enterprise: ['Unlimited emails', 'Advanced analytics', '24/7 support', 'API access', 'Custom integrations'],
+    free: ['Basic features'],
+    starter: ['10 optimization requests/month', 'Basic analytics', 'Email support'],
+    growth: ['100 optimization requests/month', 'Advanced analytics', 'Priority support'],
+    enterprise: ['Unlimited requests', 'Custom analytics', '24/7 phone support'],
   };
   return features[tier] || features.free;
 }
 
-export async function POST(req: NextRequest) {
-  const pathname = req.nextUrl.pathname;
-  const userId = extractUserIdFromToken(req);
-
-  if (!userId) {
-    return NextResponse.json(
-      { error: 'Unauthorized' },
-      { status: 401 }
-    );
-  }
-
+export async function GET(req: NextRequest) {
   try {
-    const currentSubscription = subscriptions.get(userId) || getDefaultSubscription(userId);
-
-    if (pathname.endsWith('/upgrade')) {
-      const { newTier } = await req.json();
-      const validTiers = ['starter', 'growth', 'enterprise'];
-
-      if (!validTiers.includes(newTier)) {
-        return NextResponse.json(
-          { error: 'Invalid tier' },
-          { status: 400 }
-        );
-      }
-
-      const updated: Subscription = {
-        ...currentSubscription,
-        tier: newTier as 'starter' | 'growth' | 'enterprise',
-        renewalDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-      };
-
-      subscriptions.set(userId, updated);
-
-      return NextResponse.json({
-        message: `Upgraded to ${newTier}`,
-        tier: newTier,
-        features: getTierFeatures(newTier),
-      });
+    const userId = req.headers.get('x-user-id');
+    if (!userId) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    if (pathname.endsWith('/downgrade')) {
-      const { newTier } = await req.json();
-      const validTiers = ['free', 'starter', 'growth'];
+    // Get user's Stripe customer ID from database
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { stripeCustomerId: true, email: true },
+    });
 
-      if (!validTiers.includes(newTier)) {
-        return NextResponse.json(
-          { error: 'Invalid tier' },
-          { status: 400 }
-        );
-      }
-
-      const updated: Subscription = {
-        ...currentSubscription,
-        tier: newTier as 'free' | 'starter' | 'growth',
-      };
-
-      subscriptions.set(userId, updated);
-
+    if (!user?.stripeCustomerId) {
+      // Return default free tier if no Stripe customer
       return NextResponse.json({
-        message: `Downgraded to ${newTier}`,
-        tier: newTier,
-        features: getTierFeatures(newTier),
-      });
-    }
-
-    if (pathname.endsWith('/cancel')) {
-      const updated: Subscription = {
-        ...currentSubscription,
-        status: 'cancelled',
-      };
-
-      subscriptions.set(userId, updated);
-
-      return NextResponse.json({
-        message: 'Subscription cancelled',
         tier: 'free',
-        status: 'cancelled',
+        status: 'active',
+        stripeCustomerId: null,
+        features: getTierFeatures('free'),
       });
     }
 
-    return NextResponse.json(
-      { error: 'Invalid endpoint' },
-      { status: 400 }
-    );
+    // Get subscription from Stripe
+    const subscription = await getCustomerSubscription(user.stripeCustomerId);
+
+    if (!subscription) {
+      return NextResponse.json({
+        tier: 'free',
+        status: 'active',
+        stripeCustomerId: user.stripeCustomerId,
+        features: getTierFeatures('free'),
+      });
+    }
+
+    // Determine tier from subscription
+    const tier = subscription.metadata?.tier || 'starter';
+
+    return NextResponse.json({
+      id: subscription.id,
+      tier,
+      status: subscription.status,
+      currentPeriodStart: subscription.current_period_start * 1000,
+      currentPeriodEnd: subscription.current_period_end * 1000,
+      cancelAtPeriodEnd: subscription.cancel_at_period_end,
+      features: getTierFeatures(tier),
+      stripeCustomerId: user.stripeCustomerId,
+    });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'Failed to update subscription';
+    const message = error instanceof Error ? error.message : 'Failed to fetch subscription';
+    console.error('GET /api/subscriptions error:', error);
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
+}
+
+export async function POST(req: NextRequest) {
+  try {
+    const userId = req.headers.get('x-user-id');
+    if (!userId) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const { tier, successUrl, cancelUrl } = await req.json();
+
+    if (!tier || !successUrl || !cancelUrl) {
+      return NextResponse.json(
+        { error: 'Missing required fields: tier, successUrl, cancelUrl' },
+        { status: 400 }
+      );
+    }
+
+    if (!PRICING_TIERS[tier as keyof typeof PRICING_TIERS]) {
+      return NextResponse.json({ error: 'Invalid tier' }, { status: 400 });
+    }
+
+    // Get user from database
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { id: true, email: true, stripeCustomerId: true },
+    });
+
+    if (!user?.email) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
+
+    let customerId = user.stripeCustomerId;
+
+    // Create Stripe customer if doesn't exist
+    if (!customerId) {
+      const customer = await stripe.customers.create({
+        email: user.email,
+        metadata: { userId },
+      });
+      customerId = customer.id;
+
+      // Save customer ID to database
+      await prisma.user.update({
+        where: { id: userId },
+        data: { stripeCustomerId: customerId },
+      });
+    }
+
+    // Create checkout session
+    const session = await createCheckoutSession(
+      userId,
+      tier,
+      user.email,
+      successUrl,
+      cancelUrl
+    );
+
+    return NextResponse.json({ sessionId: session.id, url: session.url });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Failed to create checkout session';
+    console.error('POST /api/subscriptions error:', error);
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

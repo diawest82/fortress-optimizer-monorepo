@@ -20,6 +20,12 @@ model User {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   
+  // Subscription
+  tier          String    @default("free") // free, starter, growth, enterprise
+  subscriptionStatus String @default("active") // active, cancelled, suspended
+  stripeCustomerId String?
+  stripeSubscriptionId String?
+  
   // Relations
   emailReplies  EmailReply[]
   
