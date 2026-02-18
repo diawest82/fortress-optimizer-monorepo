@@ -5,8 +5,9 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { stripe, createCheckoutSession, getCustomerSubscription, PRICING_TIERS } from '@/lib/stripe';
+import { createCheckoutSession, getCustomerSubscription, PRICING_TIERS, stripe } from '@/lib/stripe';
 import prisma from '@/lib/prisma';
+import type Stripe from 'stripe';
 
 function getTierFeatures(tier: string) {
   const features: Record<string, string[]> = {
@@ -56,12 +57,17 @@ export async function GET(req: NextRequest) {
     // Determine tier from subscription
     const tier = subscription.metadata?.tier || 'starter';
 
+    // Type assertion for Stripe subscription properties
+    const stripeSubscription = subscription as unknown as Record<string, unknown>;
+    const periodStart = (stripeSubscription.current_period_start as number) || 0;
+    const periodEnd = (stripeSubscription.current_period_end as number) || 0;
+
     return NextResponse.json({
       id: subscription.id,
       tier,
       status: subscription.status,
-      currentPeriodStart: subscription.current_period_start * 1000,
-      currentPeriodEnd: subscription.current_period_end * 1000,
+      currentPeriodStart: periodStart * 1000,
+      currentPeriodEnd: periodEnd * 1000,
       cancelAtPeriodEnd: subscription.cancel_at_period_end,
       features: getTierFeatures(tier),
       stripeCustomerId: user.stripeCustomerId,

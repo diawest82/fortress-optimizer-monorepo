@@ -8,7 +8,7 @@ if (!process.env.STRIPE_SECRET_KEY) {
 }
 
 export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-  apiVersion: '2024-04-10',
+  apiVersion: '2026-01-28.clover',
 });
 
 // Pricing tier configuration
@@ -111,7 +111,9 @@ export async function getCustomerSubscription(customerId: string) {
  * Cancel subscription
  */
 export async function cancelSubscription(subscriptionId: string) {
-  return stripe.subscriptions.del(subscriptionId);
+  return stripe.subscriptions.update(subscriptionId, {
+    cancel_at_period_end: true,
+  });
 }
 
 /**

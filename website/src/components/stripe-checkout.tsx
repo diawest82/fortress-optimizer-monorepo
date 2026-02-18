@@ -6,7 +6,6 @@
 'use client';
 
 import { useState } from 'react';
-import { loadStripe } from '@stripe/stripe-js';
 
 interface PricingTier {
   id: string;
@@ -103,17 +102,13 @@ export default function StripeCheckout({
         throw new Error(data.error || 'Failed to create checkout session');
       }
 
-      const { sessionId } = await response.json();
+      const { url } = await response.json();
 
       // Redirect to Stripe checkout
-      const stripe = await loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || '');
-      if (!stripe) {
-        throw new Error('Failed to load Stripe');
-      }
-
-      const { error: stripeError } = await stripe.redirectToCheckout({ sessionId });
-      if (stripeError) {
-        throw new Error(stripeError.message);
+      if (url) {
+        window.location.href = url;
+      } else {
+        throw new Error('No checkout URL provided');
       }
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Checkout failed';
