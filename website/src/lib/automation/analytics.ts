@@ -122,7 +122,6 @@ export async function calculateChannelRoi() {
   const sources = await prisma.userSignup.groupBy({
     by: ['source'],
     _count: { id: true },
-    _avg: { conversionStatus: true },
   });
 
   return sources.map(s => ({
