@@ -26,6 +26,11 @@ model User {
   stripeCustomerId String?
   stripeSubscriptionId String?
   
+  // Referral relations
+  referralCodesCreated ReferralCode[] @relation("ReferralCodesCreated")
+  referralsCreated     Referral[]     @relation("ReferralsCreated")
+  referralsReceived    Referral[]     @relation("ReferralsReceived")
+  
   // Relations
   emailReplies  EmailReply[]
   
@@ -470,4 +475,117 @@ model AutomationLog {
   @@index([status])
   @@index([executedAt])
   @@map("automation_logs")
+}
+
+// ===== REFERRAL SYSTEM =====
+
+// Referral codes for users
+model ReferralCode {
+  id            String    @id @default(cuid())
+  code          String    @unique
+  userId        String
+  user          User      @relation("ReferralCodesCreated", fields: [userId], references: [id], onDelete: Cascade)
+  
+  isActive      Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+  
+  @@index([userId])
+  @@index([code])
+  @@map("referral_codes")
+}
+
+// Track referrals
+model Referral {
+  id            String    @id @default(cuid())
+  
+  referrerId    String
+  referrer      User      @relation("ReferralsCreated", fields: [referrerId], references: [id], onDelete: Cascade)
+  
+  refereeId     String
+  referee       User      @relation("ReferralsReceived", fields: [refereeId], references: [id], onDelete: Cascade)
+  
+  status        String    @default("pending") // pending, completed, credited
+  rewardAmount  Float     @default(10) // in dollars
+  
+  completedAt   DateTime?
+  creditedAt    DateTime?
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  @@index([referrerId])
+  @@index([refereeId])
+  @@index([status])
+  @@map("referrals")
+}
+
+// ===== LEAD MAGNETS & TOOL USAGE =====
+
+// Token counter tool usage
+model TokenCountUsage {
+  id            String    @id @default(cuid())
+  userId        String?   // null for anonymous users
+  
+  inputTokens   Int
+  originalTokens Int
+  optimizedTokens Int
+  savings       Float     // percentage saved
+  
+  promptText    String?   // optional: store the prompt for analysis
+  
+  ipAddress     String?
+  sessionId     String?
+  
+  createdAt     DateTime  @default(now())
+  
+  @@index([userId])
+  @@index([sessionId])
+  @@index([createdAt])
+  @@map("token_count_usages")
+}
+
+// Cost calculator usage
+model CostCalculatorUsage {
+  id            String    @id @default(cuid())
+  userId        String?
+  
+  tokensPerDay  Int
+  provider      String    // gpt4, claude, gemini
+  teamSize      Int
+  
+  currentCost   Float
+  optimizedCost Float
+  monthlySavings Float
+  
+  ipAddress     String?
+  sessionId     String?
+  
+  createdAt     DateTime  @default(now())
+  
+  @@index([userId])
+  @@index([sessionId])
+  @@index([createdAt])
+  @@map("cost_calculator_usages")
+}
+
+// Compatibility checker responses
+model CompatibilityCheckerUsage {
+  id            String    @id @default(cuid())
+  userId        String?
+  
+  codeLocation  String    // ide, terminal, cloud, multiple
+  languages     String[]  @default([])
+  teamSize      String    // solo, team, enterprise
+  
+  recommendedPlatforms String[]
+  
+  ipAddress     String?
+  sessionId     String?
+  
+  createdAt     DateTime  @default(now())
+  
+  @@index([userId])
+  @@index([sessionId])
+  @@index([createdAt])
+  @@map("compatibility_checker_usages")
 }
