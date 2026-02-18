@@ -38,7 +38,7 @@ export async function GET(req: NextRequest) {
 
     // Get conversion funnel for each source
     const funnels = await prisma.conversionFunnel.findMany(
-      source ? { where: { source } } : {}
+      source ? { where: { source } } : undefined
     );
 
     // Get latest metrics snapshot
