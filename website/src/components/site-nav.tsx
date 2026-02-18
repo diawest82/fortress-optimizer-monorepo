@@ -49,11 +49,19 @@ export function SiteNav() {
       <Link className="text-sm text-slate-300 hover:text-white transition" href="/pricing">
         Pricing
       </Link>
+      {!isAuthenticated && (
+        <Link className="text-sm text-slate-300 hover:text-white transition" href="/tools">
+          Tools
+        </Link>
+      )}
       <Link className="text-sm text-slate-300 hover:text-white transition" href="/support">
         Support
       </Link>
       {isAuthenticated ? (
         <>
+          <Link className="text-sm text-slate-300 hover:text-white transition" href="/refer">
+            Referrals
+          </Link>
           <Link className="text-sm text-slate-300 hover:text-white transition" href="/account">
             Account
           </Link>

@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
-import { Copy, Twitter, Linkedin, Mail } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { Copy, Twitter, Linkedin, Mail, ArrowRight } from 'lucide-react';
+import Link from 'next/link';
 import dynamic from 'next/dynamic';
 
 interface ReferralStats {
@@ -20,24 +20,104 @@ interface ReferralStats {
   }>;
 }
 
-function ReferralPageContent() {
-  const { status } = useSession();
-  const router = useRouter();
+function ReferralLandingPage() {
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-black via-zinc-900 to-black py-12">
+      <div className="max-w-4xl mx-auto px-6">
+        {/* Header */}
+        <div className="text-center mb-16 pt-12">
+          <h1 className="text-5xl md:text-6xl font-bold mb-6">Share Fortress. Get Rewarded.</h1>
+          <p className="text-xl md:text-2xl text-zinc-300 mb-8 max-w-3xl mx-auto">
+            Refer developers to Fortress Token Optimizer and earn $10 credit for every friend who signs up.
+          </p>
+          <Link
+            href="/auth/login"
+            className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-lg font-semibold transition text-lg"
+          >
+            Sign In to Get Your Link
+            <ArrowRight size={20} />
+          </Link>
+        </div>
+
+        {/* Benefits Grid */}
+        <div className="grid md:grid-cols-3 gap-8 mb-20">
+          <div className="bg-zinc-800 rounded-lg p-8 border border-zinc-700">
+            <div className="text-4xl mb-4">💰</div>
+            <h3 className="text-xl font-bold mb-3">Easy Earnings</h3>
+            <p className="text-zinc-400">
+              Earn $10 in credits for every developer who signs up through your referral link.
+            </p>
+          </div>
+          <div className="bg-zinc-800 rounded-lg p-8 border border-zinc-700">
+            <div className="text-4xl mb-4">📊</div>
+            <h3 className="text-xl font-bold mb-3">Track Everything</h3>
+            <p className="text-zinc-400">
+              Monitor your referrals, pending conversions, and earnings in real-time on your dashboard.
+            </p>
+          </div>
+          <div className="bg-zinc-800 rounded-lg p-8 border border-zinc-700">
+            <div className="text-4xl mb-4">🏆</div>
+            <h3 className="text-xl font-bold mb-3">Win Prizes</h3>
+            <p className="text-zinc-400">
+              Top referrers earn exclusive rewards: 1 year, 6 months, or 3 months of free Pro access.
+            </p>
+          </div>
+        </div>
+
+        {/* How It Works */}
+        <div className="bg-gradient-to-r from-zinc-800 to-zinc-900 rounded-lg p-12 border border-zinc-700 mb-20">
+          <h2 className="text-3xl font-bold mb-8 text-center">How It Works</h2>
+          <div className="grid md:grid-cols-3 gap-8">
+            <div className="text-center">
+              <div className="bg-blue-600 text-white rounded-full w-12 h-12 flex items-center justify-center font-bold text-lg mx-auto mb-4">
+                1
+              </div>
+              <h3 className="font-bold mb-2">Get Your Link</h3>
+              <p className="text-zinc-400">Sign in and get your unique referral link</p>
+            </div>
+            <div className="text-center">
+              <div className="bg-blue-600 text-white rounded-full w-12 h-12 flex items-center justify-center font-bold text-lg mx-auto mb-4">
+                2
+              </div>
+              <h3 className="font-bold mb-2">Share</h3>
+              <p className="text-zinc-400">Share with friends via Twitter, LinkedIn, email or copy the link</p>
+            </div>
+            <div className="text-center">
+              <div className="bg-blue-600 text-white rounded-full w-12 h-12 flex items-center justify-center font-bold text-lg mx-auto mb-4">
+                3
+              </div>
+              <h3 className="font-bold mb-2">Earn</h3>
+              <p className="text-zinc-400">Get $10 credit when they sign up and complete setup</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Leaderboard Preview */}
+        <div className="text-center">
+          <h2 className="text-3xl font-bold mb-4">Join Our Top Referrers</h2>
+          <p className="text-zinc-400 mb-8">Sign in to see the leaderboard and start earning today</p>
+          <Link
+            href="/auth/login"
+            className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg font-semibold transition"
+          >
+            Get Started
+            <ArrowRight size={18} />
+          </Link>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ReferralDashboard() {
   const [stats, setStats] = useState<ReferralStats | null>(null);
   const [referralLink, setReferralLink] = useState('');
   const [copied, setCopied] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (status === 'unauthenticated') {
-      router.push('/auth/signin');
-      return;
-    }
-
-    if (status === 'authenticated') {
-      loadData();
-    }
-  }, [status, router]);
+    loadData();
+  }, []);
 
   const loadData = async () => {
     try {
@@ -93,6 +173,10 @@ function ReferralPageContent() {
         </div>
       </div>
     );
+  }
+
+  if (status === 'unauthenticated') {
+    return <ReferralLandingPage />;
   }
 
   return (
@@ -236,3 +320,24 @@ function ReferralPageContent() {
 export default dynamic(() => Promise.resolve(ReferralPageContent), {
   ssr: false
 });
+
+function ReferralPageContent() {
+  const { status } = useSession();
+
+  if (status === 'loading') {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-black via-zinc-900 to-black flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <p className="text-zinc-400">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (status === 'unauthenticated') {
+    return <ReferralLandingPage />;
+  }
+
+  return <ReferralDashboard />;
+}
