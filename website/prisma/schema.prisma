@@ -368,7 +368,7 @@ model ExperimentAssignment {
 // Track user cohorts (for cohort analysis)
 model UserCohort {
   id            String    @id @default(cuid())
-  name          String    // "Feb 2026 Wave", "Product Hunt Launch"
+  name          String    @unique // "Feb 2026 Wave", "Product Hunt Launch"
   
   // Cohort definition
   signupSource  String[]  @default([])
