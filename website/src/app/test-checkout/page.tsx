@@ -3,6 +3,7 @@
 import { useState } from 'react';
 
 export default function TestCheckout() {
+  // Test checkout page for Stripe payment integration
   const [tier, setTier] = useState('individual');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
