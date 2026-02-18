@@ -11,10 +11,10 @@ import type Stripe from 'stripe';
 
 function getTierFeatures(tier: string) {
   const features: Record<string, string[]> = {
-    free: ['Basic features'],
-    starter: ['10 optimization requests/month', 'Basic analytics', 'Email support'],
-    growth: ['100 optimization requests/month', 'Advanced analytics', 'Priority support'],
-    enterprise: ['Unlimited requests', 'Custom analytics', '24/7 phone support'],
+    free: ['50K tokens/month', 'All 5 integration channels', 'Basic metrics dashboard', 'Community support'],
+    individual: ['500K tokens/month', 'All 5 integration channels', 'Real-time optimization', 'Advanced analytics', 'Email support', 'API access'],
+    teams: ['Unlimited tokens', 'Team seat management', 'Advanced analytics', 'Priority support', 'Slack integration'],
+    enterprise: ['Unlimited everything', 'Custom integrations', 'Dedicated account manager', '24/7 priority support'],
   };
   return features[tier] || features.free;
 }

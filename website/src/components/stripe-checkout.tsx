@@ -13,45 +13,53 @@ interface PricingTier {
   price: number;
   interval: string;
   features: string[];
+  checkoutDescription: string;
 }
 
 const PRICING_TIERS: Record<string, PricingTier> = {
-  starter: {
-    id: 'starter',
-    name: 'Starter',
-    price: 29,
+  individual: {
+    id: 'individual',
+    name: 'Individual',
+    price: 9.99,
     interval: 'month',
+    checkoutDescription: 'Perfect for developers and small projects. Optimize tokens across all platforms with full analytics and API access.',
     features: [
-      '10 optimization requests/month',
-      'Basic analytics',
+      '500K tokens/month',
+      'All 5 integration channels',
+      'Real-time optimization',
+      'Advanced analytics dashboard',
       'Email support',
       'API access',
     ],
   },
-  growth: {
-    id: 'growth',
-    name: 'Growth',
+  teams: {
+    id: 'teams',
+    name: 'Teams',
     price: 99,
     interval: 'month',
+    checkoutDescription: 'The smart choice for growing teams. Unlimited optimization, team collaboration, and priority support. Save thousands on token costs.',
     features: [
-      '100 optimization requests/month',
+      'Unlimited tokens',
+      'Team seat management',
       'Advanced analytics',
-      'Priority support',
-      'API access',
-      'Custom integrations',
+      'Priority email support',
+      'Slack integration',
+      'Saves $30-150+/month per team',
     ],
   },
   enterprise: {
     id: 'enterprise',
     name: 'Enterprise',
-    price: 299,
+    price: 0,
     interval: 'month',
+    checkoutDescription: 'Enterprise-grade solution with unlimited tokens, custom integrations, and dedicated support. Built for large organizations.',
     features: [
-      'Unlimited requests',
-      'Custom analytics',
-      '24/7 phone support',
+      'Unlimited everything',
+      'Custom integrations',
       'Dedicated account manager',
-      'Custom SLA',
+      '24/7 priority support',
+      'SLA guarantee',
+      'On-premise deployment',
     ],
   },
 };

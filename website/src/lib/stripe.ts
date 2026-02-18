@@ -13,29 +13,53 @@ export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
 
 // Pricing tier configuration
 export const PRICING_TIERS = {
-  starter: {
-    name: 'Starter',
-    price: 29,
+  individual: {
+    name: 'Individual',
+    price: 9.99,
     currency: 'usd',
     interval: 'month' as const,
-    features: ['10 optimization requests/month', 'Basic analytics', 'Email support'],
-    stripeProductId: process.env.STRIPE_PRODUCT_ID_STARTER,
+    features: [
+      '500K tokens/month',
+      'All 5 integration channels',
+      'Real-time optimization',
+      'Advanced analytics dashboard',
+      'Email support',
+      'API access',
+    ],
+    stripeProductId: process.env.STRIPE_PRODUCT_ID_INDIVIDUAL,
+    checkoutDescription: 'Perfect for developers and small projects. Optimize tokens across all platforms with full analytics and API access.',
   },
-  growth: {
-    name: 'Growth',
+  teams: {
+    name: 'Teams',
     price: 99,
     currency: 'usd',
     interval: 'month' as const,
-    features: ['100 optimization requests/month', 'Advanced analytics', 'Priority support'],
-    stripeProductId: process.env.STRIPE_PRODUCT_ID_GROWTH,
+    features: [
+      'Unlimited tokens',
+      'Team seat management',
+      'Advanced analytics',
+      'Priority email support',
+      'Slack integration',
+      'Saves $30-150+/month per team',
+    ],
+    stripeProductId: process.env.STRIPE_PRODUCT_ID_TEAMS,
+    checkoutDescription: 'The smart choice for growing teams. Unlimited optimization, team collaboration, and priority support. Save thousands on token costs.',
   },
   enterprise: {
     name: 'Enterprise',
-    price: 299,
+    price: 0, // Custom pricing
     currency: 'usd',
     interval: 'month' as const,
-    features: ['Unlimited requests', 'Custom analytics', '24/7 phone support'],
+    features: [
+      'Unlimited everything',
+      'Custom integrations',
+      'Dedicated account manager',
+      '24/7 priority support',
+      'SLA guarantee',
+      'On-premise deployment',
+    ],
     stripeProductId: process.env.STRIPE_PRODUCT_ID_ENTERPRISE,
+    checkoutDescription: 'Enterprise-grade solution with unlimited tokens, custom integrations, and dedicated support. Built for large organizations.',
   },
 };
 
