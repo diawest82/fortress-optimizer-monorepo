@@ -1,4 +1,16 @@
 /** @type {import('next').NextConfig} */
+
+// Load environment variables explicitly for production
+if (process.env.NODE_ENV === 'production') {
+  // Ensure DATABASE_URL is available at build/runtime
+  if (!process.env.DATABASE_URL) {
+    process.env.DATABASE_URL = 'postgres://ebe7b9fdb7b1c89c0447d39e00aaf1b3a1d83db90a6014c23cc21db252a4c854:sk_hfDIAJVXZeEnRxAxHEh8p@db.prisma.io:5432/postgres?sslmode=require';
+  }
+  if (!process.env.PRISMA_DATABASE_URL) {
+    process.env.PRISMA_DATABASE_URL = 'prisma+postgres://accelerate.prisma-data.net/?api_key=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqd3RfaWQiOjEsInNlY3VyZV9rZXkiOiJza19oZkRJQUpWWFplRW5SeEF4SEVoOHAiLCJhcGlfa2V5IjoiMDFLSE4yTllDQzk0NFY5WjRNUENXN1IyRDkiLCJ0ZW5hbnRfaWQiOiJlYmU3YjlmZGI3YjFjODljMDQ0N2QzOWUwMGFhZjFiM2ExZDgzZGI5MGE2MDE0YzIzY2MyMWRiMjUyYTRjODU0IiwiaW50ZXJuYWxfc2VjcmV0IjoiNjg1N2VlMjYtYzA4MC00ZWJmLWI5OGYtNTk4Mzc4NjI3YmNjIn0.CkuIfsT_Vpe5tvir3Jqr_ch07UY1piJr899KQ3ujc4Q';
+  }
+}
+
 const nextConfig = {
   images: {
     unoptimized: true,
