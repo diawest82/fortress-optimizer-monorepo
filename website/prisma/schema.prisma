@@ -225,6 +225,7 @@ model EmailTemplate {
   id            String    @id @default(cuid())
   sequenceId    String
   sequence      EmailSequence @relation(fields: [sequenceId], references: [id], onDelete: Cascade)
+  sent          EmailSent[]  // Opposite relation for emails sent with this template
   
   order         Int       // Position in sequence (1-5)
   delayHours    Int       @default(0) // Hours after previous email
