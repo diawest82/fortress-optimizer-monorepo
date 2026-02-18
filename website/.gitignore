@@ -40,3 +40,4 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 INSTALL_HUB_CONNECTOR
+.env*.local
