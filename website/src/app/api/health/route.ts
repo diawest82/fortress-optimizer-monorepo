@@ -1,13 +1,27 @@
 import { NextResponse } from 'next/server';
+import prisma from '@/lib/prisma';
 
 export async function GET() {
-  const dbUrl = process.env.DATABASE_URL;
-  const prismaUrl = process.env.PRISMA_DATABASE_URL;
-  
-  return NextResponse.json({
-    DATABASE_URL: dbUrl ? '✅ SET' : '❌ NOT SET',
-    PRISMA_DATABASE_URL: prismaUrl ? '✅ SET' : '❌ NOT SET',
-    NODE_ENV: process.env.NODE_ENV,
-    timestamp: new Date().toISOString(),
-  });
+  try {
+    // Test database connection
+    const result = await prisma.$queryRaw`SELECT 1 as health`;
+    
+    return NextResponse.json({
+      status: '✅ HEALTHY',
+      DATABASE: '✅ CONNECTED',
+      NODE_ENV: process.env.NODE_ENV,
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error) {
+    return NextResponse.json(
+      {
+        status: '❌ UNHEALTHY',
+        DATABASE: '❌ NOT CONNECTED',
+        error: error instanceof Error ? error.message : 'Unknown error',
+        NODE_ENV: process.env.NODE_ENV,
+        timestamp: new Date().toISOString(),
+      },
+      { status: 503 }
+    );
+  }
 }
