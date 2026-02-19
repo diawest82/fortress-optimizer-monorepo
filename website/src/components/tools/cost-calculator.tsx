@@ -14,15 +14,17 @@ const providers: Record<string, ProviderCost> = {
 };
 
 const fortressPlans = {
-  starter: 9.99,      // 1-999 team members
-  enterprise: null    // 1000+ Contact Sales
+  free: 0,       // 50K tokens/month
+  starter: 9.99, // 500K tokens/month - individual developers
+  teams: 99,     // Unlimited - teams and organizations
+  enterprise: null // Custom pricing - large organizations
 };
 
 export function CostCalculator() {
   const [inputs, setInputs] = useState({
     tokensPerDay: 10000,
     provider: 'gpt4',
-    teamSize: 'starter'
+    plan: 'starter'
   });
 
   const monthlyTokens = inputs.tokensPerDay * 30;
@@ -31,10 +33,18 @@ export function CostCalculator() {
   const optimizedCost = currentCost * 0.82;
   const savingsAmount = currentCost - optimizedCost;
 
-  // Determine Fortress plan cost based on team size
-  const fortressCost = inputs.teamSize === 'enterprise' ? 0 : fortressPlans.starter;
-  const isContactSales = inputs.teamSize === 'enterprise';
-  const netSavings = isContactSales ? savingsAmount : savingsAmount - fortressCost;
+  // Determine Fortress plan cost and token limits
+  const planConfig: Record<string, { cost: number | null; tokens: number | null; label: string }> = {
+    free: { cost: 0, tokens: 50000, label: 'Free - 50K tokens/month' },
+    starter: { cost: 9.99, tokens: null, label: 'Sign Up - $9.99/month (Unlimited)' },
+    teams: { cost: 99, tokens: null, label: 'Teams - $99/month (Unlimited)' },
+    enterprise: { cost: null, tokens: null, label: 'Enterprise (Custom pricing)' }
+  };
+
+  const currentPlan = planConfig[inputs.plan];
+  const fortressCost = currentPlan.cost ?? 0;
+  const isEnterprise = inputs.plan === 'enterprise';
+  const netSavings = isEnterprise ? savingsAmount : savingsAmount - fortressCost;
 
   return (
     <div>
@@ -75,16 +85,18 @@ export function CostCalculator() {
           </select>
         </div>
 
-        {/* Team Size */}
+        {/* Plan Selection */}
         <div>
-          <label className="block text-sm font-semibold mb-2">Team Size</label>
+          <label className="block text-sm font-semibold mb-2">Fortress Plan</label>
           <select
-            value={inputs.teamSize}
-            onChange={(e) => setInputs({ ...inputs, teamSize: e.target.value })}
+            value={inputs.plan}
+            onChange={(e) => setInputs({ ...inputs, plan: e.target.value })}
             className="w-full bg-zinc-800 text-white rounded-lg px-4 py-2 border border-zinc-700 focus:border-blue-500 focus:outline-none"
           >
-            <option value="starter">1-999 team members ($9.99/month)</option>
-            <option value="enterprise">1000+ team members (Contact Sales)</option>
+            <option value="free">Free - 50K tokens/month</option>
+            <option value="starter">Sign Up - $9.99/month (Unlimited)</option>
+            <option value="teams">Teams - $99/month (Unlimited)</option>
+            <option value="enterprise">Enterprise (Custom pricing)</option>
           </select>
         </div>
       </div>
@@ -117,17 +129,17 @@ export function CostCalculator() {
                 <span className="font-mono font-semibold text-green-300">${optimizedCost.toFixed(2)}/month</span>
               </div>
 
-              {!isContactSales && (
+              {!isEnterprise && (
                 <div className="flex justify-between text-sm pt-2">
                   <span className="text-zinc-400">Fortress Cost</span>
                   <span className="font-mono font-semibold">${fortressCost.toFixed(2)}/month</span>
                 </div>
               )}
 
-              {isContactSales && (
+              {isEnterprise && (
                 <div className="flex justify-between text-sm pt-2">
                   <span className="text-zinc-400">Fortress Cost</span>
-                  <span className="font-mono font-semibold text-blue-300">Contact Sales</span>
+                  <span className="font-mono font-semibold text-blue-300">Custom pricing</span>
                 </div>
               )}
 
@@ -146,7 +158,7 @@ export function CostCalculator() {
         </div>
 
         {/* ROI Box */}
-        {!isContactSales && netSavings > 0 && (
+        {!isEnterprise && netSavings > 0 && (
           <div className="bg-green-900 bg-opacity-30 border border-green-500 rounded-lg p-6">
             <h3 className="font-semibold text-green-300 mb-2">💰 Positive ROI</h3>
             <p className="text-sm text-zinc-300 mb-4">
@@ -161,7 +173,7 @@ export function CostCalculator() {
           </div>
         )}
 
-        {isContactSales && (
+        {isEnterprise && (
           <div className="bg-blue-900 bg-opacity-30 border border-blue-500 rounded-lg p-6">
             <h3 className="font-semibold text-blue-300 mb-2">🚀 Enterprise Solution</h3>
             <p className="text-sm text-zinc-300 mb-4">
@@ -176,11 +188,11 @@ export function CostCalculator() {
           </div>
         )}
 
-        {!isContactSales && netSavings < 0 && (
+        {!isEnterprise && netSavings < 0 && (
           <div className="bg-blue-900 bg-opacity-30 border border-blue-500 rounded-lg p-6">
             <h3 className="font-semibold mb-2">Want unlimited optimization?</h3>
             <p className="text-sm text-zinc-300 mb-4">
-              Upgrade to Pro for unlimited tokens and advanced features.
+              Upgrade to a higher plan for unlimited tokens and advanced features.
             </p>
             <a
               href="/auth/signup"
