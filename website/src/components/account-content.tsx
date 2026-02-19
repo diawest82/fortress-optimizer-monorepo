@@ -5,6 +5,11 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useAuthContext } from "@/context/AuthContext";
 import { apiClient } from "@/lib/api";
+import TeamManagement from "./account/team-management";
+import SupportSystem from "./account/support-system";
+import SubscriptionManagement from "./account/subscription-management";
+import CommunityPortal from "./account/community-portal";
+import EnterpriseFeatures from "./account/enterprise-features";
 
 interface ApiKey {
   key_id?: string;
@@ -136,8 +141,12 @@ export default function AccountContent() {
 
   const tabs = [
     { id: "overview", label: "Overview" },
+    { id: "subscription", label: "Subscription" },
+    { id: "team", label: "Team Management" },
+    { id: "support", label: "Support" },
+    { id: "community", label: "Community" },
+    { id: "enterprise", label: "Enterprise" },
     { id: "api-keys", label: "API Keys" },
-    { id: "billing", label: "Billing & Usage" },
     { id: "settings", label: "Settings" },
   ];
 
@@ -347,6 +356,55 @@ export default function AccountContent() {
                     </button>
                   </div>
                 )}
+              </div>
+            )}
+
+            {activeTab === "subscription" && (
+              <div>
+                <h1 className="text-3xl font-bold text-white mb-6">Subscription & Billing</h1>
+                <SubscriptionManagement
+                  currentTier={user.tier || "free"}
+                  currentPrice={user.tier === "starter" ? 9.99 : user.tier === "teams" ? 99 : 0}
+                  nextBillingDate={new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()}
+                  usagePercentage={subscription ? Math.round((subscription.tokens_used / subscription.tokens_limit) * 100) : 0}
+                />
+              </div>
+            )}
+
+            {activeTab === "team" && (
+              <div>
+                <h1 className="text-3xl font-bold text-white mb-6">Team Management</h1>
+                <TeamManagement
+                  userTier={user.tier || "free"}
+                  teamName="Development Team"
+                  teamMembers={[
+                    { id: "1", email: "you@company.com", name: user.name || "You", role: "owner", joinedAt: new Date().toISOString() }
+                  ]}
+                />
+              </div>
+            )}
+
+            {activeTab === "support" && (
+              <div>
+                <h1 className="text-3xl font-bold text-white mb-6">Support & Help</h1>
+                <SupportSystem
+                  userTier={user.tier || "free"}
+                  tickets={[]}
+                />
+              </div>
+            )}
+
+            {activeTab === "community" && (
+              <div>
+                <h1 className="text-3xl font-bold text-white mb-6">Community & Resources</h1>
+                <CommunityPortal />
+              </div>
+            )}
+
+            {activeTab === "enterprise" && (
+              <div>
+                <h1 className="text-3xl font-bold text-white mb-6">Enterprise Solutions</h1>
+                <EnterpriseFeatures />
               </div>
             )}
 

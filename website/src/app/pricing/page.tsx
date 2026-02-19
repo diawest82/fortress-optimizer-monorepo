@@ -28,9 +28,9 @@ export default function Pricing() {
       colorHex: "#64748b",
       features: [
         "50K tokens/month",
-        "All 5 integration channels",
+        "5 core integration channels",
         "Basic metrics dashboard",
-        "Community support",
+        "Community support via Discord",
       ],
       cta: "🎉 Get Early Access",
       ctaPrimary: false,
@@ -43,11 +43,11 @@ export default function Pricing() {
       color: "blue",
       colorHex: "#3b82f6",
       features: [
-        "500K tokens/month",
-        "All 5 integration channels",
+        "Unlimited tokens",
+        "5 core integration channels + 7 additional platforms",
         "Real-time optimization",
         "Advanced analytics dashboard",
-        "Email support",
+        "Email support (24-48 hour response)",
         "API access",
       ],
       cta: "Subscribe now",
@@ -62,11 +62,12 @@ export default function Pricing() {
       colorHex: "#06b6d4",
       features: [
         "Unlimited tokens",
-        "Team seat management",
-        "Advanced analytics",
-        "Priority email support",
-        "Slack integration",
-        "Saves $30-150+/month per team",
+        "Team seat management (up to 5 members)",
+        "All 12 integration platforms",
+        "Advanced analytics & team usage tracking",
+        "Priority email support (4-8 hour response)",
+        "Slack integration for team alerts",
+        "API access with higher rate limits",
       ],
       cta: "Subscribe now",
       ctaPrimary: true,
@@ -80,11 +81,11 @@ export default function Pricing() {
       colorHex: "#a855f7",
       features: [
         "Unlimited everything",
-        "Custom integrations",
+        "Unlimited team seats + custom SSO",
+        "Custom integrations & on-premise deployment",
         "Dedicated account manager",
-        "24/7 priority support",
-        "SLA guarantee",
-        "On-premise deployment",
+        "24/7 priority support with 1-hour response SLA",
+        "Advanced security (SOC 2, audit logging)",
       ],
       cta: "Contact sales",
       ctaPrimary: false,
@@ -194,6 +195,44 @@ export default function Pricing() {
         </div>
       </section>
 
+      {/* Integration Channels Explanation */}
+      <section className="rounded-3xl border border-blue-500/30 bg-gradient-to-br from-blue-950/40 to-slate-950/40 p-8 space-y-8">
+        <div>
+          <h2 className="text-2xl font-semibold text-white mb-4">
+            🌍 5 Core Integration Channels
+          </h2>
+          <p className="text-slate-400 mb-6">
+            All tiers include access to our 5 most popular integration channels, plus 7 additional platforms for higher tiers:
+          </p>
+        </div>
+
+        <div className="grid md:grid-cols-5 gap-4">
+          {[
+            { emoji: "📦", name: "npm Package", desc: "JavaScript/TypeScript projects", users: "1M+" },
+            { emoji: "⚙️", name: "VS Code Extension", desc: "Native editor integration", users: "500K+" },
+            { emoji: "🤖", name: "GitHub Copilot", desc: "AI code assistant integration", users: "200K+" },
+            { emoji: "💬", name: "Slack Bot", desc: "Team collaboration platform", users: "100K+" },
+            { emoji: "🌫️", name: "Claude Desktop", desc: "Anthropic Claude client", users: "50K+" },
+          ].map((channel, idx) => (
+            <div
+              key={idx}
+              className="rounded-2xl border border-blue-500/30 bg-blue-950/20 p-4 text-center hover:border-blue-500/60 transition"
+            >
+              <div className="text-3xl mb-2">{channel.emoji}</div>
+              <h4 className="font-semibold text-white text-sm mb-1">{channel.name}</h4>
+              <p className="text-xs text-slate-400 mb-2">{channel.desc}</p>
+              <p className="text-xs text-blue-300 font-semibold">{channel.users} users</p>
+            </div>
+          ))}
+        </div>
+
+        <div className="rounded-lg border border-blue-500/20 bg-blue-950/10 p-4">
+          <p className="text-sm text-blue-200">
+            <span className="font-semibold">Plus 7 Additional Platforms:</span> Neovim, Sublime Text, JetBrains IDEs, Make.com/Zapier, Anthropic SDK, and GPT Store
+          </p>
+        </div>
+      </section>
+
       {/* FAQ Section */}
       <section className="rounded-3xl border border-slate-700 bg-gradient-to-br from-slate-950/60 to-slate-900/40 p-8 space-y-8">
         <div>
@@ -208,12 +247,20 @@ export default function Pricing() {
         <div className="space-y-6">
           {[
             {
+              q: "What are the 5 core integration channels?",
+              a: "The 5 core channels are: npm Package, VS Code Extension, GitHub Copilot, Slack Bot, and Claude Desktop. These cover 90% of our user base. All other tiers also include 7 additional platforms (Neovim, Sublime, JetBrains, etc.).",
+            },
+            {
               q: "Can I change plans anytime?",
               a: "Yes, you can upgrade or downgrade your plan at any time. Changes take effect at your next billing cycle.",
             },
             {
               q: "Do you offer annual discounts?",
               a: "Yes. Annual plans receive a 20% discount. Contact our sales team for custom enterprise pricing.",
+            },
+            {
+              q: "What support do I get with each tier?",
+              a: "Free: Community support via Discord. Sign Up: Email support (24-48 hour response). Teams: Priority email support (4-8 hour response) + Slack integration. Enterprise: 24/7 priority support with 1-hour response SLA + dedicated account manager.",
             },
           ].map((faq, index) => (
             <div
