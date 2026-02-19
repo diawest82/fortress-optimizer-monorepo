@@ -91,3 +91,46 @@ export async function sendWelcomeEmail(email: string, name: string) {
     `,
   });
 }
+
+export async function sendSupportTicketEmail({
+  email,
+  ticketNumber,
+  subject,
+  category,
+}: {
+  email: string;
+  ticketNumber: string;
+  subject: string;
+  category: string;
+}) {
+  return sendEmail({
+    to: email,
+    subject: `Support Ticket Created: ${ticketNumber}`,
+    html: `
+      <h2>Support Ticket Received</h2>
+      <p>We&apos;ve received your support request and assigned it ticket number <strong>${ticketNumber}</strong>.</p>
+      
+      <h3>Ticket Details:</h3>
+      <ul>
+        <li><strong>Ticket:</strong> ${ticketNumber}</li>
+        <li><strong>Subject:</strong> ${subject}</li>
+        <li><strong>Category:</strong> ${category}</li>
+      </ul>
+      
+      <h3>What Happens Next:</h3>
+      <p>Our support team will review your request and respond within the SLA for your plan:</p>
+      <ul>
+        <li><strong>Free:</strong> 48-72 hours</li>
+        <li><strong>Sign Up:</strong> 24-48 hours</li>
+        <li><strong>Teams:</strong> 4-8 hours</li>
+        <li><strong>Enterprise:</strong> 1 hour</li>
+      </ul>
+      
+      <p>You can track your ticket status in your <a href="https://fortress-optimizer.com/account">account dashboard</a>.</p>
+      
+      <p>Thanks for choosing Fortress!<br />
+      The Support Team</p>
+    `,
+    replyTo: SUPPORT_EMAIL,
+  });
+}
