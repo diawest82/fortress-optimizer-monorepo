@@ -14,16 +14,15 @@ const providers: Record<string, ProviderCost> = {
 };
 
 const fortressPlans = {
-  solo: 9.99,
-  team: 99,
-  enterprise: 299
+  starter: 9.99,      // 1-999 team members
+  enterprise: null    // 1000+ Contact Sales
 };
 
 export function CostCalculator() {
   const [inputs, setInputs] = useState({
     tokensPerDay: 10000,
     provider: 'gpt4',
-    teamSize: 'solo'
+    teamSize: 'starter'
   });
 
   const monthlyTokens = inputs.tokensPerDay * 30;
@@ -32,10 +31,10 @@ export function CostCalculator() {
   const optimizedCost = currentCost * 0.82;
   const savingsAmount = currentCost - optimizedCost;
 
-  const teamCount = inputs.teamSize === 'solo' ? 1 : inputs.teamSize === 'team' ? 5 : 20;
-  const teamCost = teamCount > 1 ? (inputs.teamSize === 'team' ? fortressPlans.team : fortressPlans.enterprise) : 0;
-  const fortressCost = inputs.teamSize === 'solo' ? fortressPlans.solo : teamCost;
-  const netSavings = savingsAmount - fortressCost;
+  // Determine Fortress plan cost based on team size
+  const fortressCost = inputs.teamSize === 'enterprise' ? 0 : fortressPlans.starter;
+  const isContactSales = inputs.teamSize === 'enterprise';
+  const netSavings = isContactSales ? savingsAmount : savingsAmount - fortressCost;
 
   return (
     <div>
@@ -84,9 +83,8 @@ export function CostCalculator() {
             onChange={(e) => setInputs({ ...inputs, teamSize: e.target.value })}
             className="w-full bg-zinc-800 text-white rounded-lg px-4 py-2 border border-zinc-700 focus:border-blue-500 focus:outline-none"
           >
-            <option value="solo">Just me</option>
-            <option value="team">5-20 developers</option>
-            <option value="enterprise">20+ developers</option>
+            <option value="starter">1-999 team members ($9.99/month)</option>
+            <option value="enterprise">1000+ team members (Contact Sales)</option>
           </select>
         </div>
       </div>
@@ -119,10 +117,17 @@ export function CostCalculator() {
                 <span className="font-mono font-semibold text-green-300">${optimizedCost.toFixed(2)}/month</span>
               </div>
 
-              {inputs.teamSize !== 'solo' && (
+              {!isContactSales && (
                 <div className="flex justify-between text-sm pt-2">
                   <span className="text-zinc-400">Fortress Cost</span>
                   <span className="font-mono font-semibold">${fortressCost.toFixed(2)}/month</span>
+                </div>
+              )}
+
+              {isContactSales && (
+                <div className="flex justify-between text-sm pt-2">
+                  <span className="text-zinc-400">Fortress Cost</span>
+                  <span className="font-mono font-semibold text-blue-300">Contact Sales</span>
                 </div>
               )}
 
@@ -141,7 +146,7 @@ export function CostCalculator() {
         </div>
 
         {/* ROI Box */}
-        {netSavings > 0 && (
+        {!isContactSales && netSavings > 0 && (
           <div className="bg-green-900 bg-opacity-30 border border-green-500 rounded-lg p-6">
             <h3 className="font-semibold text-green-300 mb-2">💰 Positive ROI</h3>
             <p className="text-sm text-zinc-300 mb-4">
@@ -156,7 +161,22 @@ export function CostCalculator() {
           </div>
         )}
 
-        {netSavings < 0 && inputs.teamSize === 'solo' && (
+        {isContactSales && (
+          <div className="bg-blue-900 bg-opacity-30 border border-blue-500 rounded-lg p-6">
+            <h3 className="font-semibold text-blue-300 mb-2">🚀 Enterprise Solution</h3>
+            <p className="text-sm text-zinc-300 mb-4">
+              With {(inputs.tokensPerDay * 30 / 1000000).toFixed(1)}M+ monthly tokens, you could save <strong>${(savingsAmount * 12).toFixed(0)}/year</strong> with optimization.
+            </p>
+            <a
+              href="mailto:sales@fortress-optimizer.com?subject=Enterprise Pricing Inquiry"
+              className="inline-block w-full text-center bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded transition"
+            >
+              Contact Sales
+            </a>
+          </div>
+        )}
+
+        {!isContactSales && netSavings < 0 && (
           <div className="bg-blue-900 bg-opacity-30 border border-blue-500 rounded-lg p-6">
             <h3 className="font-semibold mb-2">Want unlimited optimization?</h3>
             <p className="text-sm text-zinc-300 mb-4">
