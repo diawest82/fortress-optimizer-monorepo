@@ -28,7 +28,8 @@ htmlcov/
 *~
 .DS_Store
 
-# AWS
+# Documentation (keep locally only)
+*.md# AWS
 .aws/
 terraform.tfstate*
 *.tfvars
