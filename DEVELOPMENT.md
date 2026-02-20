@@ -335,7 +335,7 @@ curl -H "Authorization: Bearer fort-..." \
 - **Anthropic**: [products/anthropic-sdk/README.md](products/anthropic-sdk/README.md)
 - **Slack**: [products/slack/README.md](products/slack/README.md)
 - **Backend API**: [backend/README.md] (Coming soon)
-- **Full Docs**: https://docs.fortress-optimizer.com
+- **Full Docs**: https://www.fortress-optimizer.com/install
 
 ---
 

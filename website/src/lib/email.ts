@@ -81,7 +81,7 @@ export async function sendWelcomeEmail(email: string, name: string) {
       <ol>
         <li>Check out the <a href="https://fortress-optimizer.com/install">installation guides</a></li>
         <li>View the <a href="https://fortress-optimizer.com/dashboard">dashboard</a> to track your savings</li>
-        <li>Read our <a href="https://docs.fortress-optimizer.com">documentation</a></li>
+        <li>Read our <a href="https://fortress-optimizer.com/install">documentation</a></li>
       </ol>
       
       <p>Questions? Reply to this email or visit our <a href="https://fortress-optimizer.com/support">support page</a>.</p>
