@@ -5,11 +5,21 @@
   "framework": "nextjs",
   "public": false,
   "env": {
-    "STRIPE_SECRET_KEY": "@stripe_secret_key",
-    "DATABASE_URL": "@database_url",
-    "STRIPE_WEBHOOK_SECRET": "@stripe_webhook_secret",
-    "NEXT_PUBLIC_API_URL": "@next_public_api_url",
-    "NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY": "@next_public_stripe_publishable_key"
+    "STRIPE_SECRET_KEY": {
+      "required": false
+    },
+    "DATABASE_URL": {
+      "required": false
+    },
+    "STRIPE_WEBHOOK_SECRET": {
+      "required": false
+    },
+    "NEXT_PUBLIC_API_URL": {
+      "required": false
+    },
+    "NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY": {
+      "required": false
+    }
   },
   "rewrites": [
     {
