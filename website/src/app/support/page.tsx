@@ -24,7 +24,7 @@ export default function Support() {
       {/* Quick Links */}
       <section className="grid md:grid-cols-4 gap-6">
         <a
-          href="/install"
+          href="/docs"
           className="rounded-2xl border border-blue-500/30 bg-blue-950/20 p-6 hover:border-blue-500/60 transition group"
         >
           <BookOpen className="w-8 h-8 text-blue-400 mb-3 group-hover:scale-110 transition" />
