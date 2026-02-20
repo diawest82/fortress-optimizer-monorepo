@@ -20,11 +20,13 @@
   "redirects": [
     {
       "source": "/docs",
-      "destination": "/install"
+      "destination": "https://docs.fortress-optimizer.com",
+      "permanent": false
     },
     {
       "source": "/docs/:path*",
-      "destination": "/install"
+      "destination": "https://docs.fortress-optimizer.com/:path*",
+      "permanent": false
     }
   ],
   "headers": [
