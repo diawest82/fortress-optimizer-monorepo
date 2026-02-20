@@ -34,8 +34,8 @@
         "title": "Fortress: Create Optimization Template"
       },
       {
-        "command": "fortress.enableOffline",
-        "title": "Fortress: Enable Offline Mode"
+        "command": "fortress.checkHealth",
+        "title": "Fortress: Check Server Health"
       }
     ],
     "views": {
@@ -55,25 +55,30 @@
     "configuration": {
       "title": "Fortress Token Optimizer",
       "properties": {
+        "fortress.apiUrl": {
+          "type": "string",
+          "default": "https://api.fortress-optimizer.com",
+          "description": "Fortress API endpoint URL"
+        },
+        "fortress.apiKey": {
+          "type": "string",
+          "description": "Fortress API key (get from fortress-optimizer.com)"
+        },
+        "fortress.optimizationLevel": {
+          "type": "string",
+          "enum": ["conservative", "balanced", "aggressive"],
+          "default": "balanced",
+          "description": "Token optimization level"
+        },
+        "fortress.enableAnalytics": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable analytics dashboard"
+        },
         "fortress.enableTeamFeatures": {
           "type": "boolean",
           "default": false,
           "description": "Enable team collaboration features"
-        },
-        "fortress.enableAnalytics": {
-          "type": "boolean",
-          "default": false,
-          "description": "Enable analytics dashboard"
-        },
-        "fortress.enableOfflineMode": {
-          "type": "boolean",
-          "default": false,
-          "description": "Enable offline mode with caching"
-        },
-        "fortress.customRules": {
-          "type": "array",
-          "default": [],
-          "description": "Custom optimization rules"
         }
       }
     }

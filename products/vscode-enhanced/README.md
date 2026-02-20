@@ -8,11 +8,11 @@ Enhanced VS Code extension with advanced features for token optimization, team c
 - **Team Workspaces**: Collaborate with team on shared optimization templates
 - **Advanced Analytics**: Dashboard with token usage trends and insights
 - **Batch Operations**: Optimize multiple files/folders at once
-- **Custom Rules**: Create custom optimization rules for your workflows
+- **Instant Updates**: Rules deployed server-side for all users instantly
 - **API Webhooks**: Trigger optimizations from external systems
 - **Rate Limiting**: Smart rate limiting with queuing
-- **Caching**: Local cache for faster repeated optimizations
-- **Offline Mode**: Works offline with previously cached optimizations
+- **Zero Configuration**: No algorithm details to maintain locally
+- **Maximum Security**: All IP protected on Fortress servers
 
 ### Enterprise Features
 - **SSO Integration**: Single sign-on support
@@ -24,21 +24,17 @@ Enhanced VS Code extension with advanced features for token optimization, team c
 ## Architecture
 
 ```
-VS Code Enhanced
-├── Core optimization (Wave 1)
-├── Team features
-│   ├─ Shared templates
-│   ├─ Workspace management
-│   └─ Collaboration tools
-├── Analytics
-│   ├─ Dashboard
-│   ├─ Usage reports
-│   └─ Trends analysis
-├── Enterprise
-│   ├─ SSO/SAML
-│   ├─ Audit logs
-│   └─ Custom rules
-└── Offline sync
+Fortress Token Optimizer
+├── VSCode Extension (client)
+│   ├─ User interface
+│   ├─ API credentials
+│   └─ Team workspace
+├── Fortress Backend (server)
+│   ├─ OptimizationRules (proprietary)
+│   ├─ TokenCounter (proprietary)
+│   ├─ Authentication
+│   └─ Analytics
+└── API Communication (HTTPS only)
 ```
 
 ## Installation
@@ -103,11 +99,11 @@ Create rules for your specific needs:
 {
   "fortress": {
     "apiKey": "${env:FORTRESS_API_KEY}",
+    "apiUrl": "https://api.fortress-optimizer.com",
     "optimizationLevel": "balanced",
+    "provider": "openai",
     "enableTeamFeatures": true,
-    "enableAnalytics": true,
-    "enableOfflineMode": true,
-    "cacheSize": "100MB"
+    "enableAnalytics": true
   }
 }
 ```
@@ -115,11 +111,10 @@ Create rules for your specific needs:
 ## Coming Soon
 
 Wave 2 Launch (Feb 24):
-- [ ] Team workspace UI
-- [ ] Analytics dashboard
-- [ ] Batch operations
-- [ ] Custom rules engine
-- [ ] Webhook support
+- [x] Server-side rule engine
+- [x] Team workspace UI
+- [x] Analytics dashboard
+- [x] Batch operations
 - [ ] Enterprise authentication
 - [ ] Audit logging system
-- [ ] Offline sync capability
+- [ ] Custom branding
