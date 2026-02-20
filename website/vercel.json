@@ -4,6 +4,13 @@
   "installCommand": "npm install",
   "framework": "nextjs",
   "public": false,
+  "env": [
+    "STRIPE_SECRET_KEY",
+    "DATABASE_URL",
+    "STRIPE_WEBHOOK_SECRET",
+    "NEXT_PUBLIC_API_URL",
+    "NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY"
+  ],
   "rewrites": [
     {
       "source": "/api/(.*)",

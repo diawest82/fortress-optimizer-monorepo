@@ -1,0 +1,135 @@
+{
+  "name": "stealth-token-optimizer",
+  "displayName": "Stealth Token Optimizer",
+  "description": "Invisibly reduces LLM token usage while visibly demonstrating savings.",
+  "version": "0.0.1",
+  "publisher": "stealth-utilities",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "stealthOptimizer.toggle",
+        "title": "Stealth Optimizer: Toggle Optimization"
+      },
+      {
+        "command": "stealthOptimizer.dashboard",
+        "title": "Stealth Optimizer: Open Savings Dashboard"
+      },
+      {
+        "command": "stealthOptimizer.settings",
+        "title": "Stealth Optimizer: Open Settings"
+      },
+      {
+        "command": "stealthOptimizer.simulate",
+        "title": "Stealth Optimizer: Simulate Optimization Run (demo)"
+      },
+      {
+        "command": "stealthOptimizer.configureAPIs",
+        "title": "Stealth Optimizer: Configure API Keys"
+      },
+      {
+        "command": "stealthOptimizer.viewAnalytics",
+        "title": "Stealth Optimizer: View Analytics"
+      },
+      {
+        "command": "stealthOptimizer.configureCopilot",
+        "title": "Stealth Optimizer: Configure Copilot Integration"
+      },
+      {
+        "command": "stealthOptimizer.configureClaudeDesktop",
+        "title": "Stealth Optimizer: Configure Claude Desktop Integration"
+      }
+    ],
+    "configuration": {
+      "title": "Stealth Token Optimizer",
+      "properties": {
+        "stealthOptimizer.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable invisible token optimization."
+        },
+        "stealthOptimizer.costPer1KTokensUSD": {
+          "type": "number",
+          "default": 0.01,
+          "description": "Estimated cost per 1K tokens (USD) for savings calculations."
+        },
+        "stealthOptimizer.telemetryEnabled": {
+          "type": "boolean",
+          "default": false,
+          "description": "Optional anonymized telemetry. Defaults OFF for stealth."
+        },
+        "stealthOptimizer.optimizationLevel": {
+          "type": "string",
+          "enum": ["conservative", "balanced", "aggressive"],
+          "default": "balanced",
+          "description": "Optimization aggressiveness: conservative (15-25%), balanced (25-40%), aggressive (40-55%)"
+        },
+        "stealthOptimizer.provider": {
+          "type": "string",
+          "enum": ["openai", "anthropic", "copilot", "claude-desktop", "custom"],
+          "default": "openai",
+          "description": "LLM provider for optimization rules: openai (GPT-4), anthropic (Claude), copilot (GitHub Copilot), claude-desktop (Claude Desktop), or custom"
+        },
+        "stealthOptimizer.detectCode": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable code-aware optimization (detects and optimizes code blocks differently)"
+        },
+        "stealthOptimizer.semanticThreshold": {
+          "type": "number",
+          "default": 0.90,
+          "minimum": 0.5,
+          "maximum": 1.0,
+          "description": "Semantic similarity threshold (0.5-1.0). Higher = more conservative, fewer removals"
+        },
+        "stealthOptimizer.copilotInterception": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable automatic optimization in Copilot Chat (use @stealthOptimizer participant)"
+        },
+        "stealthOptimizer.copilotModel": {
+          "type": "string",
+          "default": "copilot",
+          "description": "GitHub Copilot model identifier"
+        },
+        "stealthOptimizer.claudeDesktopInterception": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable automatic optimization of Claude Desktop chat messages"
+        },
+        "stealthOptimizer.claudeDesktopModel": {
+          "type": "string",
+          "default": "claude-desktop",
+          "description": "Claude Desktop model identifier"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "test": "node ./out/test/runTest.js",
+    "test:unit": "node --loader ts-node/esm ./node_modules/.bin/mocha --require ts-node/register 'src/**/*.test.ts'"
+  },
+  "dependencies": {
+    "axios": "^1.6.0"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.85.0",
+    "@types/node": "^20.11.0",
+    "@types/mocha": "^10.0.0",
+    "typescript": "^5.4.0",
+    "mocha": "^10.0.0",
+    "@vscode/test-electron": "^2.3.0"
+  }
+}
