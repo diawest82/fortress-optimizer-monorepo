@@ -25,9 +25,6 @@ module.exports = {
       label: 'API Reference',
       items: [
         'api-reference',
-        'api/authentication',
-        'api/optimize',
-        'api/usage',
       ],
     },
     {
@@ -36,17 +33,6 @@ module.exports = {
       items: [
         'guides/how-it-works',
         'guides/best-practices',
-        'guides/advanced-usage',
-        'guides/troubleshooting',
-      ],
-    },
-    {
-      type: 'category',
-      label: 'Pricing',
-      items: [
-        'pricing/plans',
-        'pricing/billing',
-        'pricing/faq',
       ],
     },
   ],

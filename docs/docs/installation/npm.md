@@ -146,7 +146,7 @@ Optimize a single prompt.
 - `language` (string, optional) - Language code (default: 'en')
 - `timeout` (number, optional) - Timeout in ms (default: 10000)
 
-**Returns**: Promise<OptimizationResult>
+**Returns**: Promise of OptimizationResult
 
 **OptimizationResult**:
 ```javascript

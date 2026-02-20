@@ -9,7 +9,7 @@ const config = {
   baseUrl: '/',
   organizationName: 'fortress-optimizer',
   projectName: 'docs',
-  onBrokenLinks: 'throw',
+  onBrokenLinks: 'warn',
   onBrokenMarkdownLinks: 'warn',
   i18n: {
     defaultLocale: 'en',

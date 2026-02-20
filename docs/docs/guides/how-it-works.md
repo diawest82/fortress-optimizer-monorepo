@@ -150,7 +150,7 @@ Savings: 50-70%
 - Short, concise prompts (already optimal)
 - Structured data (JSON, code blocks)
 - Acronyms and abbreviations
-- Very short prompts (<5 words)
+- Very short prompts (5 words or fewer)
 
 ## Real-World Metrics
 
@@ -210,7 +210,7 @@ Fortress maintains prompt quality through:
 
 **Quality Metrics**:
 - 98.5% accuracy rate
-- <0.5% quality loss
+- Less than 0.5% quality loss
 - 99% successful optimization
 
 ## How Much Can You Save?
@@ -219,7 +219,7 @@ Fortress maintains prompt quality through:
 
 | Prompt Type | Reduction | Cost per 1K |
 |-------------|-----------|----------|
-| Short (<30 tokens) | 5-15% | $0.0005 |
+| Short (30 tokens or less) | 5-15% | $0.0005 |
 | Medium (30-100) | 25-45% | $0.0075 |
 | Long (100+) | 40-60% | $0.04+ |
 
@@ -262,7 +262,7 @@ Fortress remembers optimizations for identical prompts:
 
 ```
 First call: 2 seconds
-Cached call: <100ms
+Cached call: Less than 100ms
 Savings: 95% faster
 ```
 
