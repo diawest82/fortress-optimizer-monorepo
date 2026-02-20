@@ -54,7 +54,7 @@ Fortress is the first platform to **intelligently restructure prompts without sa
 | **LLM Provider Lock-in** | ✅ OpenAI only | ✅ All providers |
 | **Deployment** | Required cloud migration | No infrastructure needed |
 | **Migration Cost** | $$$ | None |
-| **Works Offline** | ❌ No | ✅ Yes |
+| **Works Offline** | ❌ No | ❌ No (Server-only for security) |
 
 **Key Difference**: Azure's optimization is minimal and locks you into Microsoft + OpenAI. Fortress is provider-agnostic.
 

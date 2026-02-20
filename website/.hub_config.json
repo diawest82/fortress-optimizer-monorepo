@@ -11,5 +11,5 @@
   "installed_at": "2026-02-14T14:22:22.1771078942Z",
   "installer_version": "1.0",
   "mode": "development",
-  "notes": "Hub is optional. Fallback mode enabled for offline operation. For production, set hub_endpoint to your hub server or remote service."
+  "notes": "Hub is optional. Uses secure server-side optimization (no offline mode). For production, set hub_endpoint to your hub server or remote service."
 }
