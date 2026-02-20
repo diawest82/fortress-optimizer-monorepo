@@ -44,6 +44,7 @@ export function SiteNav() {
     { label: 'Home', href: '/' },
     { label: 'Dashboard', href: '/dashboard' },
     { label: 'Install', href: '/install' },
+    { label: 'Why Fortress', href: '/compare' },
     { label: 'Pricing', href: '/pricing' },
     { label: 'Support', href: '/support' },
   ];
