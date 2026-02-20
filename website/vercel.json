@@ -21,6 +21,10 @@
     {
       "source": "/docs",
       "destination": "/install"
+    },
+    {
+      "source": "/docs/:path*",
+      "destination": "/install"
     }
   ],
   "headers": [
