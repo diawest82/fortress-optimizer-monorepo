@@ -59,11 +59,6 @@ const config = {
             label: 'Website',
             position: 'right',
           },
-          {
-            href: 'https://github.com/diawest82/fortress-optimizer-monorepo',
-            label: 'GitHub',
-            position: 'right',
-          },
         ],
       },
       footer: {
@@ -90,10 +85,6 @@ const config = {
             title: 'Community',
             items: [
               {
-                label: 'GitHub Discussions',
-                href: 'https://github.com/diawest82/fortress-optimizer-monorepo/discussions',
-              },
-              {
                 label: 'Twitter',
                 href: 'https://twitter.com/fortressopt',
               },
@@ -105,10 +96,6 @@ const config = {
               {
                 label: 'Website',
                 href: 'https://www.fortress-optimizer.com',
-              },
-              {
-                label: 'GitHub',
-                href: 'https://github.com/diawest82/fortress-optimizer-monorepo',
               },
             ],
           },

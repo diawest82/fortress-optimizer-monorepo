@@ -62,11 +62,6 @@ export default {
           "href": "https://www.fortress-optimizer.com",
           "label": "Website",
           "position": "right"
-        },
-        {
-          "href": "https://github.com/diawest82/fortress-optimizer-monorepo",
-          "label": "GitHub",
-          "position": "right"
         }
       ],
       "hideOnScroll": false
@@ -95,10 +90,6 @@ export default {
           "title": "Community",
           "items": [
             {
-              "label": "GitHub Discussions",
-              "href": "https://github.com/diawest82/fortress-optimizer-monorepo/discussions"
-            },
-            {
               "label": "Twitter",
               "href": "https://twitter.com/fortressopt"
             }
@@ -110,10 +101,6 @@ export default {
             {
               "label": "Website",
               "href": "https://www.fortress-optimizer.com"
-            },
-            {
-              "label": "GitHub",
-              "href": "https://github.com/diawest82/fortress-optimizer-monorepo"
             }
           ]
         }
