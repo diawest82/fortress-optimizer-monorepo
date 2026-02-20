@@ -1,6 +1,6 @@
 'use client';
 
-import { ExternalLink, MessageCircle, Users, Github, Twitter } from 'lucide-react';
+import { ExternalLink, MessageCircle, Users, Github } from 'lucide-react';
 
 interface CommunityLink {
   platform: string;
@@ -28,14 +28,6 @@ export default function CommunityPortal() {
       url: 'https://github.com/fortress-optimizer/discussions',
       icon: <Github className="w-6 h-6" />,
       memberCount: '500+',
-    },
-    {
-      platform: 'twitter',
-      name: 'Twitter Community',
-      description: 'Follow for announcements, tips, best practices, and community highlights',
-      url: 'https://twitter.com/fortress_opt',
-      icon: <Twitter className="w-6 h-6" />,
-      memberCount: '5,000+',
     },
     {
       platform: 'forum',
