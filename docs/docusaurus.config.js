@@ -45,6 +45,8 @@ const config = {
         logo: {
           alt: 'Fortress Logo',
           src: 'img/logo.svg',
+          width: 32,
+          height: 32,
         },
         items: [
           {
