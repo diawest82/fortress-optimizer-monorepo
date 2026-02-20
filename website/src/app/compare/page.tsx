@@ -606,7 +606,7 @@ export default function ComparePage() {
             <Link href="/signup" className={styles.ctaButtonPrimary}>
               Start Free Today
             </Link>
-            <a href="https://docs.fortress-optimizer.com/getting-started" className={styles.ctaButtonSecondary}>
+            <a href="https://docs.fortress-optimizer.com/docs/getting-started" className={styles.ctaButtonSecondary}>
               View Documentation
             </a>
           </div>
