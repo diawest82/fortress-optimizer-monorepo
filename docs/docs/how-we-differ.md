@@ -29,7 +29,7 @@ Fortress is the first platform to **intelligently restructure prompts without sa
 | **Real-time Optimization** | ❌ No | ✅ Yes |
 | **Integration Type** | Proxy/edge layer | Code/API level |
 | **Setup Complexity** | Medium | Very simple |
-| **Cost Savings Predictability** | ❌ Unpredictable | ✅ Guaranteed |
+| **Cost Savings Predictability** | ❌ Unpredictable | ✅ Consistent |
 | **Works with Any API** | ❌ Limited | ✅ All LLM APIs |
 
 **Key Difference**: CloudFlare focuses on infrastructure caching and performance; Fortress focuses on semantic token reduction.
@@ -77,7 +77,7 @@ Fortress is the first platform to **intelligently restructure prompts without sa
 | **Consistency** | ❌ Varies by person | ✅ 100% consistent |
 | **Time to Implement** | ⏱️ Hours per prompt | ⚡ Instant |
 | **Scalability** | ❌ Linear effort | ✅ Automatic |
-| **Token Reduction** | 5-15% (inconsistent) | ✅ 20% guaranteed |
+| **Token Reduction** | 5-15% (inconsistent) | ✅ Up to 20% consistently |
 | **Maintenance** | ❌ Manual updates | ✅ Automatic |
 
 **Key Difference**: Manual optimization is expensive, inconsistent, and doesn't scale. Fortress is automatic and consistent.
@@ -107,7 +107,7 @@ Fortress doesn't just compress text—it understands meaning:
 - **Claude Desktop**: Built-in
 - **API**: Simple REST endpoint
 
-### 4. **Guaranteed Savings**
+### 4. **Consistent Savings**
 20% average token reduction across all use cases. You only pay for what you save.
 
 ### 5. **Real-time Feedback**
@@ -144,7 +144,7 @@ See exactly how many tokens you're saving:
 - Effort: 40+ hours engineering time
 
 #### Using Fortress
-- ✅ 20% guaranteed reduction
+- ✅ Up to 20% consistent reduction
 - Cost: **$240/month** (-**$60/month** savings)
 - Effort: 5 minutes setup
 
@@ -158,7 +158,7 @@ Fortress Token Optimizer is the **only platform that**:
 1. ✅ Intelligently reduces tokens without quality loss
 2. ✅ Works with any LLM provider
 3. ✅ Requires zero infrastructure changes
-4. ✅ Guarantees 20% savings
+4. ✅ Delivers up to 20% savings consistently
 5. ✅ Takes minutes to integrate
 6. ✅ Requires no ongoing maintenance
 

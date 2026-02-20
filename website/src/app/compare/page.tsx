@@ -28,7 +28,7 @@ export default function ComparePage() {
           <div className={styles.heroStats}>
             <div className={styles.stat}>
               <span className={styles.statNumber}>20%</span>
-              <span className={styles.statLabel}>Guaranteed Savings</span>
+              <span className={styles.statLabel}>Consistent Savings</span>
             </div>
             <div className={styles.stat}>
               <span className={styles.statNumber}>5min</span>
@@ -428,7 +428,7 @@ export default function ComparePage() {
                   color: '#e0e7ff',
                   fontSize: '0.95rem',
                   fontWeight: 600,
-                }}>Guaranteed Savings</td>
+                }}>Consistent Savings</td>
                 <td style={{
                   padding: '16px',
                   borderBottom: '1px solid rgba(59, 130, 246, 0.1)',
@@ -506,7 +506,7 @@ export default function ComparePage() {
 
           <div className={styles.reason}>
             <div className={styles.reasonIcon}>✅</div>
-            <h3>Quality Guaranteed</h3>
+            <h3>Quality Consistent</h3>
             <p>
               20% token reduction without sacrificing output quality. Tested on 10,000+ 
               real-world prompts.

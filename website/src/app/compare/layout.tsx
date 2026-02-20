@@ -14,7 +14,7 @@ export const metadata: Metadata = {
   ],
   openGraph: {
     title: 'Why Fortress Wins | Save 20% on LLM Costs',
-    description: 'The only token optimization platform that guarantees 20% savings without sacrificing quality. No vendor lock-in, 5-minute setup.',
+    description: 'The only token optimization platform that delivers up to 20% savings consistently without sacrificing quality. No vendor lock-in, 5-minute setup.',
     url: 'https://www.fortress-optimizer.com/compare',
     type: 'website',
     images: [
@@ -29,7 +29,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'Why Fortress Wins | Save 20% on LLM Costs',
-    description: 'The only token optimization platform that guarantees 20% savings. See the comparison.',
+    description: 'The only token optimization platform that delivers up to 20% savings consistently. See the comparison.',
     images: ['https://www.fortress-optimizer.com/og-compare.png'],
   },
   robots: {
