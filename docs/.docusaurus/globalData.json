@@ -31,6 +31,11 @@
               "sidebar": "tutorialSidebar"
             },
             {
+              "id": "how-we-differ",
+              "path": "/docs/how-we-differ",
+              "sidebar": "tutorialSidebar"
+            },
+            {
               "id": "installation/claude-desktop",
               "path": "/docs/installation/claude-desktop",
               "sidebar": "tutorialSidebar"

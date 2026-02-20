@@ -33,6 +33,7 @@ module.exports = {
       items: [
         'guides/how-it-works',
         'guides/best-practices',
+        'how-we-differ',
       ],
     },
   ],

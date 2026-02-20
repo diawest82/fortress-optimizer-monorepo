@@ -1,15 +1,15 @@
 {
-  "/docs-aa7": {
+  "/docs-1b5": {
     "__comp": "5e95c892",
     "__context": {
       "plugin": "aba21aa0"
     }
   },
-  "/docs-a0a": {
+  "/docs-94a": {
     "__comp": "a7bd4aaa",
     "__props": "0058b4c6"
   },
-  "/docs-1f2": {
+  "/docs-b8a": {
     "__comp": "a94703ab"
   },
   "/docs/api-reference-756": {
@@ -27,6 +27,10 @@
   "/docs/guides/how-it-works-689": {
     "__comp": "17896441",
     "content": "7b5329ff"
+  },
+  "/docs/how-we-differ-e4d": {
+    "__comp": "17896441",
+    "content": "a2495a0a"
   },
   "/docs/installation/claude-desktop-432": {
     "__comp": "17896441",

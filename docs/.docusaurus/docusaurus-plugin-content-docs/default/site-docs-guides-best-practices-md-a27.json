@@ -20,5 +20,9 @@
   "previous": {
     "title": "How It Works",
     "permalink": "/docs/guides/how-it-works"
+  },
+  "next": {
+    "title": "How Fortress Differs from Competitors",
+    "permalink": "/docs/how-we-differ"
   }
 }

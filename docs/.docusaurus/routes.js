@@ -4,15 +4,15 @@ import ComponentCreator from '@docusaurus/ComponentCreator';
 export default [
   {
     path: '/docs',
-    component: ComponentCreator('/docs', 'aa7'),
+    component: ComponentCreator('/docs', '1b5'),
     routes: [
       {
         path: '/docs',
-        component: ComponentCreator('/docs', 'a0a'),
+        component: ComponentCreator('/docs', '94a'),
         routes: [
           {
             path: '/docs',
-            component: ComponentCreator('/docs', '1f2'),
+            component: ComponentCreator('/docs', 'b8a'),
             routes: [
               {
                 path: '/docs/api-reference',
@@ -35,6 +35,12 @@ export default [
               {
                 path: '/docs/guides/how-it-works',
                 component: ComponentCreator('/docs/guides/how-it-works', '689'),
+                exact: true,
+                sidebar: "tutorialSidebar"
+              },
+              {
+                path: '/docs/how-we-differ',
+                component: ComponentCreator('/docs/how-we-differ', 'e4d'),
                 exact: true,
                 sidebar: "tutorialSidebar"
               },

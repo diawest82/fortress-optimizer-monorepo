@@ -5,7 +5,7 @@
  */
 export default {
   "title": "Fortress Token Optimizer",
-  "tagline": "Save 30-50% on LLM API costs with intelligent token optimization",
+  "tagline": "Save 20% on LLM API costs with intelligent token optimization",
   "favicon": "img/favicon.ico",
   "url": "https://docs.fortress-optimizer.com",
   "baseUrl": "/",

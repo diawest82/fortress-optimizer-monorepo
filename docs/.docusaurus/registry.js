@@ -12,6 +12,7 @@ export default {
   "94815c15": [() => import(/* webpackChunkName: "94815c15" */ "@site/docs/installation/claude-desktop.md"), "@site/docs/installation/claude-desktop.md", require.resolveWeak("@site/docs/installation/claude-desktop.md")],
   "964ae018": [() => import(/* webpackChunkName: "964ae018" */ "@site/docs/api-reference.md"), "@site/docs/api-reference.md", require.resolveWeak("@site/docs/api-reference.md")],
   "9c418123": [() => import(/* webpackChunkName: "9c418123" */ "@site/docs/what-is-fortress.md"), "@site/docs/what-is-fortress.md", require.resolveWeak("@site/docs/what-is-fortress.md")],
+  "a2495a0a": [() => import(/* webpackChunkName: "a2495a0a" */ "@site/docs/how-we-differ.md"), "@site/docs/how-we-differ.md", require.resolveWeak("@site/docs/how-we-differ.md")],
   "a2738a55": [() => import(/* webpackChunkName: "a2738a55" */ "@site/docs/guides/best-practices.md"), "@site/docs/guides/best-practices.md", require.resolveWeak("@site/docs/guides/best-practices.md")],
   "a7456010": [() => import(/* webpackChunkName: "a7456010" */ "@generated/docusaurus-plugin-content-pages/default/__plugin.json"), "@generated/docusaurus-plugin-content-pages/default/__plugin.json", require.resolveWeak("@generated/docusaurus-plugin-content-pages/default/__plugin.json")],
   "a7bd4aaa": [() => import(/* webpackChunkName: "a7bd4aaa" */ "@theme/DocVersionRoot"), "@theme/DocVersionRoot", require.resolveWeak("@theme/DocVersionRoot")],
