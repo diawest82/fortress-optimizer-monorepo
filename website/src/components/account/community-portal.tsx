@@ -128,20 +128,20 @@ export default function CommunityPortal() {
             {
               icon: '📚',
               title: 'Documentation',
-              desc: 'Read our comprehensive guides and API docs',
-              link: 'https://docs.fortress-optimizer.com',
+              desc: 'Read our comprehensive guides and installation docs',
+              link: '/install',
             },
             {
               icon: '🎥',
               title: 'Video Tutorials',
               desc: 'Step-by-step video guides for all features',
-              link: 'https://youtube.com/fortress-optimizer',
+              link: '/install',
             },
             {
               icon: '💬',
               title: 'FAQ',
               desc: 'Common questions and quick answers',
-              link: '#faq',
+              link: '/support',
             },
           ].map((resource, idx) => (
             <a

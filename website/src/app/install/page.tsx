@@ -18,7 +18,7 @@ export default function Install() {
       title: 'npm Package',
       subtitle: 'The largest user base - JavaScript/TypeScript projects',
       icon: '📦',
-      docsUrl: 'https://docs.fortress-optimizer.com/installation/npm',
+      docsUrl: '/install#npm',
       steps: [
         { cmd: 'npm install @fortress-optimizer/core', desc: 'Install the package' },
         { cmd: "import { FortressOptimizer } from '@fortress-optimizer/core';\n\nconst optimizer = new FortressOptimizer({\n  apiKey: process.env.FORTRESS_API_KEY\n});", desc: 'Initialize' },
@@ -30,7 +30,7 @@ export default function Install() {
       title: 'GitHub Copilot',
       subtitle: 'VS Code extension - Huge developer audience',
       icon: '🤖',
-      docsUrl: 'https://docs.fortress-optimizer.com/installation/copilot',
+      docsUrl: '/install#copilot',
       steps: [
         { cmd: 'Install "Fortress Optimizer for Copilot" from VS Code Marketplace', desc: 'Install extension' },
         { cmd: 'Press Ctrl+Shift+P → "Fortress: Configure API Key"', desc: 'Set your API key' },
@@ -42,7 +42,7 @@ export default function Install() {
       title: 'Slack Bot',
       subtitle: 'Team collaboration - 750M+ Slack users',
       icon: '💬',
-      docsUrl: 'https://docs.fortress-optimizer.com/installation/slack',
+      docsUrl: '/install#slack',
       steps: [
         { cmd: 'Add "Fortress Optimizer" from Slack App Directory', desc: 'Install app' },
         { cmd: '@fortress-optimizer optimize "Your prompt here"', desc: 'Use the bot' },
@@ -54,7 +54,7 @@ export default function Install() {
       title: 'VS Code',
       subtitle: 'The most popular code editor - 20M+ users',
       icon: '⚙️',
-      docsUrl: 'https://docs.fortress-optimizer.com/installation/vscode',
+      docsUrl: '/install#vscode',
       steps: [
         { cmd: 'Install "Fortress Token Optimizer" extension', desc: 'From VS Code Marketplace' },
         { cmd: 'Cmd+K, Cmd+I → "Fortress Optimize"', desc: 'Highlight your prompt' },
@@ -178,8 +178,8 @@ export default function Install() {
             <div className="text-3xl mb-3">📚</div>
             <h3 className="font-semibold mb-2">API Reference</h3>
             <p className="text-sm text-zinc-400 mb-4">Full documentation with examples</p>
-            <a href="https://docs.fortress-optimizer.com/api" target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:text-blue-300 text-sm">
-              View API Docs →
+            <a href="/install" className="text-blue-400 hover:text-blue-300 text-sm">
+              View Installation Guide →
             </a>
           </div>
         </div>
