@@ -1,0 +1,38 @@
+<svg viewBox="0 0 1200 630" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="630" fill="#0f172a" />
+  
+  <defs>
+    <linearGradient id="fortressGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stopColor="#10b981" />
+      <stop offset="100%" stopColor="#059669" />
+    </linearGradient>
+    <linearGradient id="accentGradient" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stopColor="#3b82f6" />
+      <stop offset="100%" stopColor="#06b6d4" />
+    </linearGradient>
+  </defs>
+
+  <!-- Large fortress shield -->
+  <path d="M 300 150 L 420 210 L 420 380 Q 300 480 300 480 Q 180 380 180 380 L 180 210 Z" fill="url(#fortressGradient)" opacity="0.95" />
+  <path d="M 300 150 L 420 210 L 420 380 Q 300 480 300 480 Q 180 380 180 380 L 180 210 Z" stroke="url(#accentGradient)" strokeWidth="3" fill="none" />
+
+  <!-- Fortress towers on shield -->
+  <g>
+    <rect x="240" y="220" width="20" height="120" fill="#f0fdf4" opacity="0.9" />
+    <rect x="290" y="170" width="20" height="170" fill="#f0fdf4" opacity="0.95" />
+    <rect x="340" y="220" width="20" height="120" fill="#f0fdf4" opacity="0.9" />
+  </g>
+
+  <!-- Text -->
+  <text x="600" y="250" fontSize="72" fontWeight="bold" fill="white" fontFamily="system-ui, -apple-system, sans-serif">
+    Fortress
+  </text>
+  
+  <text x="600" y="330" fontSize="48" fill="#10b981" fontFamily="system-ui, -apple-system, sans-serif">
+    Token Optimizer
+  </text>
+
+  <text x="600" y="390" fontSize="24" fill="#9ca3af" fontFamily="system-ui, -apple-system, sans-serif">
+    Save 20% on LLM API costs
+  </text>
+</svg>

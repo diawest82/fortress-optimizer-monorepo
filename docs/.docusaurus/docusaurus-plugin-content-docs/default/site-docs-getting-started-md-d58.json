@@ -1,0 +1,23 @@
+{
+  "id": "getting-started",
+  "title": "Getting Started",
+  "description": "Welcome to Fortress Token Optimizer! This guide will help you get up and running in minutes.",
+  "source": "@site/docs/getting-started.md",
+  "sourceDirName": ".",
+  "slug": "/getting-started",
+  "permalink": "/docs/getting-started",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/diawest82/fortress-optimizer-monorepo/tree/main/docs/docs/getting-started.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 1,
+  "frontMatter": {
+    "sidebar_position": 1
+  },
+  "sidebar": "tutorialSidebar",
+  "next": {
+    "title": "What is Fortress?",
+    "permalink": "/docs/what-is-fortress"
+  }
+}

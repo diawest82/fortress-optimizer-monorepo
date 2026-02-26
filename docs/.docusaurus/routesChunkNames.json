@@ -1,0 +1,70 @@
+{
+  "/docs-1b5": {
+    "__comp": "5e95c892",
+    "__context": {
+      "plugin": "aba21aa0"
+    }
+  },
+  "/docs-94a": {
+    "__comp": "a7bd4aaa",
+    "__props": "0058b4c6"
+  },
+  "/docs-b8a": {
+    "__comp": "a94703ab"
+  },
+  "/docs/api-reference-756": {
+    "__comp": "17896441",
+    "content": "964ae018"
+  },
+  "/docs/getting-started-2a1": {
+    "__comp": "17896441",
+    "content": "d589d3a7"
+  },
+  "/docs/guides/best-practices-907": {
+    "__comp": "17896441",
+    "content": "a2738a55"
+  },
+  "/docs/guides/how-it-works-689": {
+    "__comp": "17896441",
+    "content": "7b5329ff"
+  },
+  "/docs/how-we-differ-e4d": {
+    "__comp": "17896441",
+    "content": "a2495a0a"
+  },
+  "/docs/installation/claude-desktop-432": {
+    "__comp": "17896441",
+    "content": "94815c15"
+  },
+  "/docs/installation/copilot-daf": {
+    "__comp": "17896441",
+    "content": "58a46d05"
+  },
+  "/docs/installation/npm-d57": {
+    "__comp": "17896441",
+    "content": "c3707476"
+  },
+  "/docs/installation/slack-c7a": {
+    "__comp": "17896441",
+    "content": "024a5182"
+  },
+  "/docs/installation/vscode-991": {
+    "__comp": "17896441",
+    "content": "04d6268b"
+  },
+  "/docs/quick-start-b74": {
+    "__comp": "17896441",
+    "content": "72e14192"
+  },
+  "/docs/what-is-fortress-88b": {
+    "__comp": "17896441",
+    "content": "9c418123"
+  },
+  "/-e5f": {
+    "__comp": "1df93b7f",
+    "__context": {
+      "plugin": "a7456010"
+    },
+    "config": "5e9f5e1a"
+  }
+}

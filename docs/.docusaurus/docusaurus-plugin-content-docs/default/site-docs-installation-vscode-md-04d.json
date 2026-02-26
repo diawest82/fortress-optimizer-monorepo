@@ -1,0 +1,28 @@
+{
+  "id": "installation/vscode",
+  "title": "VS Code Extension",
+  "description": "Use Fortress directly in VS Code with the token optimizer extension.",
+  "source": "@site/docs/installation/vscode.md",
+  "sourceDirName": "installation",
+  "slug": "/installation/vscode",
+  "permalink": "/docs/installation/vscode",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/diawest82/fortress-optimizer-monorepo/tree/main/docs/docs/installation/vscode.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 4,
+  "frontMatter": {
+    "sidebar_position": 4,
+    "title": "VS Code Extension"
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Slack",
+    "permalink": "/docs/installation/slack"
+  },
+  "next": {
+    "title": "Claude Desktop",
+    "permalink": "/docs/installation/claude-desktop"
+  }
+}

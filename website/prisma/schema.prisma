@@ -1,0 +1,777 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Admin Users
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String?
+  password      String
+  role          String    @default("admin") // admin, moderator, viewer
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  // Subscription
+  tier          String    @default("free") // free, starter, teams, enterprise
+  subscriptionStatus String @default("active") // active, cancelled, suspended
+  stripeCustomerId String?
+  stripeSubscriptionId String?
+  billingCycleDay Int       @default(1) // Day of month for billing
+  
+  // Team Management (for Teams tier)
+  teamId        String?
+  team          Team?     @relation("TeamMembers", fields: [teamId], references: [id])
+  managedTeams  Team[]    @relation("TeamOwner") // Teams this user owns
+  
+  // Enterprise Features
+  accountManager String? // Dedicated account manager email/name
+  slaEnabled    Boolean   @default(false)
+  supportLevel  String    @default("community") // community, email, priority, 24/7
+  
+  // Referral relations
+  referralCodesCreated ReferralCode[] @relation("ReferralCodesCreated")
+  referralsCreated     Referral[]     @relation("ReferralsCreated")
+  referralsReceived    Referral[]     @relation("ReferralsReceived")
+  
+  // Relations
+  emailReplies  EmailReply[]
+  supportTickets SupportTicket[] @relation("TicketCreator")
+  supportTicketsAssigned SupportTicket[] @relation("TicketAssignee")
+  
+  @@map("users")
+}
+
+// Received Emails
+model Email {
+  id              String    @id @default(cuid())
+  from            String
+  to              String
+  subject         String
+  body            String
+  html            String?
+  timestamp       DateTime  @default(now())
+  status          String    @default("unread") // unread, read, replied, archived
+  
+  // AI Analysis
+  category        String?   // support, sales, enterprise, feedback, general
+  isEnterprise    Boolean   @default(false)
+  companySize     Int?
+  aiSummary       String?
+  aiRecommendation String?
+  requiresHuman   Boolean   @default(false)
+  
+  // Relations
+  replies         EmailReply[]
+  
+  @@index([status])
+  @@index([isEnterprise])
+  @@index([timestamp])
+  @@map("emails")
+}
+
+// Email Replies (responses you send)
+model EmailReply {
+  id          String    @id @default(cuid())
+  emailId     String
+  email       Email     @relation(fields: [emailId], references: [id], onDelete: Cascade)
+  
+  userId      String?
+  user        User?     @relation(fields: [userId], references: [id])
+  
+  to          String
+  subject     String
+  body        String
+  html        String?
+  status      String    @default("draft") // draft, sent, scheduled
+  sentAt      DateTime?
+  
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  
+  @@index([emailId])
+  @@map("email_replies")
+}
+
+// Admin Settings
+model Settings {
+  id                    String    @id @default(cuid())
+  enterpriseThreshold   Int       @default(999) // Companies with >X users are enterprise
+  autoResponseEnabled   Boolean   @default(false)
+  defaultAutoResponse   String?
+  notifyOnEnterprise    Boolean   @default(true)
+  notifyEmail           String?
+  
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+  
+  @@map("settings")
+}
+
+// ===== ANALYTICS & TRACKING =====
+
+// Track user signup source and attribution
+model UserSignup {
+  id            String    @id @default(cuid())
+  userId        String?   @unique
+  email         String    @unique
+  source        String    // producthunt, twitter, devto, hackernews, direct, email, referral, etc.
+  campaign      String?   // utm_campaign value
+  medium        String?   // utm_medium value
+  content       String?   // utm_content value
+  referrer      String?   // referring URL/domain
+  referrerUserId String?  // if referred by another user
+  
+  ipAddress     String?
+  userAgent     String?
+  country       String?
+  
+  conversionStatus String @default("signup") // signup, verified, first_action, converted_paid, churned
+  firstActionAt DateTime?
+  convertedAt   DateTime?
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  @@index([source])
+  @@index([campaign])
+  @@index([conversionStatus])
+  @@index([createdAt])
+  @@map("user_signups")
+}
+
+// Event tracking for user behavior
+model Event {
+  id            String    @id @default(cuid())
+  userId        String?   // null for anonymous
+  email         String?
+  eventName     String    // signup, login, feature_used, optimization_completed, etc.
+  eventData     Json?     // additional event properties
+  
+  source        String?   // channel_name
+  page          String?   // current page/route
+  referrer      String?   // previous page
+  
+  ipAddress     String?
+  userAgent     String?
+  
+  createdAt     DateTime  @default(now())
+  
+  @@index([userId])
+  @@index([email])
+  @@index([eventName])
+  @@index([source])
+  @@index([createdAt])
+  @@map("events")
+}
+
+// Store conversion funnel data
+model ConversionFunnel {
+  id            String    @id @default(cuid())
+  source        String    // traffic source
+  
+  visitCount    Int       @default(0)  // unique visits
+  signupCount   Int       @default(0)  // signups from this source
+  activeCount   Int       @default(0)  // still active
+  paidCount     Int       @default(0)  // converted to paid
+  churnCount    Int       @default(0)  // churned
+  
+  // Calculated metrics
+  signupRate    Float     @default(0)  // (signups / visits) * 100
+  conversionRate Float    @default(0)  // (paid / signups) * 100
+  churnRate     Float     @default(0)  // (churned / signups) * 100
+  
+  lastCalculatedAt DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  @@unique([source])
+  @@map("conversion_funnels")
+}
+
+// Daily metrics snapshot
+model MetricsSnapshot {
+  id            String    @id @default(cuid())
+  
+  // Acquisition metrics
+  newSignups    Int       @default(0)
+  totalSignups  Int       @default(0)
+  
+  // Engagement metrics
+  activeUsers   Int       @default(0)
+  optimizationsCompleted Int @default(0)
+  
+  // Revenue metrics
+  paidUsers     Int       @default(0)
+  mrrAmount     Float     @default(0) // Monthly recurring revenue
+  
+  // Traffic metrics
+  pageViews     Int       @default(0)
+  uniqueVisitors Int      @default(0)
+  
+  // Churn metrics
+  churnedUsers  Int       @default(0)
+  
+  date          DateTime  @unique @default(now())
+  createdAt     DateTime  @default(now())
+  
+  @@index([date])
+  @@map("metrics_snapshots")
+}
+
+// ===== EMAIL AUTOMATION =====
+
+// Email sequences (templates)
+model EmailSequence {
+  id            String    @id @default(cuid())
+  name          String    // "Welcome Series", "Onboarding", "Re-engagement"
+  description   String?
+  
+  emails        EmailTemplate[]
+  
+  isActive      Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  @@map("email_sequences")
+}
+
+// Individual email templates in a sequence
+model EmailTemplate {
+  id            String    @id @default(cuid())
+  sequenceId    String
+  sequence      EmailSequence @relation(fields: [sequenceId], references: [id], onDelete: Cascade)
+  sent          EmailSent[]  // Opposite relation for emails sent with this template
+  
+  order         Int       // Position in sequence (1-5)
+  delayHours    Int       @default(0) // Hours after previous email
+  
+  subject       String
+  htmlBody      String
+  plainBody     String?
+  
+  variables     String[]  @default([]) // {{name}}, {{email}}, etc.
+  
+  isActive      Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  @@unique([sequenceId, order])
+  @@map("email_templates")
+}
+
+// Track email sends to users
+model EmailSent {
+  id            String    @id @default(cuid())
+  userId        String?
+  email         String
+  
+  templateId    String
+  template      EmailTemplate @relation(fields: [templateId], references: [id])
+  
+  subject       String
+  status        String    @default("sent") // sent, opened, clicked, bounced, unsubscribed
+  
+  openedAt      DateTime?
+  clickedAt     DateTime?
+  unsubscribedAt DateTime?
+  
+  sentAt        DateTime  @default(now())
+  
+  @@index([email])
+  @@index([status])
+  @@index([sentAt])
+  @@map("emails_sent")
+}
+
+// ===== SEO & CONTENT =====
+
+// Blog posts for SEO
+model BlogPost {
+  id            String    @id @default(cuid())
+  slug          String    @unique
+  title         String
+  description   String
+  content       String
+  
+  // SEO metadata
+  keywords      String[]  @default([])
+  metaDescription String?
+  ogImage       String?
+  
+  // Publishing
+  published     Boolean   @default(false)
+  publishedAt   DateTime?
+  
+  // Analytics
+  views         Int       @default(0)
+  uniqueVisitors Int      @default(0)
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  @@index([published])
+  @@index([slug])
+  @@map("blog_posts")
+}
+
+// ===== LANDING PAGE TESTING =====
+
+// A/B test variants
+model Experiment {
+  id            String    @id @default(cuid())
+  name          String    // "CTA Button Color", "Hero Headline"
+  description   String?
+  
+  status        String    @default("draft") // draft, running, paused, completed
+  
+  variants      ExperimentVariant[]
+  
+  startedAt     DateTime?
+  endedAt       DateTime?
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  @@map("experiments")
+}
+
+// Individual variants in an experiment
+model ExperimentVariant {
+  id            String    @id @default(cuid())
+  experimentId  String
+  experiment    Experiment @relation(fields: [experimentId], references: [id], onDelete: Cascade)
+  
+  name          String    // "Control", "Variant A", "Variant B"
+  allocationPercentage Int @default(50) // % of traffic
+  
+  // What changed (headline, CTA, color, etc.)
+  changes       Json      // {field: "headline", value: "New headline"}
+  
+  // Metrics
+  views         Int       @default(0)
+  conversions   Int       @default(0)
+  conversionRate Float    @default(0)
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  @@unique([experimentId, name])
+  @@map("experiment_variants")
+}
+
+// Track which variant user saw
+model ExperimentAssignment {
+  id            String    @id @default(cuid())
+  experimentId  String
+  variantId     String
+  
+  userId        String?
+  sessionId     String?
+  
+  converted     Boolean   @default(false)
+  
+  createdAt     DateTime  @default(now())
+  
+  @@index([experimentId])
+  @@index([userId])
+  @@index([sessionId])
+  @@map("experiment_assignments")
+}
+
+// ===== USER COHORTS & SEGMENTATION =====
+
+// Track user cohorts (for cohort analysis)
+model UserCohort {
+  id            String    @id @default(cuid())
+  name          String    @unique // "Feb 2026 Wave", "Product Hunt Launch"
+  
+  // Cohort definition
+  signupSource  String[]  @default([])
+  signupDateStart DateTime?
+  signupDateEnd DateTime?
+  
+  // Cohort metrics
+  totalUsers    Int       @default(0)
+  activeUsers   Int       @default(0)
+  paidUsers     Int       @default(0)
+  churnedUsers  Int       @default(0)
+  
+  // Calculated retention
+  retention1Day Float     @default(0)
+  retention7Day Float     @default(0)
+  retention30Day Float    @default(0)
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  @@map("user_cohorts")
+}
+
+// ===== SOCIAL MEDIA CAMPAIGNS =====
+
+// Track social media campaigns
+model SocialMediaCampaign {
+  id            String    @id @default(cuid())
+  name          String
+  platform      String    // twitter, linkedin, devto, reddit, tiktok, youtube
+  
+  content       String
+  mediaUrl      String?
+  link          String?   // with UTM params
+  
+  scheduledAt   DateTime?
+  publishedAt   DateTime?
+  
+  // Engagement metrics
+  impressions   Int       @default(0)
+  likes         Int       @default(0)
+  reposts       Int       @default(0)
+  replies       Int       @default(0)
+  clicks        Int       @default(0)
+  
+  status        String    @default("draft") // draft, scheduled, published, archived
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  @@index([platform])
+  @@index([status])
+  @@map("social_media_campaigns")
+}
+
+// ===== REPORTING & AUTOMATION =====
+
+// Scheduled reports
+model ScheduledReport {
+  id            String    @id @default(cuid())
+  name          String    // "Weekly Summary", "Daily Metrics"
+  frequency     String    // daily, weekly, monthly
+  dayOfWeek     Int?      // 0-6 (if weekly)
+  dayOfMonth    Int?      // 1-31 (if monthly)
+  hour          Int       @default(9) // UTC hour
+  
+  recipients    String[]  // email addresses
+  sections      String[]  @default([]) // sections to include: signups, engagement, revenue, etc.
+  
+  isActive      Boolean   @default(true)
+  lastSentAt    DateTime?
+  nextSendAt    DateTime?
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  @@map("scheduled_reports")
+}
+
+// Track automation runs
+model AutomationLog {
+  id            String    @id @default(cuid())
+  automationType String  // email_sequence, report_send, seo_check, etc.
+  action        String  // details of what happened
+  status        String  @default("success") // success, error, warning
+  
+  metadata      Json?   // additional data
+  errorMessage  String?
+  
+  executedAt    DateTime  @default(now())
+  
+  @@index([automationType])
+  @@index([status])
+  @@index([executedAt])
+  @@map("automation_logs")
+}
+
+// ===== REFERRAL SYSTEM =====
+
+// Referral codes for users
+model ReferralCode {
+  id            String    @id @default(cuid())
+  code          String    @unique
+  userId        String
+  user          User      @relation("ReferralCodesCreated", fields: [userId], references: [id], onDelete: Cascade)
+  
+  isActive      Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+  
+  @@index([userId])
+  @@index([code])
+  @@map("referral_codes")
+}
+
+// Track referrals
+model Referral {
+  id            String    @id @default(cuid())
+  
+  referrerId    String
+  referrer      User      @relation("ReferralsCreated", fields: [referrerId], references: [id], onDelete: Cascade)
+  
+  refereeId     String
+  referee       User      @relation("ReferralsReceived", fields: [refereeId], references: [id], onDelete: Cascade)
+  
+  status        String    @default("pending") // pending, completed, credited
+  rewardAmount  Float     @default(10) // in dollars
+  
+  completedAt   DateTime?
+  creditedAt    DateTime?
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  @@index([referrerId])
+  @@index([refereeId])
+  @@index([status])
+  @@map("referrals")
+}
+
+// ===== LEAD MAGNETS & TOOL USAGE =====
+
+// Token counter tool usage
+model TokenCountUsage {
+  id            String    @id @default(cuid())
+  userId        String?   // null for anonymous users
+  
+  inputTokens   Int
+  originalTokens Int
+  optimizedTokens Int
+  savings       Float     // percentage saved
+  
+  promptText    String?   // optional: store the prompt for analysis
+  
+  ipAddress     String?
+  sessionId     String?
+  
+  createdAt     DateTime  @default(now())
+  
+  @@index([userId])
+  @@index([sessionId])
+  @@index([createdAt])
+  @@map("token_count_usages")
+}
+
+// Cost calculator usage
+model CostCalculatorUsage {
+  id            String    @id @default(cuid())
+  userId        String?
+  
+  tokensPerDay  Int
+  provider      String    // gpt4, claude, gemini
+  teamSize      Int
+  
+  currentCost   Float
+  optimizedCost Float
+  monthlySavings Float
+  
+  ipAddress     String?
+  sessionId     String?
+  
+  createdAt     DateTime  @default(now())
+  
+  @@index([userId])
+  @@index([sessionId])
+  @@index([createdAt])
+  @@map("cost_calculator_usages")
+}
+
+// Compatibility checker responses
+model CompatibilityCheckerUsage {
+  id            String    @id @default(cuid())
+  userId        String?
+  
+  codeLocation  String    // ide, terminal, cloud, multiple
+  languages     String[]  @default([])
+  teamSize      String    // solo, team, enterprise
+  
+  recommendedPlatforms String[]
+  
+  ipAddress     String?
+  sessionId     String?
+  
+  createdAt     DateTime  @default(now())
+  
+  @@index([userId])
+  @@index([sessionId])
+  @@index([createdAt])
+  @@map("compatibility_checker_usages")
+}
+
+// ===== TEAM MANAGEMENT =====
+
+model Team {
+  id            String    @id @default(cuid())
+  name          String
+  slug          String    @unique
+  
+  // Billing
+  ownerId       String
+  owner         User      @relation("TeamOwner", fields: [ownerId], references: [id])
+  
+  // Members
+  members       User[]    @relation("TeamMembers")
+  seats         Int       @default(5) // Max team members
+  
+  // Features
+  stripeCustomerId String?
+  stripeSubscriptionId String?
+  tier          String    @default("teams") // teams, enterprise
+  
+  // Settings
+  slackWebhookUrl String?
+  slackIntegrationEnabled Boolean @default(false)
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  @@index([ownerId])
+  @@map("teams")
+}
+
+// ===== SUPPORT SYSTEM =====
+
+model SupportTicket {
+  id            String    @id @default(cuid())
+  ticketNumber  String    @unique // e.g., "FORT-001234"
+  
+  // Requester
+  creatorId     String
+  creator       User      @relation("TicketCreator", fields: [creatorId], references: [id])
+  creatorEmail  String
+  creatorName   String
+  
+  // Assignment
+  assigneeId    String?
+  assignee      User?     @relation("TicketAssignee", fields: [assigneeId], references: [id])
+  
+  // Content
+  subject       String
+  description   String
+  category      String    // billing, technical, feature-request, account, other
+  priority      String    @default("normal") // low, normal, high, urgent
+  
+  // Resolution
+  status        String    @default("open") // open, in-progress, waiting, resolved, closed
+  resolution    String?
+  
+  // SLA
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  resolvedAt    DateTime?
+  
+  // Responses
+  responses     SupportResponse[]
+  
+  @@index([creatorId])
+  @@index([assigneeId])
+  @@index([status])
+  @@index([priority])
+  @@index([createdAt])
+  @@map("support_tickets")
+}
+
+model SupportResponse {
+  id            String    @id @default(cuid())
+  ticketId      String
+  ticket        SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  
+  authorId      String?   // null = customer, has id = support staff
+  authorEmail   String
+  
+  message       String
+  isInternal    Boolean   @default(false) // Only visible to staff if true
+  
+  createdAt     DateTime  @default(now())
+  
+  @@index([ticketId])
+  @@index([authorId])
+  @@map("support_responses")
+}
+
+// ===== ENTERPRISE FEATURES =====
+
+model EnterpriseAccount {
+  id            String    @id @default(cuid())
+  companyName   String
+  companyDomain String    @unique
+  
+  accountManager String   // Email of dedicated account manager
+  accountManagerName String?
+  
+  // SLA Terms
+  slaEnabled    Boolean   @default(true)
+  slaResponseTime Int     @default(4) // Hours for first response
+  slaResolutionTime Int   @default(24) // Hours for resolution
+  
+  // Support
+  supportLevel  String    @default("24/7") // 24/7, business-hours
+  slackChannel  String?   // For urgent support notifications
+  
+  // Features
+  customIntegrations String[] @default([])
+  onPremiseEnabled Boolean  @default(false)
+  
+  // Users
+  primaryContact String    // Email
+  primaryContactName String?
+  
+  // Billing
+  stripeCustomerId String?
+  annualContractAmount Float?
+  contractStartDate DateTime?
+  contractEndDate DateTime?
+  
+  // Status
+  status        String    @default("active") // active, paused, cancelled
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  @@index([accountManager])
+  @@index([status])
+  @@map("enterprise_accounts")
+}
+
+// ===== COMMUNITY & FEEDBACK =====
+
+model CommunityLink {
+  id            String    @id @default(cuid())
+  platform      String    @unique // discord, slack, github, twitter, forum
+  url           String
+  description   String?
+  isActive      Boolean   @default(true)
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  @@map("community_links")
+}
+
+// Feature feedback from users
+model FeatureFeedback {
+  id            String    @id @default(cuid())
+  userId        String?
+  userEmail     String
+  
+  title         String
+  description   String
+  category      String    // integration, performance, feature, pricing, ui
+  
+  upvotes       Int       @default(1)
+  
+  status        String    @default("new") // new, reviewed, planned, in-progress, completed, declined
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  @@index([userId])
+  @@index([status])
+  @@index([upvotes])
+  @@map("feature_feedback")
+}

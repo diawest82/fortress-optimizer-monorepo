@@ -1,0 +1,88 @@
+{
+  "docusaurus-plugin-content-docs": {
+    "default": {
+      "path": "/docs",
+      "versions": [
+        {
+          "name": "current",
+          "label": "Next",
+          "isLast": true,
+          "path": "/docs",
+          "mainDocId": "getting-started",
+          "docs": [
+            {
+              "id": "api-reference",
+              "path": "/docs/api-reference",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "getting-started",
+              "path": "/docs/getting-started",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "guides/best-practices",
+              "path": "/docs/guides/best-practices",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "guides/how-it-works",
+              "path": "/docs/guides/how-it-works",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "how-we-differ",
+              "path": "/docs/how-we-differ",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "installation/claude-desktop",
+              "path": "/docs/installation/claude-desktop",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "installation/copilot",
+              "path": "/docs/installation/copilot",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "installation/npm",
+              "path": "/docs/installation/npm",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "installation/slack",
+              "path": "/docs/installation/slack",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "installation/vscode",
+              "path": "/docs/installation/vscode",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "quick-start",
+              "path": "/docs/quick-start",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "what-is-fortress",
+              "path": "/docs/what-is-fortress",
+              "sidebar": "tutorialSidebar"
+            }
+          ],
+          "draftIds": [],
+          "sidebars": {
+            "tutorialSidebar": {
+              "link": {
+                "path": "/docs/getting-started",
+                "label": "getting-started"
+              }
+            }
+          }
+        }
+      ],
+      "breadcrumbs": true
+    }
+  }
+}

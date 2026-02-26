@@ -1,0 +1,28 @@
+{
+  "id": "installation/slack",
+  "title": "Slack",
+  "description": "Use Fortress in your Slack workspace to optimize prompts in team chat.",
+  "source": "@site/docs/installation/slack.md",
+  "sourceDirName": "installation",
+  "slug": "/installation/slack",
+  "permalink": "/docs/installation/slack",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/diawest82/fortress-optimizer-monorepo/tree/main/docs/docs/installation/slack.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 3,
+  "frontMatter": {
+    "sidebar_position": 3,
+    "title": "Slack"
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "GitHub Copilot",
+    "permalink": "/docs/installation/copilot"
+  },
+  "next": {
+    "title": "VS Code Extension",
+    "permalink": "/docs/installation/vscode"
+  }
+}

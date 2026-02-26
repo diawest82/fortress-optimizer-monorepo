@@ -1,0 +1,22 @@
+{
+  "workspace_id": "website",
+  "workspace_path": "/Users/diawest/projects/fortress-optimizer-monorepo/website",
+  "timestamp": "2026-02-18T00:19:17.369034Z",
+  "python_version": "3.14",
+  "working_directory": "/Users/diawest/projects/fortress-optimizer-monorepo/website",
+  "environment": "base",
+  "hub_endpoint": "http://127.0.0.1:3333",
+  "status": "connected",
+  "hub_response": {
+    "status": "registered",
+    "workspace_id": "website",
+    "message": "Workspace 'website' successfully registered with hub",
+    "hub_config": {
+      "name": "Fortress Hub (Development)",
+      "version": "1.0.0",
+      "mode": "development",
+      "started_at": "2026-02-17T04:48:29.472518Z"
+    },
+    "timestamp": "2026-02-18T00:19:17.368179Z"
+  }
+}

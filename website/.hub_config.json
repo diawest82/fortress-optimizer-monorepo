@@ -1,0 +1,15 @@
+{
+  "hub_endpoint": "http://127.0.0.1:3333",
+  "fallback_endpoints": [
+    "http://localhost:3333",
+    "https://hub.fortress-optimizer.dev"
+  ],
+  "timeout": 10,
+  "retry_attempts": 3,
+  "retry_delay": 2,
+  "enable_local_fallback": true,
+  "installed_at": "2026-02-14T14:22:22.1771078942Z",
+  "installer_version": "1.0",
+  "mode": "development",
+  "notes": "Hub is optional. Uses secure server-side optimization (no offline mode). For production, set hub_endpoint to your hub server or remote service."
+}
