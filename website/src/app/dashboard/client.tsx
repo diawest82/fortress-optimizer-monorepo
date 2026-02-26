@@ -1,11 +1,48 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { TrendingUp, Users, Zap, DollarSign } from 'lucide-react';
+
+type ToolSavings = {
+  source: string;
+  tokensBefore: number;
+  tokensAfter: number;
+  tokensSaved: number;
+  costSavedUSD: number;
+  events: number;
+};
 
 export default function Dashboard() {
   const [timeRange, setTimeRange] = useState('7d');
   const [selectedPlatform, setSelectedPlatform] = useState('all');
+  const [toolSavings, setToolSavings] = useState<ToolSavings[]>([]);
+  const [toolSavingsLoading, setToolSavingsLoading] = useState(false);
+  const [toolSavingsError, setToolSavingsError] = useState('');
+
+  useEffect(() => {
+    const daysMap: Record<string, number> = { '24h': 1, '7d': 7, '30d': 30, '90d': 90 };
+    const days = daysMap[timeRange] ?? 7;
+
+    const fetchToolSavings = async () => {
+      setToolSavingsLoading(true);
+      setToolSavingsError('');
+      try {
+        const res = await fetch(`/api/analytics/metrics?days=${days}&includeToolSavings=true`);
+        if (!res.ok) {
+          throw new Error(`Failed to load metrics (${res.status})`);
+        }
+        const data = await res.json();
+        setToolSavings(data.toolSavingsBySource || []);
+      } catch (error) {
+        setToolSavingsError('Failed to load tool savings');
+        setToolSavings([]);
+      } finally {
+        setToolSavingsLoading(false);
+      }
+    };
+
+    fetchToolSavings();
+  }, [timeRange]);
 
   // Data sets for different time ranges
   const timeRangeData = {
@@ -99,6 +136,7 @@ export default function Dashboard() {
   };
 
   const platformUsage = allPlatformUsage[selectedPlatform as keyof typeof allPlatformUsage];
+  const sortedToolSavings = [...toolSavings].sort((a, b) => b.tokensSaved - a.tokensSaved);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-black via-zinc-900 to-black">
@@ -253,6 +291,45 @@ export default function Dashboard() {
                     <div
                       className="bg-gradient-to-r from-blue-500 to-purple-500 h-2 rounded-full"
                       style={{ width: `${platform.percentage}%` }}
+                    ></div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Tool Savings (Real Data) */}
+          <div className="card-dark p-6">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-lg font-semibold">Tool Savings (Real Data)</h2>
+              <span className="text-xs text-zinc-500">Last {timeRange}</span>
+            </div>
+            {toolSavingsLoading && (
+              <div className="text-sm text-zinc-400">Loading tool savings...</div>
+            )}
+            {toolSavingsError && (
+              <div className="text-sm text-red-400">{toolSavingsError}</div>
+            )}
+            {!toolSavingsLoading && !toolSavingsError && sortedToolSavings.length === 0 && (
+              <div className="text-sm text-zinc-400">No tool savings recorded yet.</div>
+            )}
+            <div className="space-y-4">
+              {sortedToolSavings.map((tool) => (
+                <div key={tool.source} className="p-3 bg-zinc-950 rounded-lg border border-zinc-800">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium">{tool.source}</span>
+                    <span className="text-xs text-zinc-400">{tool.events} runs</span>
+                  </div>
+                  <div className="flex items-center justify-between text-xs text-zinc-400">
+                    <span>Saved {tool.tokensSaved.toLocaleString()} tokens</span>
+                    <span>${tool.costSavedUSD.toFixed(2)} saved</span>
+                  </div>
+                  <div className="w-full bg-zinc-800 rounded-full h-2 mt-2">
+                    <div
+                      className="bg-gradient-to-r from-green-500 to-emerald-400 h-2 rounded-full"
+                      style={{
+                        width: `${tool.tokensBefore > 0 ? Math.min((tool.tokensSaved / tool.tokensBefore) * 100, 100) : 0}%`,
+                      }}
                     ></div>
                   </div>
                 </div>
