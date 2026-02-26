@@ -83,8 +83,7 @@ function SignUpContent() {
 
     setLoading(true);
     try {
-      const fullName = `${formData.firstName} ${formData.lastName}`;
-      await signup(formData.email, formData.password, fullName);
+      await signup(formData.email, formData.password);
       // Signup successful, redirect to dashboard
       router.push('/dashboard');
     } catch (error) {
