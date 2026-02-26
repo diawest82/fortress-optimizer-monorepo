@@ -1,0 +1,23 @@
+{
+  "id": "how-we-differ",
+  "title": "How Fortress Differs from Competitors",
+  "description": "Fortress Token Optimizer solves a unique problem in the LLM space. While many platforms claim to reduce API costs, they often fall short. Here's how Fortress is different.",
+  "source": "@site/docs/how-we-differ.md",
+  "sourceDirName": ".",
+  "slug": "/how-we-differ",
+  "permalink": "/docs/how-we-differ",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/diawest82/fortress-optimizer-monorepo/tree/main/docs/docs/how-we-differ.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 7,
+  "frontMatter": {
+    "sidebar_position": 7
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Best Practices",
+    "permalink": "/docs/guides/best-practices"
+  }
+}

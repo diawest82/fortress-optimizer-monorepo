@@ -1,0 +1,28 @@
+{
+  "id": "installation/npm",
+  "title": "npm Package",
+  "description": "Install Fortress for Node.js and TypeScript projects using npm.",
+  "source": "@site/docs/installation/npm.md",
+  "sourceDirName": "installation",
+  "slug": "/installation/npm",
+  "permalink": "/docs/installation/npm",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/diawest82/fortress-optimizer-monorepo/tree/main/docs/docs/installation/npm.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 1,
+  "frontMatter": {
+    "sidebar_position": 1,
+    "title": "npm Package"
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Quick Start (5 minutes)",
+    "permalink": "/docs/quick-start"
+  },
+  "next": {
+    "title": "GitHub Copilot",
+    "permalink": "/docs/installation/copilot"
+  }
+}

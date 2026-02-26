@@ -1,0 +1,28 @@
+{
+  "id": "guides/best-practices",
+  "title": "Best Practices",
+  "description": "Tips for maximum token savings with Fortress.",
+  "source": "@site/docs/guides/best-practices.md",
+  "sourceDirName": "guides",
+  "slug": "/guides/best-practices",
+  "permalink": "/docs/guides/best-practices",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/diawest82/fortress-optimizer-monorepo/tree/main/docs/docs/guides/best-practices.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 2,
+  "frontMatter": {
+    "sidebar_position": 2,
+    "title": "Best Practices"
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "How It Works",
+    "permalink": "/docs/guides/how-it-works"
+  },
+  "next": {
+    "title": "How Fortress Differs from Competitors",
+    "permalink": "/docs/how-we-differ"
+  }
+}

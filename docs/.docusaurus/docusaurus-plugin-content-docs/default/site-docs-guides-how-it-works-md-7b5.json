@@ -1,0 +1,28 @@
+{
+  "id": "guides/how-it-works",
+  "title": "How It Works",
+  "description": "Understanding the optimization process.",
+  "source": "@site/docs/guides/how-it-works.md",
+  "sourceDirName": "guides",
+  "slug": "/guides/how-it-works",
+  "permalink": "/docs/guides/how-it-works",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/diawest82/fortress-optimizer-monorepo/tree/main/docs/docs/guides/how-it-works.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 1,
+  "frontMatter": {
+    "sidebar_position": 1,
+    "title": "How It Works"
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "API Reference",
+    "permalink": "/docs/api-reference"
+  },
+  "next": {
+    "title": "Best Practices",
+    "permalink": "/docs/guides/best-practices"
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "id": "installation/copilot",
+  "title": "GitHub Copilot",
+  "description": "Optimize your Copilot suggestions with Fortress in VS Code.",
+  "source": "@site/docs/installation/copilot.md",
+  "sourceDirName": "installation",
+  "slug": "/installation/copilot",
+  "permalink": "/docs/installation/copilot",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/diawest82/fortress-optimizer-monorepo/tree/main/docs/docs/installation/copilot.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 2,
+  "frontMatter": {
+    "sidebar_position": 2,
+    "title": "GitHub Copilot"
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "npm Package",
+    "permalink": "/docs/installation/npm"
+  },
+  "next": {
+    "title": "Slack",
+    "permalink": "/docs/installation/slack"
+  }
+}

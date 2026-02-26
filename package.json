@@ -1,0 +1,20 @@
+{
+  "name": "fortress-optimizer-monorepo",
+  "version": "1.0.0",
+  "description": "Fortress Token Optimizer - Monorepo with multiple product integrations",
+  "private": true,
+  "workspaces": [
+    "products/npm",
+    "shared-libs"
+  ],
+  "scripts": {
+    "install:all": "npm install && cd products/npm && npm install && cd ../../shared-libs && npm install",
+    "build:all": "npm run build --workspaces",
+    "test:all": "npm test --workspaces",
+    "lint:all": "npm run lint --workspaces"
+  },
+  "devDependencies": {
+    "axios": "^1.13.5",
+    "puppeteer": "^24.37.5"
+  }
+}

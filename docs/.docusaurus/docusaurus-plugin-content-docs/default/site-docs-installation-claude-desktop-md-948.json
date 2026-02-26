@@ -1,0 +1,28 @@
+{
+  "id": "installation/claude-desktop",
+  "title": "Claude Desktop",
+  "description": "Integrate Fortress with Anthropic's Claude Desktop app.",
+  "source": "@site/docs/installation/claude-desktop.md",
+  "sourceDirName": "installation",
+  "slug": "/installation/claude-desktop",
+  "permalink": "/docs/installation/claude-desktop",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/diawest82/fortress-optimizer-monorepo/tree/main/docs/docs/installation/claude-desktop.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 5,
+  "frontMatter": {
+    "sidebar_position": 5,
+    "title": "Claude Desktop"
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "VS Code Extension",
+    "permalink": "/docs/installation/vscode"
+  },
+  "next": {
+    "title": "API Reference",
+    "permalink": "/docs/api-reference"
+  }
+}

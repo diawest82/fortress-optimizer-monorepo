@@ -1,0 +1,65 @@
+# Environment
+.env
+.env.local
+.env.*.local
+*.env
+*.env.*
+.env.template
+.env.example
+
+# Documentation & Internal Files
+*.md
+!README.md
+!website/README.md
+!docs/**/*.md
+!infra/**/*.md
+
+# Dependencies
+node_modules/
+venv/
+__pycache__/
+*.pyc
+.Python
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Build artifacts
+dist/
+build/
+*.egg-info/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Testing
+WEB_TESTING/screenshots/
+WEB_TESTING/logs/
+WEB_TESTING/reports/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+# Documentation (keep locally only)
+*.md
+# AWS
+.aws/
+terraform.tfstate*
+*.tfvars
+
+# Logs
+logs/
+*.log
+
+# Docker
+.dockerignore
+
+# Testing
+.nyc_output
+coverage/
+.vercel
+.env*.local
+.md

@@ -1,0 +1,27 @@
+{
+  "id": "what-is-fortress",
+  "title": "What is Fortress?",
+  "description": "Overview",
+  "source": "@site/docs/what-is-fortress.md",
+  "sourceDirName": ".",
+  "slug": "/what-is-fortress",
+  "permalink": "/docs/what-is-fortress",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/diawest82/fortress-optimizer-monorepo/tree/main/docs/docs/what-is-fortress.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 2,
+  "frontMatter": {
+    "sidebar_position": 2
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Getting Started",
+    "permalink": "/docs/getting-started"
+  },
+  "next": {
+    "title": "Quick Start (5 minutes)",
+    "permalink": "/docs/quick-start"
+  }
+}

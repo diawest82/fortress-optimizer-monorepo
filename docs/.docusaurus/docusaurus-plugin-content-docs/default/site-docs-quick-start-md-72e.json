@@ -1,0 +1,27 @@
+{
+  "id": "quick-start",
+  "title": "Quick Start (5 minutes)",
+  "description": "Get Fortress running in your project in 5 minutes.",
+  "source": "@site/docs/quick-start.md",
+  "sourceDirName": ".",
+  "slug": "/quick-start",
+  "permalink": "/docs/quick-start",
+  "draft": false,
+  "unlisted": false,
+  "editUrl": "https://github.com/diawest82/fortress-optimizer-monorepo/tree/main/docs/docs/quick-start.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 3,
+  "frontMatter": {
+    "sidebar_position": 3
+  },
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "What is Fortress?",
+    "permalink": "/docs/what-is-fortress"
+  },
+  "next": {
+    "title": "npm Package",
+    "permalink": "/docs/installation/npm"
+  }
+}

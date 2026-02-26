@@ -1,0 +1,184 @@
+[
+  {
+    "name": "Round 1: Links & SEO",
+    "timestamp": "2026-02-16T07:35:41.529071",
+    "tests": [
+      {
+        "page": "Home",
+        "url": "/",
+        "accessible": true,
+        "status_code": 200,
+        "content_complete": true,
+        "missing_content": [],
+        "seo": {
+          "title": "Fortress Token Optimizer - Coming Soon | Cut Token Costs by 20%",
+          "meta_description": "Fortress optimizes AI prompts across npm, Copilot, VS Code, Slack &amp; Claude Desktop. Save 20% on token costs, reduce latency by 68ms. Early access beta launching February 2026.",
+          "h1": "Stop wasting tokens on verbose prompts",
+          "og_title": "Fortress Token Optimizer - Cut Token Costs by 20%"
+        },
+        "seo_complete": true
+      },
+      {
+        "page": "Pricing",
+        "url": "/pricing",
+        "accessible": true,
+        "status_code": 200,
+        "content_complete": false,
+        "missing_content": [
+          "$99"
+        ],
+        "seo": {
+          "title": "Fortress Token Optimizer - Coming Soon | Cut Token Costs by 20%",
+          "meta_description": "Fortress optimizes AI prompts across npm, Copilot, VS Code, Slack &amp; Claude Desktop. Save 20% on token costs, reduce latency by 68ms. Early access beta launching February 2026.",
+          "h1": "Choose your plan",
+          "og_title": "Fortress Token Optimizer - Cut Token Costs by 20%"
+        },
+        "seo_complete": true
+      },
+      {
+        "page": "Install",
+        "url": "/install",
+        "accessible": true,
+        "status_code": 200,
+        "content_complete": false,
+        "missing_content": [
+          "setup"
+        ],
+        "seo": {
+          "title": "Fortress Token Optimizer - Coming Soon | Cut Token Costs by 20%",
+          "meta_description": "Fortress optimizes AI prompts across npm, Copilot, VS Code, Slack &amp; Claude Desktop. Save 20% on token costs, reduce latency by 68ms. Early access beta launching February 2026.",
+          "h1": "Installation Guides",
+          "og_title": "Fortress Token Optimizer - Cut Token Costs by 20%"
+        },
+        "seo_complete": true
+      },
+      {
+        "page": "Dashboard",
+        "url": "/dashboard",
+        "accessible": true,
+        "status_code": 200,
+        "content_complete": true,
+        "missing_content": [],
+        "seo": {
+          "title": "Fortress Token Optimizer - Coming Soon | Cut Token Costs by 20%",
+          "meta_description": "Fortress optimizes AI prompts across npm, Copilot, VS Code, Slack &amp; Claude Desktop. Save 20% on token costs, reduce latency by 68ms. Early access beta launching February 2026.",
+          "h1": "Dashboard",
+          "og_title": "Fortress Token Optimizer - Cut Token Costs by 20%"
+        },
+        "seo_complete": true
+      },
+      {
+        "page": "Support",
+        "url": "/support",
+        "accessible": true,
+        "status_code": 200,
+        "content_complete": false,
+        "missing_content": [
+          "FAQ"
+        ],
+        "seo": {
+          "title": "Fortress Token Optimizer - Coming Soon | Cut Token Costs by 20%",
+          "meta_description": "Fortress optimizes AI prompts across npm, Copilot, VS Code, Slack &amp; Claude Desktop. Save 20% on token costs, reduce latency by 68ms. Early access beta launching February 2026.",
+          "h1": "We&#x27;re here to help",
+          "og_title": "Fortress Token Optimizer - Cut Token Costs by 20%"
+        },
+        "seo_complete": true
+      }
+    ],
+    "navigation": [
+      {
+        "link": "Home",
+        "accessible": true
+      },
+      {
+        "link": "Dashboard",
+        "accessible": true
+      },
+      {
+        "link": "Install",
+        "accessible": true
+      },
+      {
+        "link": "Pricing",
+        "accessible": true
+      },
+      {
+        "link": "Support",
+        "accessible": true
+      }
+    ],
+    "passed": true
+  },
+  {
+    "name": "Round 2: Auth & Email",
+    "timestamp": "2026-02-16T07:35:42.331797",
+    "tests": [
+      {
+        "test": "Signup Endpoint",
+        "timestamp": "2026-02-16T07:35:42.331809",
+        "endpoint_accessible": true,
+        "status": 405
+      },
+      {
+        "test": "Contact Form Endpoint",
+        "timestamp": "2026-02-16T07:35:42.845778",
+        "endpoint_accessible": true,
+        "status": 200,
+        "response": "{\"message\":\"Email sent successfully\"}",
+        "email_sent": true
+      }
+    ],
+    "passed": true
+  },
+  {
+    "name": "Round 3: E2E Application",
+    "timestamp": "2026-02-16T07:35:43.609977",
+    "tests": [],
+    "page_loads": [
+      {
+        "page": "/",
+        "status": 200,
+        "loaded": true
+      },
+      {
+        "page": "/pricing",
+        "status": 200,
+        "loaded": true
+      },
+      {
+        "page": "/install",
+        "status": 200,
+        "loaded": true
+      },
+      {
+        "page": "/dashboard",
+        "status": 200,
+        "loaded": true
+      },
+      {
+        "page": "/support",
+        "status": 200,
+        "loaded": true
+      }
+    ],
+    "api_endpoints": [
+      {
+        "endpoint": "Contact API",
+        "accessible": true,
+        "status": 400
+      },
+      {
+        "endpoint": "SignIn Redirect",
+        "accessible": true,
+        "status": 200
+      }
+    ],
+    "components": {
+      "dashboard": true,
+      "navigation": true,
+      "forms": true,
+      "contact": true
+    },
+    "passed": true
+  }
+]
