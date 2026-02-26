@@ -19,7 +19,7 @@ const nextConfig = {
     const corsHeaders = [
       {
         key: 'Access-Control-Allow-Origin',
-        value: process.env.NEXT_PUBLIC_FRONTEND_URL || 'http://localhost:3000',
+        value: process.env.NEXT_PUBLIC_FRONTEND_URL || 'https://www.fortress-optimizer.com',
       },
       {
         key: 'Access-Control-Allow-Methods',
