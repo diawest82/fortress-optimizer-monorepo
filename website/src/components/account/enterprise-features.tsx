@@ -44,7 +44,7 @@ export default function EnterpriseFeatures() {
     {
       icon: <Shield className="w-6 h-6" />,
       title: 'Advanced Security',
-      description: 'SOC 2 compliance, SSO/SAML, custom audit logging, and data encryption options',
+      description: 'Custom audit logging, data encryption, and advanced access controls. SSO/SAML coming soon.',
       available: true,
     },
   ];

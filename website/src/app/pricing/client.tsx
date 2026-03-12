@@ -1,34 +1,52 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { analytics } from "@/lib/tracking";
+
+// Sliding scale team pricing calculator
+function calculateTeamPrice(seats: number): { total: number; perSeat: number; tier: string; discount: number } {
+  if (seats <= 5) {
+    return { total: 49, perSeat: 49 / seats, tier: "Team Starter", discount: 0 };
+  } else if (seats <= 25) {
+    const total = 49 + (seats - 5) * 8;
+    return { total, perSeat: total / seats, tier: "Team", discount: 18 };
+  } else if (seats <= 100) {
+    const total = 209 + (seats - 25) * 6;
+    return { total, perSeat: total / seats, tier: "Team Business", discount: 39 };
+  } else if (seats <= 500) {
+    const total = 659 + (seats - 100) * 4;
+    return { total, perSeat: total / seats, tier: "Team Scale", discount: 59 };
+  }
+  return { total: 0, perSeat: 0, tier: "Enterprise", discount: 0 };
+}
 
 export default function PricingClient() {
   const router = useRouter();
   const sessionResult = useSession();
   const [loading, setLoading] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
+  const [teamSeats, setTeamSeats] = useState(5);
 
   useEffect(() => {
     setMounted(true);
-    // Track pricing page view
     analytics.pricingViewed();
   }, []);
 
+  const teamPricing = useMemo(() => calculateTeamPrice(teamSeats), [teamSeats]);
+
   const handleCheckout = async (tierDisplay: string) => {
-    // Map display names to tier keys
     const tierMap: Record<string, string> = {
       "Free": "free",
-      "Individual": "individual",
+      "Pro": "individual",
       "Teams": "teams",
       "Enterprise": "enterprise",
     };
-    
+
     const tier = tierMap[tierDisplay];
-    
+
     if (!tier) {
       console.error(`Unknown tier: ${tierDisplay}`);
       alert("Invalid tier selected");
@@ -36,26 +54,22 @@ export default function PricingClient() {
     }
 
     if (tier === "free") {
-      // Free tier - just redirect to signup
       analytics.signupStarted();
       router.push("/auth/signup");
       return;
     }
 
     if (!sessionResult.data) {
-      // Not logged in - redirect to login
       router.push("/auth/signin");
       return;
     }
 
-    // For enterprise, open contact sales
     if (tier === "enterprise") {
-      window.open("mailto:sales@fortress-optimizer.com?subject=Enterprise%20Plan%20Inquiry", "_blank");
+      window.open("mailto:sales@fortress-optimizer.com?subject=Enterprise%20Plan%20Inquiry%20(500%2B%20seats)", "_blank");
       return;
     }
 
-    // Track upgrade attempt
-    const currentTier = (sessionResult.data.user as any)?.tier || 'free';
+    const currentTier = (sessionResult.data.user as any)?.tier || "free";
     analytics.upgradeStarted(currentTier, tier);
 
     setLoading(tierDisplay);
@@ -65,6 +79,7 @@ export default function PricingClient() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           tier: tier,
+          seats: tier === "teams" ? teamSeats : 1,
           successUrl: `${window.location.origin}/dashboard?upgrade=success`,
           cancelUrl: `${window.location.origin}/pricing?upgrade=cancelled`,
         }),
@@ -72,7 +87,7 @@ export default function PricingClient() {
 
       const data = await response.json();
       if (data.url) {
-        window.location.href = data.url; // Redirect to Stripe Checkout
+        window.location.href = data.url;
       } else {
         alert(data.error || "Failed to start checkout");
       }
@@ -84,197 +99,298 @@ export default function PricingClient() {
     }
   };
 
-  // Hero section component
   const PricingHero = () => (
     <section className="rounded-3xl border border-blue-500/30 bg-gradient-to-r from-blue-950/40 to-purple-950/40 p-8 mb-12">
       <div className="flex flex-col gap-6">
         <div>
-          <p className="text-xs uppercase tracking-[0.35em] text-blue-300 font-semibold">💰 Stop Wasting Tokens</p>
+          <p className="text-xs uppercase tracking-[0.35em] text-blue-300 font-semibold">Pay For What You Use</p>
           <h1 className="mt-3 text-4xl font-bold text-white md:text-5xl">
             Simple Pricing. Real Savings.
           </h1>
           <p className="mt-4 text-base text-slate-300 max-w-2xl">
-            Stop paying for verbose prompts. Join 500+ teams saving 20% on token costs immediately. Choose your plan and start optimizing today.
+            Stop paying for verbose prompts. Choose your plan and start optimizing today. Teams get volume discounts up to 59% off.
           </p>
         </div>
       </div>
     </section>
   );
-  const tiers = [
-    {
-      name: "Free",
-      description: "Try Fortress risk-free",
-      price: "0",
-      color: "slate",
-      colorHex: "#64748b",
-      features: [
-        "50K tokens/month",
-        "5 core integration channels",
-        "Basic metrics dashboard",
-        "Community support via Discord",
-      ],
-      cta: "🎉 Get Early Access",
-      ctaPrimary: false,
-      badge: "Get Started",
-    },
-    {
-      name: "Individual",
-      description: "For individual developers",
-      price: "9.99",
-      color: "blue",
-      colorHex: "#3b82f6",
-      features: [
-        "Unlimited tokens",
-        "5 core integration channels + 7 additional platforms",
-        "Real-time optimization",
-        "Advanced analytics dashboard",
-        "Email support (24-48 hour response)",
-        "API access",
-      ],
-      cta: "Subscribe now",
-      ctaPrimary: false,
-      badge: null,
-    },
-    {
-      name: "Teams",
-      description: "For teams and organizations",
-      price: "99",
-      color: "cyan",
-      colorHex: "#06b6d4",
-      features: [
-        "Unlimited tokens",
-        "Team seat management (up to 5 members)",
-        "All 12 integration platforms",
-        "Advanced analytics & team usage tracking",
-        "Priority email support (4-8 hour response)",
-        "Slack integration for team alerts",
-        "API access with higher rate limits",
-      ],
-      cta: "Subscribe now",
-      ctaPrimary: true,
-      badge: "Most Popular",
-    },
-    {
-      name: "Enterprise",
-      description: "For large organizations",
-      price: "Custom",
-      color: "purple",
-      colorHex: "#a855f7",
-      features: [
-        "Unlimited everything",
-        "Unlimited team seats + custom SSO",
-        "Custom integrations & on-premise deployment",
-        "Dedicated account manager",
-        "24/7 priority support with 1-hour response SLA",
-        "Advanced security (SOC 2, audit logging)",
-      ],
-      cta: "Contact sales",
-      ctaPrimary: false,
-      badge: null,
-    },
-  ];
 
+  const CheckIcon = () => (
+    <svg className="w-5 h-5 text-emerald-500 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+    </svg>
+  );
 
-  /*
-  const features = [
-    { name: "Token optimization", included: [true, true, true] },
-    { name: "Multi-channel support", included: [false, true, true] },
-    { name: "Real-time metrics", included: [false, true, true] },
-    { name: "API access", included: [false, true, true] },
-    { name: "Priority support", included: [false, true, true] },
-    { name: "SLA guarantee", included: [false, false, true] },
-  ];
-  */
+  // Slider tick marks for visual reference
+  const sliderTicks = [5, 10, 25, 50, 100, 250, 500];
 
   return (
     <div className="flex flex-col gap-16">
-      {/* Pricing Cards */}
       <section className="space-y-12">
         <PricingHero />
 
-        <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4 max-w-7xl mx-auto w-full">
-          {tiers.map((tier) => (
-            <div
-              key={tier.name}
-              className={`relative rounded-3xl border p-8 transition-all duration-300 flex flex-col ${
-                tier.ctaPrimary
-                  ? `border-cyan-500/60 bg-gradient-to-br from-cyan-500/10 to-slate-900/20 shadow-lg shadow-cyan-500/20 md:scale-105`
-                  : `border-slate-700 bg-gradient-to-br from-slate-950/60 to-slate-900/40 hover:border-slate-600`
-              }`}
+        {/* Free + Pro cards side by side */}
+        <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3 max-w-6xl mx-auto w-full">
+          {/* Free */}
+          <div className="relative rounded-3xl border border-slate-700 bg-gradient-to-br from-slate-950/60 to-slate-900/40 p-8 flex flex-col hover:border-slate-600 transition-all duration-300">
+            <div className="absolute -top-4 left-1/2 -translate-x-1/2">
+              <span className="inline-block bg-slate-800 px-4 py-1 rounded-full text-xs font-semibold text-slate-300">
+                Get Started
+              </span>
+            </div>
+            <div className="mb-8">
+              <h3 className="text-2xl font-bold text-white mb-2">Free</h3>
+              <p className="text-sm text-slate-400">Try Fortress risk-free</p>
+            </div>
+            <div className="mb-8">
+              <p className="text-4xl font-bold text-white">Free</p>
+            </div>
+            <button
+              onClick={() => handleCheckout("Free")}
+              disabled={loading === "Free"}
+              className="w-full py-3 px-6 rounded-xl font-semibold transition-all duration-200 mb-8 border border-slate-700 text-slate-300 hover:border-slate-500 hover:text-slate-100 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {tier.ctaPrimary && (
-                <div className="absolute -top-4 left-1/2 -translate-x-1/2">
-                  <span className="inline-block bg-gradient-to-r from-cyan-500 to-emerald-500 px-4 py-1 rounded-full text-xs font-bold text-white">
-                    {tier.badge}
-                  </span>
-                </div>
-              )}
-              {!tier.ctaPrimary && tier.badge && (
-                <div className="absolute -top-4 left-1/2 -translate-x-1/2">
-                  <span className="inline-block bg-slate-800 px-4 py-1 rounded-full text-xs font-semibold text-slate-300">
-                    {tier.badge}
-                  </span>
-                </div>
-              )}
+              {loading === "Free" ? "Processing..." : "Get Early Access"}
+            </button>
+            <div className="space-y-4">
+              {["50K tokens/month", "5 core integration channels", "Basic metrics dashboard", "Community support via Discord"].map((f) => (
+                <div key={f} className="flex items-center gap-3"><CheckIcon /><span className="text-slate-300">{f}</span></div>
+              ))}
+            </div>
+          </div>
 
-              <div className="mb-8">
-                <h3 className="text-2xl font-bold text-white mb-2">
-                  {tier.name}
-                </h3>
-                <p className="text-sm text-slate-400">{tier.description}</p>
-              </div>
+          {/* Pro */}
+          <div className="relative rounded-3xl border border-slate-700 bg-gradient-to-br from-slate-950/60 to-slate-900/40 p-8 flex flex-col hover:border-slate-600 transition-all duration-300">
+            <div className="mb-8">
+              <h3 className="text-2xl font-bold text-white mb-2">Pro</h3>
+              <p className="text-sm text-slate-400">For individual developers</p>
+            </div>
+            <div className="mb-8">
+              <span className="text-4xl font-bold text-white">$9.99</span>
+              <span className="text-slate-400">/month</span>
+            </div>
+            <button
+              onClick={() => handleCheckout("Pro")}
+              disabled={loading === "Pro"}
+              className="w-full py-3 px-6 rounded-xl font-semibold transition-all duration-200 mb-8 border border-slate-700 text-slate-300 hover:border-slate-500 hover:text-slate-100 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {loading === "Pro" ? "Processing..." : "Subscribe now"}
+            </button>
+            <div className="space-y-4">
+              {[
+                "Unlimited tokens",
+                "All 12 integration platforms",
+                "Real-time optimization",
+                "Advanced analytics dashboard",
+                "Email support (24-48 hour response)",
+                "API access",
+              ].map((f) => (
+                <div key={f} className="flex items-center gap-3"><CheckIcon /><span className="text-slate-300">{f}</span></div>
+              ))}
+            </div>
+          </div>
 
-              <div className="mb-8">
-                {tier.price === "Custom" ? (
-                  <p className="text-4xl font-bold text-white">
-                    Custom pricing
+          {/* Enterprise */}
+          <div className="relative rounded-3xl border border-slate-700 bg-gradient-to-br from-slate-950/60 to-slate-900/40 p-8 flex flex-col hover:border-slate-600 transition-all duration-300">
+            <div className="absolute -top-4 left-1/2 -translate-x-1/2">
+              <span className="inline-block bg-purple-800 px-4 py-1 rounded-full text-xs font-semibold text-purple-200">
+                500+ Seats
+              </span>
+            </div>
+            <div className="mb-8">
+              <h3 className="text-2xl font-bold text-white mb-2">Enterprise</h3>
+              <p className="text-sm text-slate-400">Custom solutions for large organizations</p>
+            </div>
+            <div className="mb-8">
+              <p className="text-4xl font-bold text-white">Custom</p>
+            </div>
+            <button
+              onClick={() => handleCheckout("Enterprise")}
+              disabled={loading === "Enterprise"}
+              className="w-full py-3 px-6 rounded-xl font-semibold transition-all duration-200 mb-8 border border-slate-700 text-slate-300 hover:border-slate-500 hover:text-slate-100 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {loading === "Enterprise" ? "Processing..." : "Contact Sales"}
+            </button>
+            <div className="space-y-4">
+              {[
+                "Everything in Teams, plus:",
+                "500+ team seats",
+                "Dedicated account manager",
+                "Priority support with SLA",
+                "Custom integrations",
+                "On-premise deployment option",
+              ].map((f) => (
+                <div key={f} className="flex items-center gap-3"><CheckIcon /><span className="text-slate-300">{f}</span></div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Teams - Full Width with Sliding Scale Calculator */}
+        <div className="max-w-6xl mx-auto w-full">
+          <div className="relative rounded-3xl border border-cyan-500/60 bg-gradient-to-br from-cyan-500/10 to-slate-900/20 shadow-lg shadow-cyan-500/20 p-8">
+            <div className="absolute -top-4 left-1/2 -translate-x-1/2">
+              <span className="inline-block bg-gradient-to-r from-cyan-500 to-emerald-500 px-4 py-1 rounded-full text-xs font-bold text-white">
+                Most Popular
+              </span>
+            </div>
+
+            <div className="grid lg:grid-cols-2 gap-8">
+              {/* Left: Info + Features */}
+              <div className="flex flex-col">
+                <div className="mb-6">
+                  <h3 className="text-2xl font-bold text-white mb-2">Teams</h3>
+                  <p className="text-sm text-slate-400">
+                    Sliding scale pricing — pay less per seat as your team grows
                   </p>
-                ) : tier.price === "0" ? (
-                  <p className="text-4xl font-bold text-white">
-                    Free
-                  </p>
-                ) : (
-                  <>
+                </div>
+
+                <div className="mb-6">
+                  <div className="flex items-baseline gap-2">
                     <span className="text-4xl font-bold text-white">
-                      ${tier.price}
+                      ${teamPricing.total}
                     </span>
                     <span className="text-slate-400">/month</span>
-                  </>
-                )}
+                  </div>
+                  <div className="flex items-center gap-3 mt-2">
+                    <span className="text-sm text-cyan-300">
+                      ${teamPricing.perSeat.toFixed(2)}/seat
+                    </span>
+                    {teamPricing.discount > 0 && (
+                      <span className="inline-block bg-emerald-500/20 text-emerald-400 text-xs font-semibold px-2 py-0.5 rounded-full">
+                        {teamPricing.discount}% volume discount
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-xs text-slate-500 mt-1">{teamPricing.tier}</p>
+                </div>
+
+                <button
+                  onClick={() => handleCheckout("Teams")}
+                  disabled={loading === "Teams"}
+                  className="w-full py-3 px-6 rounded-xl font-semibold transition-all duration-200 mb-8 bg-gradient-to-r from-cyan-500 to-emerald-500 text-white hover:shadow-lg hover:shadow-cyan-500/30 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {loading === "Teams" ? "Processing..." : `Subscribe — ${teamSeats} seats`}
+                </button>
+
+                <div className="space-y-4">
+                  {[
+                    "Unlimited tokens for every seat",
+                    "Team seat management & RBAC",
+                    "All 12 integration platforms",
+                    "Advanced analytics & team usage tracking",
+                    "Priority email support (4-8 hour response)",
+                    "Slack integration for team alerts",
+                    "Admin dashboard",
+                    "API access with higher rate limits",
+                  ].map((f) => (
+                    <div key={f} className="flex items-center gap-3"><CheckIcon /><span className="text-slate-300">{f}</span></div>
+                  ))}
+                </div>
               </div>
 
-              <button
-                onClick={() => handleCheckout(tier.name)}
-                disabled={loading === tier.name}
-                className={`w-full py-3 px-6 rounded-xl font-semibold transition-all duration-200 mb-8 disabled:opacity-50 disabled:cursor-not-allowed ${
-                  tier.ctaPrimary
-                    ? `bg-gradient-to-r from-cyan-500 to-emerald-500 text-white hover:shadow-lg hover:shadow-cyan-500/30`
-                    : `border border-slate-700 text-slate-300 hover:border-slate-500 hover:text-slate-100`
-                }`}
-              >
-                {loading === tier.name ? "Processing..." : tier.cta}
-              </button>
-
-              <div className="space-y-4">
-                {tier.features.map((feature) => (
-                  <div key={feature} className="flex items-center gap-3">
-                    <svg
-                      className="w-5 h-5 text-emerald-500 flex-shrink-0"
-                      fill="currentColor"
-                      viewBox="0 0 20 20"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                        clipRule="evenodd"
+              {/* Right: Slider + Cost Breakdown */}
+              <div className="flex flex-col">
+                <div className="rounded-2xl border border-cyan-500/30 bg-slate-900/60 p-6 mb-6">
+                  <label className="block text-sm font-semibold text-white mb-4">
+                    How many seats do you need?
+                  </label>
+                  <div className="flex items-center gap-4 mb-4">
+                    <input
+                      type="range"
+                      min={2}
+                      max={500}
+                      value={teamSeats}
+                      onChange={(e) => setTeamSeats(Number(e.target.value))}
+                      className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-cyan-500"
+                    />
+                    <div className="flex items-center gap-1">
+                      <input
+                        type="number"
+                        min={2}
+                        max={500}
+                        value={teamSeats}
+                        onChange={(e) => {
+                          const v = Math.max(2, Math.min(500, Number(e.target.value) || 2));
+                          setTeamSeats(v);
+                        }}
+                        className="w-16 bg-slate-800 border border-slate-600 rounded-lg px-2 py-1 text-white text-center text-sm focus:outline-none focus:border-cyan-500"
                       />
-                    </svg>
-                    <span className="text-slate-300">{feature}</span>
+                    </div>
                   </div>
-                ))}
+                  {/* Tick labels */}
+                  <div className="flex justify-between text-xs text-slate-500 px-1">
+                    {sliderTicks.map((t) => (
+                      <button
+                        key={t}
+                        onClick={() => setTeamSeats(t)}
+                        className={`hover:text-cyan-400 transition-colors ${teamSeats === t ? "text-cyan-400 font-semibold" : ""}`}
+                      >
+                        {t}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Cost breakdown table */}
+                <div className="rounded-2xl border border-slate-700 bg-slate-900/40 p-6">
+                  <h4 className="text-sm font-semibold text-white mb-4">Pricing Breakdown</h4>
+                  <div className="space-y-3">
+                    {[
+                      { range: "1-5 seats", rate: "$9.80/seat", total: "$49 base" },
+                      { range: "6-25 seats", rate: "$8.00/seat", total: "+$8 each" },
+                      { range: "26-100 seats", rate: "$6.00/seat", total: "+$6 each" },
+                      { range: "101-500 seats", rate: "$4.00/seat", total: "+$4 each" },
+                    ].map((row) => (
+                      <div key={row.range} className="flex justify-between text-sm">
+                        <span className="text-slate-400">{row.range}</span>
+                        <span className="text-slate-300">{row.rate}</span>
+                        <span className="text-slate-500">{row.total}</span>
+                      </div>
+                    ))}
+                    <div className="border-t border-slate-700 pt-3 mt-3">
+                      <div className="flex justify-between text-sm font-semibold">
+                        <span className="text-white">{teamSeats} seats</span>
+                        <span className="text-cyan-400">${teamPricing.total}/mo</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Quick examples */}
+                <div className="mt-4 rounded-2xl border border-slate-700 bg-slate-900/40 p-6">
+                  <h4 className="text-sm font-semibold text-white mb-3">Quick Examples</h4>
+                  <div className="grid grid-cols-2 gap-3">
+                    {[
+                      { seats: 5, label: "Small team" },
+                      { seats: 10, label: "Growing team" },
+                      { seats: 25, label: "Department" },
+                      { seats: 50, label: "Division" },
+                      { seats: 100, label: "Large org" },
+                      { seats: 250, label: "Company-wide" },
+                    ].map(({ seats, label }) => {
+                      const p = calculateTeamPrice(seats);
+                      return (
+                        <button
+                          key={seats}
+                          onClick={() => setTeamSeats(seats)}
+                          className={`text-left rounded-xl border p-3 transition-all text-sm ${
+                            teamSeats === seats
+                              ? "border-cyan-500/60 bg-cyan-500/10"
+                              : "border-slate-700 hover:border-slate-600"
+                          }`}
+                        >
+                          <div className="text-slate-400 text-xs">{label}</div>
+                          <div className="text-white font-semibold">{seats} seats</div>
+                          <div className="text-cyan-400 text-xs">${p.total}/mo (${p.perSeat.toFixed(2)}/seat)</div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
               </div>
             </div>
-          ))}
+          </div>
         </div>
       </section>
 
@@ -282,10 +398,10 @@ export default function PricingClient() {
       <section className="rounded-3xl border border-blue-500/30 bg-gradient-to-br from-blue-950/40 to-slate-950/40 p-8 space-y-8">
         <div>
           <h2 className="text-2xl font-semibold text-white mb-4">
-            🌍 5 Core Integration Channels
+            5 Core Integration Channels
           </h2>
           <p className="text-slate-400 mb-6">
-            All tiers include access to our 5 most popular integration channels, plus 7 additional platforms for higher tiers:
+            All tiers include access to our 5 most popular integration channels, plus 7 additional platforms for paid tiers:
           </p>
         </div>
 
@@ -330,12 +446,16 @@ export default function PricingClient() {
         <div className="space-y-6">
           {[
             {
-              q: "What are the 5 core integration channels?",
-              a: "The 5 core channels are: npm Package, VS Code Extension, GitHub Copilot, Slack Bot, and Claude Desktop. These cover 90% of our user base. All other tiers also include 7 additional platforms (Neovim, Sublime, JetBrains, etc.).",
+              q: "How does team pricing work?",
+              a: "Team pricing uses a sliding scale — the more seats you add, the less you pay per seat. It starts at $9.80/seat for the first 5, drops to $8/seat for 6-25, $6/seat for 26-100, and $4/seat for 101-500. Use the calculator above to see your exact price.",
             },
             {
-              q: "Can I change plans anytime?",
-              a: "Yes, you can upgrade or downgrade your plan at any time. Changes take effect at your next billing cycle.",
+              q: "Can I add or remove seats anytime?",
+              a: "Yes. You can adjust your seat count at any time. Additions are prorated for the current billing cycle, and reductions take effect at the next cycle.",
+            },
+            {
+              q: "What are the 5 core integration channels?",
+              a: "The 5 core channels are: npm Package, VS Code Extension, GitHub Copilot, Slack Bot, and Claude Desktop. These cover 90% of our user base. Paid tiers also include 7 additional platforms (Neovim, Sublime, JetBrains, etc.).",
             },
             {
               q: "Do you offer annual discounts?",
@@ -343,7 +463,11 @@ export default function PricingClient() {
             },
             {
               q: "What support do I get with each tier?",
-              a: "Free: Community support via Discord. Sign Up: Email support (24-48 hour response). Teams: Priority email support (4-8 hour response) + Slack integration. Enterprise: 24/7 priority support with 1-hour response SLA + dedicated account manager.",
+              a: "Free: Community support via Discord. Pro: Email support (24-48 hour response). Teams: Priority email support (4-8 hour response) + Slack integration. Enterprise: Dedicated account manager with custom SLA.",
+            },
+            {
+              q: "What if I need more than 500 seats?",
+              a: "Contact our sales team for Enterprise pricing. We offer custom solutions including dedicated infrastructure, SSO/SAML, on-premise deployment, and a dedicated account manager.",
             },
           ].map((faq, index) => (
             <div
