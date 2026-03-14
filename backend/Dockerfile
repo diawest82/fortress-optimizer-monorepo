@@ -19,7 +19,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy application code
 COPY backend/ .
-COPY shared-libs/ /app/shared-libs/
+COPY shared-libs/ /app/shared_libs/
 
 # Switch to non-root user
 USER fortress

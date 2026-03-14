@@ -6,7 +6,8 @@
  *   1-5 seats:    $49 flat ($9.80/seat)
  *   6-25 seats:   $49 + $8/seat over 5
  *   26-100 seats: $209 + $6/seat over 25
- *   101-500 seats: $659 + $4/seat over 100
+ *   101-249 seats: $659 + $5/seat over 100
+ *   250-500 seats: $1,404 + $4/seat over 249
  *   500+: Enterprise (custom)
  */
 
@@ -46,13 +47,16 @@ export function calculateTeamPrice(seats: number): {
     return { total: 49, perSeat: 49 / seats, tier: 'Team Starter', discount: 0 };
   } else if (seats <= 25) {
     const total = 49 + (seats - 5) * 8;
-    return { total, perSeat: total / seats, tier: 'Team', discount: 18 };
+    return { total, perSeat: total / seats, tier: 'Team', discount: Math.round((1 - (total / seats) / 9.80) * 100) };
   } else if (seats <= 100) {
-    const total = 209 + (seats - 25) * 6;
-    return { total, perSeat: total / seats, tier: 'Team Business', discount: 39 };
+    const total = 49 + 20 * 8 + (seats - 25) * 6;
+    return { total, perSeat: total / seats, tier: 'Team Business', discount: Math.round((1 - (total / seats) / 9.80) * 100) };
+  } else if (seats <= 249) {
+    const total = 49 + 20 * 8 + 75 * 6 + (seats - 100) * 5;
+    return { total, perSeat: total / seats, tier: 'Team Scale', discount: Math.round((1 - (total / seats) / 9.80) * 100) };
   } else if (seats <= 500) {
-    const total = 659 + (seats - 100) * 4;
-    return { total, perSeat: total / seats, tier: 'Team Scale', discount: 59 };
+    const total = 49 + 20 * 8 + 75 * 6 + 149 * 5 + (seats - 249) * 4;
+    return { total, perSeat: total / seats, tier: 'Team Scale+', discount: Math.round((1 - (total / seats) / 9.80) * 100) };
   }
   return { total: 0, perSeat: 0, tier: 'Enterprise', discount: 0 };
 }

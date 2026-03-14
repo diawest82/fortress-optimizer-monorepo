@@ -30,6 +30,7 @@ from shared_libs.fortress_types import (
 )
 from database import get_db, init_db, engine, Base
 from models import ApiKey, OptimizationLog
+from cleanup import run_cleanup
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -97,16 +98,26 @@ class RateLimiter:
         }
 
 
-rate_limiter = RateLimiter(requests_per_minute=100, requests_per_day=10000)
+_redis_url = os.getenv("REDIS_URL")
+if _redis_url:
+    from rate_limiter_redis import RedisRateLimiter
+    rate_limiter = RedisRateLimiter(redis_url=_redis_url)
+else:
+    rate_limiter = RateLimiter(requests_per_minute=100, requests_per_day=10000)
 
 # ============================================================================
 # Initialize FastAPI app
 # ============================================================================
 
+_is_production = os.getenv("FORTRESS_ENV", os.getenv("ENVIRONMENT", "development")) == "production"
+
 app = FastAPI(
     title="Fortress Token Optimizer API",
     description="Backend API for token optimization (IP Protected)",
     version="1.2.0",
+    docs_url=None if _is_production else "/docs",
+    redoc_url=None if _is_production else "/redoc",
+    openapi_url=None if _is_production else "/openapi.json",
 )
 
 # Add CORS middleware — allow localhost for dev, production domains for deploy
@@ -118,12 +129,16 @@ CORS_ORIGINS = [
     "http://localhost:5173",
 ]
 
+from middleware import RequestIdMiddleware
+
+app.add_middleware(RequestIdMiddleware)
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=CORS_ORIGINS,
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allow_headers=["Content-Type", "Authorization", "X-API-Key"],
+    allow_headers=["Content-Type", "Authorization", "X-API-Key", "X-Admin-Secret"],
     max_age=600,
 )
 
@@ -237,12 +252,27 @@ async def health_check(db: Session = Depends(get_db)):
     except Exception:
         db_status = "disconnected"
 
-    return HealthResponse(
-        status="healthy",
+    status = "healthy" if db_status == "connected" else "degraded"
+    status_code = 200 if db_status == "connected" else 503
+
+    response_data = HealthResponse(
+        status=status,
         timestamp=datetime.utcnow(),
         version="1.2.0",
         database=db_status,
     )
+
+    if status_code != 200:
+        return JSONResponse(
+            status_code=status_code,
+            content={
+                "status": response_data.status,
+                "timestamp": response_data.timestamp.isoformat(),
+                "version": response_data.version,
+                "database": response_data.database,
+            },
+        )
+    return response_data
 
 
 @app.get("/api/providers", response_model=ProvidersResponse)
@@ -399,7 +429,8 @@ async def get_pricing():
                     "1-5": {"base": 49, "per_seat": 9.80},
                     "6-25": {"per_seat": 8.00},
                     "26-100": {"per_seat": 6.00},
-                    "101-500": {"per_seat": 4.00},
+                    "101-249": {"per_seat": 5.00},
+                    "250-500": {"per_seat": 4.00},
                 },
                 "features": [
                     "Unlimited tokens for every seat",
@@ -461,6 +492,70 @@ async def register_api_key(
     }
 
 
+@app.post("/api/keys/rotate")
+async def rotate_api_key(
+    api_key: str = Depends(verify_api_key),
+    db: Session = Depends(get_db),
+):
+    """Rotate an API key: generates a new key, invalidates the old one"""
+    old_hash = _hash_key(api_key)
+    db_key = db.query(ApiKey).filter(ApiKey.key_hash == old_hash).first()
+
+    if not db_key:
+        raise HTTPException(status_code=404, detail="Key not found")
+
+    # Generate new key and update hash in-place (preserves all other fields)
+    new_key = f"fk_{uuid.uuid4().hex}"
+    db_key.key_hash = _hash_key(new_key)
+    db.commit()
+
+    logger.info(f"API key rotated: {api_key[:12]}... -> {new_key[:12]}... (name={db_key.name})")
+
+    return {
+        "api_key": new_key,
+        "message": "Key rotated. Old key is now invalid.",
+    }
+
+
+@app.delete("/api/keys")
+async def deactivate_api_key(
+    api_key: str = Depends(verify_api_key),
+    db: Session = Depends(get_db),
+):
+    """Deactivate an API key"""
+    key_hash = _hash_key(api_key)
+    db_key = db.query(ApiKey).filter(ApiKey.key_hash == key_hash).first()
+
+    if not db_key:
+        raise HTTPException(status_code=404, detail="Key not found")
+
+    db_key.is_active = False
+    db.commit()
+
+    logger.info(f"API key deactivated: {api_key[:12]}... (name={db_key.name})")
+
+    return {"message": "API key deactivated"}
+
+
+# ============================================================================
+# Admin Endpoints
+# ============================================================================
+
+ADMIN_SECRET = os.getenv("ADMIN_SECRET", "")
+
+
+@app.post("/api/admin/cleanup")
+async def admin_cleanup(
+    x_admin_secret: Optional[str] = Header(None),
+):
+    """Run database cleanup (admin only)."""
+    if not ADMIN_SECRET or x_admin_secret != ADMIN_SECRET:
+        raise HTTPException(status_code=403, detail="Forbidden")
+
+    result = run_cleanup()
+    return {"status": "success", **result}
+
+
 # ============================================================================
 # Error Handlers
 # ============================================================================
@@ -494,6 +589,31 @@ async def general_exception_handler(request: Request, exc: Exception):
 # ============================================================================
 # Startup/Shutdown
 # ============================================================================
+
+
+def _validate_production_env():
+    """Validate required environment variables in production mode."""
+    env = os.getenv("FORTRESS_ENV", "development")
+    if env != "production":
+        return  # No validation in dev mode
+
+    missing = []
+    if not os.getenv("DATABASE_URL"):
+        missing.append("DATABASE_URL")
+
+    api_secret = os.getenv("API_KEY_SECRET", "")
+    if not api_secret:
+        missing.append("API_KEY_SECRET")
+    elif api_secret == "fortress-dev-secret-change-in-prod":
+        raise RuntimeError(
+            "API_KEY_SECRET is set to the dev default — "
+            "set a real secret in production"
+        )
+
+    if missing:
+        raise RuntimeError(
+            f"Missing required environment variables for production: {', '.join(missing)}"
+        )
 
 
 def _seed_dev_keys(db: Session):

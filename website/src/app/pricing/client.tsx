@@ -6,21 +6,36 @@ import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { analytics } from "@/lib/tracking";
 
-// Sliding scale team pricing calculator
+// Sliding scale team pricing calculator — graduated tiers
 function calculateTeamPrice(seats: number): { total: number; perSeat: number; tier: string; discount: number } {
   if (seats <= 5) {
     return { total: 49, perSeat: 49 / seats, tier: "Team Starter", discount: 0 };
   } else if (seats <= 25) {
     const total = 49 + (seats - 5) * 8;
-    return { total, perSeat: total / seats, tier: "Team", discount: 18 };
+    return { total, perSeat: total / seats, tier: "Team", discount: Math.round((1 - (total / seats) / 9.80) * 100) };
   } else if (seats <= 100) {
-    const total = 209 + (seats - 25) * 6;
-    return { total, perSeat: total / seats, tier: "Team Business", discount: 39 };
+    const total = 49 + 20 * 8 + (seats - 25) * 6;
+    return { total, perSeat: total / seats, tier: "Team Business", discount: Math.round((1 - (total / seats) / 9.80) * 100) };
+  } else if (seats <= 249) {
+    const total = 49 + 20 * 8 + 75 * 6 + (seats - 100) * 5;
+    return { total, perSeat: total / seats, tier: "Team Scale", discount: Math.round((1 - (total / seats) / 9.80) * 100) };
   } else if (seats <= 500) {
-    const total = 659 + (seats - 100) * 4;
-    return { total, perSeat: total / seats, tier: "Team Scale", discount: 59 };
+    const total = 49 + 20 * 8 + 75 * 6 + 149 * 5 + (seats - 249) * 4;
+    return { total, perSeat: total / seats, tier: "Team Scale+", discount: Math.round((1 - (total / seats) / 9.80) * 100) };
   }
   return { total: 0, perSeat: 0, tier: "Enterprise", discount: 0 };
+}
+
+// Map slider position (0-100) to seats using logarithmic scale for better low-end granularity
+function sliderToSeats(pos: number): number {
+  const min = Math.log(2);
+  const max = Math.log(500);
+  return Math.round(Math.exp(min + (pos / 100) * (max - min)));
+}
+function seatsToSlider(seats: number): number {
+  const min = Math.log(2);
+  const max = Math.log(500);
+  return Math.round(((Math.log(seats) - min) / (max - min)) * 100);
 }
 
 export default function PricingClient() {
@@ -298,10 +313,10 @@ export default function PricingClient() {
                   <div className="flex items-center gap-4 mb-4">
                     <input
                       type="range"
-                      min={2}
-                      max={500}
-                      value={teamSeats}
-                      onChange={(e) => setTeamSeats(Number(e.target.value))}
+                      min={0}
+                      max={100}
+                      value={seatsToSlider(teamSeats)}
+                      onChange={(e) => setTeamSeats(sliderToSeats(Number(e.target.value)))}
                       className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-cyan-500"
                     />
                     <div className="flex items-center gap-1">
@@ -340,7 +355,8 @@ export default function PricingClient() {
                       { range: "1-5 seats", rate: "$9.80/seat", total: "$49 base" },
                       { range: "6-25 seats", rate: "$8.00/seat", total: "+$8 each" },
                       { range: "26-100 seats", rate: "$6.00/seat", total: "+$6 each" },
-                      { range: "101-500 seats", rate: "$4.00/seat", total: "+$4 each" },
+                      { range: "101-249 seats", rate: "$5.00/seat", total: "+$5 each" },
+                      { range: "250-500 seats", rate: "$4.00/seat", total: "+$4 each" },
                     ].map((row) => (
                       <div key={row.range} className="flex justify-between text-sm">
                         <span className="text-slate-400">{row.range}</span>
@@ -367,7 +383,9 @@ export default function PricingClient() {
                       { seats: 25, label: "Department" },
                       { seats: 50, label: "Division" },
                       { seats: 100, label: "Large org" },
+                      { seats: 150, label: "Mid-enterprise" },
                       { seats: 250, label: "Company-wide" },
+                      { seats: 500, label: "Max scale" },
                     ].map(({ seats, label }) => {
                       const p = calculateTeamPrice(seats);
                       return (

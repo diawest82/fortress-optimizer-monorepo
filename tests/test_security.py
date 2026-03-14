@@ -11,6 +11,11 @@ import json
 import pytest
 import httpx
 
+pytestmark = pytest.mark.skipif(
+    not os.environ.get("FORTRESS_TEST_URL"),
+    reason="Requires live server (set FORTRESS_TEST_URL)"
+)
+
 BASE_URL = os.getenv(
     "FORTRESS_TEST_URL",
     "http://myp-zwp-lb-598798440.us-east-1.elb.amazonaws.com",
