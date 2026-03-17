@@ -86,7 +86,7 @@ export default function PricingClient() {
       return;
     }
 
-    const currentTier = (sessionResult.data.user as any)?.tier || "free";
+    const currentTier = (sessionResult.data?.user as any)?.tier || "free";
     analytics.upgradeStarted(currentTier, tier);
 
     setLoading(tierDisplay);
