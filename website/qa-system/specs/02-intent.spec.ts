@@ -91,24 +91,17 @@ test.describe('Intent Agent: Pricing CTAs', () => {
     await expect(page.locator('input[name="email"]')).toBeVisible({ timeout: 5000 });
   });
 
-  test('6. Enterprise "Contact Sales" opens mailto', async ({ page }) => {
+  test('6. Enterprise shows "Coming Soon" banner and disabled button', async ({ page }) => {
     await page.goto(`${BASE}/pricing`);
     await page.waitForTimeout(3000);
 
-    const enterpriseBtn = page.locator('button:has-text("Contact Sales")').first();
-    await enterpriseBtn.scrollIntoViewIfNeeded();
+    // Enterprise card should have "Coming Soon" badge
+    await expect(page.locator('text=Coming Soon').first()).toBeVisible({ timeout: 5000 });
 
-    // For mailto, we check the click triggers a mailto action
-    // Listen for popup or verify the button's click handler
-    const [popup] = await Promise.all([
-      page.waitForEvent('popup', { timeout: 5000 }).catch(() => null),
-      enterpriseBtn.click(),
-    ]);
-
-    // Either opened a mailto popup or the window.open was called
-    // The button calls window.open("mailto:...") so it may open a blank page
-    // Just verify no 404 error page appeared
-    expect(page.url()).not.toContain('/404');
+    // The button should be disabled
+    const enterpriseBtn = page.locator('button:has-text("Coming Soon")').first();
+    await expect(enterpriseBtn).toBeVisible();
+    await expect(enterpriseBtn).toBeDisabled();
   });
 });
 

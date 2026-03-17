@@ -74,7 +74,9 @@ export default function PricingClient() {
       return;
     }
 
-    if (!sessionResult.data) {
+    // Check both NextAuth session and custom auth token
+    const hasCustomAuth = typeof window !== 'undefined' && !!localStorage.getItem('auth_token');
+    if (!sessionResult.data && !hasCustomAuth) {
       router.push("/auth/login");
       return;
     }
@@ -208,8 +210,8 @@ export default function PricingClient() {
           {/* Enterprise */}
           <div className="relative rounded-3xl border border-slate-700 bg-gradient-to-br from-slate-950/60 to-slate-900/40 p-8 flex flex-col hover:border-slate-600 transition-all duration-300">
             <div className="absolute -top-4 left-1/2 -translate-x-1/2">
-              <span className="inline-block bg-purple-800 px-4 py-1 rounded-full text-xs font-semibold text-purple-200">
-                500+ Seats
+              <span className="inline-block bg-amber-700 px-4 py-1 rounded-full text-xs font-semibold text-amber-200">
+                Coming Soon
               </span>
             </div>
             <div className="mb-8">
@@ -220,11 +222,10 @@ export default function PricingClient() {
               <p className="text-4xl font-bold text-white">Custom</p>
             </div>
             <button
-              onClick={() => handleCheckout("Enterprise")}
-              disabled={loading === "Enterprise"}
-              className="w-full py-3 px-6 rounded-xl font-semibold transition-all duration-200 mb-8 border border-slate-700 text-slate-300 hover:border-slate-500 hover:text-slate-100 disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled
+              className="w-full py-3 px-6 rounded-xl font-semibold transition-all duration-200 mb-8 border border-slate-700 text-slate-500 cursor-not-allowed opacity-60"
             >
-              {loading === "Enterprise" ? "Processing..." : "Contact Sales"}
+              Coming Soon
             </button>
             <div className="space-y-4">
               {[
