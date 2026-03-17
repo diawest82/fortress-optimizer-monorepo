@@ -46,6 +46,7 @@ model User {
   emailReplies  EmailReply[]
   supportTickets SupportTicket[] @relation("TicketCreator")
   supportTicketsAssigned SupportTicket[] @relation("TicketAssignee")
+  passwordResetTokens PasswordResetToken[]
   
   @@map("users")
 }
@@ -55,6 +56,7 @@ model PasswordResetToken {
   id        String   @id @default(cuid())
   token     String   @unique
   userId    String
+  user      User     @relation(fields: [userId], references: [id])
   expiresAt DateTime
   used      Boolean  @default(false)
   createdAt DateTime @default(now())
