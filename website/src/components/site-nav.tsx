@@ -69,6 +69,7 @@ export function SiteNav() {
             key={item.href}
             className="text-sm text-slate-300 hover:text-white transition"
             href={item.href}
+            data-testid={`nav-${item.label.toLowerCase().replace(/\s+/g, '-')}`}
           >
             {item.label}
           </Link>
@@ -78,6 +79,7 @@ export function SiteNav() {
           <Link
             className="text-sm text-slate-300 hover:text-white transition"
             href="/tools"
+            data-testid="nav-tools"
           >
             Tools
           </Link>
@@ -90,6 +92,7 @@ export function SiteNav() {
                 key={item.href}
                 className="text-sm text-slate-300 hover:text-white transition"
                 href={item.href}
+                data-testid={`nav-${item.label.toLowerCase()}`}
               >
                 {item.label}
               </Link>
@@ -97,6 +100,7 @@ export function SiteNav() {
             <button
               onClick={handleSignOut}
               className="text-sm text-slate-300 hover:text-white transition cursor-pointer"
+              data-testid="nav-sign-out"
             >
               Sign Out
             </button>
@@ -105,6 +109,7 @@ export function SiteNav() {
           <Link
             className="text-sm text-slate-300 hover:text-white transition"
             href="/auth/login"
+            data-testid="nav-sign-in"
           >
             Sign In
           </Link>

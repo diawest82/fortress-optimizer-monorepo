@@ -32,5 +32,23 @@ export default defineConfig({
       testMatch: 'load-100x-journey.spec.ts',
       timeout: 300000,
     },
+    {
+      name: 'qa-navigation',
+      testDir: './qa-system/specs',
+      testMatch: '01-navigation.spec.ts',
+      timeout: 30000,
+    },
+    {
+      name: 'qa-intent',
+      testDir: './qa-system/specs',
+      testMatch: '02-intent.spec.ts',
+      timeout: 30000,
+    },
+    {
+      name: 'qa-system',
+      testDir: './qa-system/specs',
+      testMatch: '*.spec.ts',
+      timeout: 30000,
+    },
   ],
 });

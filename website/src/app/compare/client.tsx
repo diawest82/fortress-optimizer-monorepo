@@ -94,7 +94,7 @@ export default function ComparePage() {
             </div>
           </div>
 
-          <Link href="/signup" className={styles.ctaButton}>
+          <Link href="/auth/signup" className={styles.ctaButton}>
             Start Saving Today
           </Link>
         </div>
@@ -603,7 +603,7 @@ export default function ComparePage() {
           <p>Start optimizing in less than 5 minutes. No credit card required.</p>
           
           <div className={styles.ctaButtons}>
-            <Link href="/signup" className={styles.ctaButtonPrimary}>
+            <Link href="/auth/signup" className={styles.ctaButtonPrimary}>
               Start Free Today
             </Link>
             <Link href="/pricing" className={styles.ctaButtonSecondary}>

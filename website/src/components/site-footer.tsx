@@ -17,10 +17,10 @@ export default function SiteFooter() {
         </div>
       </div>
       <div className="mx-auto flex w-full max-w-6xl flex-wrap items-center gap-4 px-6 pb-10 text-xs text-slate-500">
-        <Link href="/docs" className="hover:text-slate-300 transition">Documentation</Link>
-        <Link href="/support" className="hover:text-slate-300 transition">Support</Link>
-        <Link href="/legal/privacy" className="hover:text-slate-300 transition">Privacy Policy</Link>
-        <Link href="/legal/terms" className="hover:text-slate-300 transition">Terms of Service</Link>
+        <Link href="/docs" className="hover:text-slate-300 transition" data-testid="footer-docs">Documentation</Link>
+        <Link href="/support" className="hover:text-slate-300 transition" data-testid="footer-support">Support</Link>
+        <Link href="/legal/privacy" className="hover:text-slate-300 transition" data-testid="footer-privacy">Privacy Policy</Link>
+        <Link href="/legal/terms" className="hover:text-slate-300 transition" data-testid="footer-terms">Terms of Service</Link>
       </div>
     </footer>
   );

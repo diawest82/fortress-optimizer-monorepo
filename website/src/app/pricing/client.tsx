@@ -75,7 +75,7 @@ export default function PricingClient() {
     }
 
     if (!sessionResult.data) {
-      router.push("/auth/signin");
+      router.push("/auth/login");
       return;
     }
 
