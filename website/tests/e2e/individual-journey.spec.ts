@@ -34,25 +34,48 @@ let apiKey = '';
 
 /** Helper: log in via the login form and navigate to a target page */
 async function loginAndGo(page: Page, targetPath?: string) {
-  // Go directly to target — middleware will redirect to login if not authenticated
-  await page.goto(`${BASE}${targetPath || '/account'}`);
-  await page.waitForTimeout(1000);
+  // Capture any JS errors during hydration
+  const jsErrors: string[] = [];
+  page.on('console', msg => {
+    if (msg.type() === 'error') jsErrors.push(msg.text());
+  });
 
-  // If we landed on login page, fill credentials
-  if (page.url().includes('/auth/login')) {
-    await page.waitForSelector('input[name="email"]', { state: 'visible', timeout: 5000 });
-    await page.locator('input[name="email"]').click();
-    await page.locator('input[name="email"]').fill(TEST_EMAIL);
-    await page.locator('input[name="password"]').click();
-    await page.locator('input[name="password"]').fill(TEST_PASSWORD);
-    await page.locator('button[type="submit"]').first().click();
-    await page.waitForTimeout(5000);
+  // Go to login page directly
+  await page.goto(`${BASE}/auth/login`);
+  await page.waitForSelector('input[name="email"]', { state: 'visible', timeout: 5000 });
 
-    // After login, navigate to target if we didn't auto-redirect
-    if (targetPath && !page.url().includes(targetPath)) {
-      await page.goto(`${BASE}${targetPath}`);
-      await page.waitForTimeout(2000);
-    }
+  // Wait for React hydration — the form needs JS to handle onSubmit
+  await page.waitForTimeout(3000);
+  if (jsErrors.length > 0) {
+    console.log(`[loginAndGo] JS errors during hydration: ${jsErrors.join(' | ')}`);
+  }
+
+  // Fill and submit login
+  await page.locator('input[name="email"]').click();
+  await page.locator('input[name="email"]').fill(TEST_EMAIL);
+  await page.locator('input[name="password"]').click();
+  await page.locator('input[name="password"]').fill(TEST_PASSWORD);
+
+  // Listen for network response to confirm login API call
+  const loginResponsePromise = page.waitForResponse(
+    resp => resp.url().includes('/api/auth/login'),
+    { timeout: 10000 }
+  ).catch(() => null);
+
+  await page.locator('button[type="submit"]').first().click();
+
+  const loginResp = await loginResponsePromise;
+  console.log(`[loginAndGo] Login API status: ${loginResp?.status() || 'no response'}`);
+
+  // Wait for client-side redirect after login
+  await page.waitForTimeout(3000);
+  console.log(`[loginAndGo] URL after login: ${page.url()}`);
+
+  // Navigate to target
+  if (targetPath) {
+    await page.goto(`${BASE}${targetPath}`);
+    await page.waitForTimeout(2000);
+    console.log(`[loginAndGo] URL after navigate to ${targetPath}: ${page.url()}`);
   }
 }
 
