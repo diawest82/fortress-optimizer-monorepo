@@ -75,7 +75,7 @@ export default function RootLayout({
         />
       </head>
       <body className="bg-black text-white">
-        <AnalyticsProvider>
+        <Suspense fallback={null}><AnalyticsProvider>
           <AuthProvider>
             <nav className="border-b border-zinc-800 sticky top-0 z-50 bg-black/95 backdrop-blur">
               <div className="max-w-7xl mx-auto px-4 md:px-6 py-3 md:py-4 flex items-center justify-between">
@@ -102,7 +102,7 @@ export default function RootLayout({
             {children}
             <CookieConsentBanner />
           </AuthProvider>
-        </AnalyticsProvider>
+        </AnalyticsProvider></Suspense>
       </body>
     </html>
   );
