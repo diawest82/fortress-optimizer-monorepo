@@ -50,6 +50,18 @@ model User {
   @@map("users")
 }
 
+// Password Reset Tokens
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  expiresAt DateTime
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@map("password_reset_tokens")
+}
+
 // Received Emails
 model Email {
   id              String    @id @default(cuid())
