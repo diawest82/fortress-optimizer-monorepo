@@ -150,10 +150,9 @@ export async function trackTokenUsage(
   try {
     await prisma.event.create({
       data: {
-        name: 'token_usage',
-        category: 'optimization',
-        properties: {
-          userId,
+        userId,
+        eventName: 'token_usage',
+        eventData: {
           tokensUsed,
           operation,
         },
