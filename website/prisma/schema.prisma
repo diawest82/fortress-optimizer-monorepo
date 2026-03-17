@@ -58,7 +58,7 @@ model PasswordResetToken {
   userId    String
   user      User     @relation(fields: [userId], references: [id])
   expiresAt DateTime
-  used      Boolean  @default(false)
+  usedAt    DateTime?
   createdAt DateTime @default(now())
 
   @@map("password_reset_tokens")
