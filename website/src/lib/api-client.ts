@@ -81,6 +81,7 @@ export class ApiClient {
     const response = await fetch(`${this.baseUrl}/api/auth/signup`, {
       method: 'POST',
       headers: this.getHeaders(),
+      credentials: 'include',
       body: JSON.stringify({ email, password, name: name || email.split('@')[0] }),
     });
     const data = await this.handleResponse<{ api_key: string; user_id: string }>(response);
@@ -92,6 +93,7 @@ export class ApiClient {
     const response = await fetch(`${this.baseUrl}/api/auth/login`, {
       method: 'POST',
       headers: this.getHeaders(),
+      credentials: 'include',
       body: JSON.stringify({ email, password }),
     });
     const data = await this.handleResponse<{ token: string; user?: any }>(response);

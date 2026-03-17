@@ -29,7 +29,7 @@ const API = process.env.TEST_API_URL || 'https://api.fortress-optimizer.com';
 const UNIQUE = Date.now().toString(36);
 const OWNER_EMAIL = `e2e-teamowner-${UNIQUE}@test.fortress-optimizer.com`;
 const MEMBER_EMAIL = `e2e-member-${UNIQUE}@test.fortress-optimizer.com`;
-const TEST_PASSWORD = `TeamPass!${UNIQUE}`;
+const TEST_PASSWORD = `SecureP@ss${UNIQUE}`;
 
 let teamApiKey = '';
 
