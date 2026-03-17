@@ -77,11 +77,11 @@ export class ApiClient {
   }
 
   // Authentication Endpoints
-  async signup(email: string, password: string): Promise<{ api_key: string; user_id: string }> {
+  async signup(email: string, password: string, name?: string): Promise<{ api_key: string; user_id: string }> {
     const response = await fetch(`${this.baseUrl}/api/auth/signup`, {
       method: 'POST',
       headers: this.getHeaders(),
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({ email, password, name: name || email.split('@')[0] }),
     });
     const data = await this.handleResponse<{ api_key: string; user_id: string }>(response);
     this.setApiKey(data.api_key);
