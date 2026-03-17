@@ -1,44 +1,36 @@
-import { defineConfig, devices } from '@playwright/test';
+import { defineConfig } from '@playwright/test';
 
-/**
- * Playwright configuration for E2E testing
- * Run tests: npm run test:e2e
- * Debug: npm run test:e2e:debug
- */
 export default defineConfig({
   testDir: './tests/e2e',
-  fullyParallel: true,
-  forbidOnly: !!process.env.CI,
-  retries: process.env.CI ? 2 : 0,
-  workers: process.env.CI ? 1 : undefined,
-  reporter: [
-    ['html'],
-    ['json', { outputFile: 'test-results/results.json' }],
-    ['junit', { outputFile: 'test-results/junit.xml' }],
-    ['list'],
-  ],
+  timeout: 60000,
+  retries: 1,
   use: {
-    baseURL: 'http://localhost:3000',
-    trace: 'on-first-retry',
+    baseURL: process.env.TEST_BASE_URL || 'https://www.fortress-optimizer.com',
     screenshot: 'only-on-failure',
-    video: 'retain-on-failure',
+    trace: 'on-first-retry',
   },
-
   projects: [
     {
-      name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
+      name: 'smoke',
+      testMatch: ['homepage.spec.ts', 'full-journey.spec.ts'],
     },
     {
-      name: 'firefox',
-      use: { ...devices['Desktop Firefox'] },
+      name: 'individual-journey',
+      testMatch: 'individual-journey.spec.ts',
+    },
+    {
+      name: 'team-journey',
+      testMatch: 'team-journey.spec.ts',
+    },
+    {
+      name: 'load-10x',
+      testMatch: 'load-10x-journey.spec.ts',
+      timeout: 120000,
+    },
+    {
+      name: 'load-100x',
+      testMatch: 'load-100x-journey.spec.ts',
+      timeout: 300000,
     },
   ],
-
-  webServer: {
-    command: 'npm run dev',
-    url: 'http://localhost:3000',
-    reuseExistingServer: !process.env.CI,
-    timeout: 120000,
-  },
 });

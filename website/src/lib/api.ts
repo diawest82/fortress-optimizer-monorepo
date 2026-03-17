@@ -146,6 +146,12 @@ class ApiClient {
     });
   }
 
+  async rotateAPIKey(keyName: string) {
+    return this.request(`/api-keys/${keyName}/rotate`, {
+      method: 'POST',
+    });
+  }
+
   // ============================================================================
   // USAGE & BILLING ENDPOINTS
   // ============================================================================

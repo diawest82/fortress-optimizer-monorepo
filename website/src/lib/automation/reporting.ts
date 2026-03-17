@@ -1,6 +1,8 @@
 // Reporting and scheduling
 // File: src/lib/automation/reporting.ts
 
+import { sendEmail } from '@/lib/email';
+
 /**
  * Generate daily metrics report
  */
@@ -62,10 +64,14 @@ export async function sendReportEmail(
   subject: string,
   content: string
 ) {
-  console.log(`Sending report to ${recipients.join(', ')}`);
-  console.log(`Subject: ${subject}`);
-  console.log(content);
-  // TODO: Integrate with SendGrid/Resend
+  const html = `<pre style="font-family: monospace; white-space: pre-wrap;">${content}</pre>`;
+  for (const to of recipients) {
+    try {
+      await sendEmail({ to, subject, html });
+    } catch (error) {
+      console.error(`Failed to send report to ${to}:`, error);
+    }
+  }
   return true;
 }
 
@@ -76,9 +82,21 @@ export async function sendReportSlack(
   webhookUrl: string,
   content: string
 ) {
-  console.log('Sending Slack notification');
-  // TODO: Send to Slack webhook
-  return true;
+  try {
+    const res = await fetch(webhookUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text: content }),
+    });
+    if (!res.ok) {
+      console.error(`Slack webhook failed: ${res.status}`);
+      return false;
+    }
+    return true;
+  } catch (error) {
+    console.error('Slack webhook error:', error);
+    return false;
+  }
 }
 
 /**

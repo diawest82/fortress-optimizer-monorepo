@@ -61,7 +61,7 @@ def get_db_session() -> Session:
 
 def init_db():
     """Create all tables. Safe to call multiple times (uses IF NOT EXISTS)."""
-    from backend.models import ApiKey, UsageRecord, OptimizationLog  # noqa: F401
+    from backend.models import ApiKey, OptimizationLog  # noqa: F401
 
     Base.metadata.create_all(bind=engine)
     logger.info("Database tables initialized")

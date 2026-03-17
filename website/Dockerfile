@@ -1,36 +1,41 @@
-FROM node:18-alpine
+FROM node:22-alpine AS builder
 
-# Set working directory
 WORKDIR /app
 
-# Install dumb-init to handle signals properly
-RUN apk add --no-cache dumb-init
-
-# Copy package files
 COPY package*.json ./
+RUN npm ci
 
-# Install dependencies
-RUN npm ci --only=production
-
-# Copy application code
 COPY . .
-
-# Build application
 RUN npm run build
 
-# Expose port
+# --- Production stage ---
+FROM node:22-alpine
+
+RUN apk add --no-cache dumb-init
+
+# Create non-root user
+RUN addgroup -g 1001 -S fortress && \
+    adduser -S fortress -u 1001 -G fortress
+
+WORKDIR /app
+
+# Copy built app from builder
+COPY --from=builder --chown=fortress:fortress /app/.next ./.next
+COPY --from=builder --chown=fortress:fortress /app/public ./public
+COPY --from=builder --chown=fortress:fortress /app/package*.json ./
+COPY --from=builder --chown=fortress:fortress /app/next.config.js ./
+COPY --from=builder --chown=fortress:fortress /app/node_modules ./node_modules
+
+# Switch to non-root user
+USER fortress
+
 EXPOSE 3000
 
-# Set environment
 ENV NODE_ENV=production
 ENV PORT=3000
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
   CMD node -e "require('http').get('http://localhost:3000/api/health', (r) => {if (r.statusCode !== 200) throw new Error(r.statusCode)})"
 
-# Use dumb-init to handle signals
 ENTRYPOINT ["/sbin/dumb-init", "--"]
-
-# Start application
 CMD ["npm", "start"]

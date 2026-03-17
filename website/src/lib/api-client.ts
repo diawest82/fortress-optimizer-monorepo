@@ -162,7 +162,7 @@ export class ApiClient {
     return this.handleResponse<any>(response);
   }
 
-  // ============ TODO: User Profile Endpoints (NOT YET IMPLEMENTED) ============
+  // ============ User Profile Endpoints ============
   async getProfile(): Promise<any> {
     const response = await fetch(`${this.baseUrl}/api/users/profile`, {
       method: 'GET',
@@ -252,8 +252,13 @@ export class ApiClient {
     return this.handleResponse<any>(response);
   }
 
-  // ============ TODO: Pricing API (NOT YET IMPLEMENTED) ============
-  // async getPricing(): Promise<any> { ... }
+  // ============ Pricing API ============
+  async getPricing(): Promise<any> {
+    const response = await fetch(`${this.baseUrl}/api/pricing`, {
+      method: 'GET',
+    });
+    return this.handleResponse<any>(response);
+  }
 
   // Health Check
   async healthCheck(): Promise<any> {

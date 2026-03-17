@@ -5,7 +5,7 @@ import { useAuth } from '@/lib/hooks';
 
 interface AuthContextType {
   user: any;
-  signup: (email: string, password: string) => Promise<any>;
+  signup: (email: string, password: string, name?: string) => Promise<any>;
   login: (email: string, password: string) => Promise<any>;
   logout: () => void;
   getProfile: () => Promise<any>;

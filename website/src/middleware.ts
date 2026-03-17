@@ -2,11 +2,21 @@ import { getToken } from "next-auth/jwt";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function middleware(request: NextRequest) {
-  const token = await getToken({ req: request });
+  // Check both NextAuth session and custom auth cookie
+  const nextAuthToken = await getToken({ req: request });
+  const customAuthToken = request.cookies.get("fortress_auth_token")?.value;
+  const token = nextAuthToken || customAuthToken;
   const pathname = request.nextUrl.pathname;
 
+  // Block test pages entirely in production
+  const testRoutes = ["/test-checkout", "/stripe-test"];
+  const isTestRoute = testRoutes.some((route) => pathname.startsWith(route));
+  if (isTestRoute && process.env.NODE_ENV === "production") {
+    return NextResponse.redirect(new URL("/", request.url));
+  }
+
   // Protected routes
-  const protectedRoutes = ["/account"];
+  const protectedRoutes = ["/account", "/test-checkout", "/stripe-test"];
   const isProtected = protectedRoutes.some((route) =>
     pathname.startsWith(route)
   );
@@ -30,5 +40,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/account/:path*", "/auth/:path*"],
+  matcher: ["/account/:path*", "/auth/:path*", "/test-checkout/:path*", "/stripe-test/:path*"],
 };

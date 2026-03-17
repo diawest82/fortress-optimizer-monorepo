@@ -3,11 +3,19 @@
 import { useState } from 'react';
 import { CreditCard, ArrowUpRight, ArrowDownLeft, Calendar, AlertCircle, Check } from 'lucide-react';
 
+interface Invoice {
+  date: string;
+  amount: number;
+  status: string;
+  invoiceUrl?: string;
+}
+
 interface SubscriptionManagementProps {
   currentTier: string;
   currentPrice: number;
   nextBillingDate: string;
   usagePercentage: number;
+  invoices?: Invoice[];
   onUpgrade?: () => void;
   onDowngrade?: () => void;
   onCancel?: () => void;
@@ -18,6 +26,7 @@ export default function SubscriptionManagement({
   currentPrice,
   nextBillingDate,
   usagePercentage,
+  invoices = [],
   onUpgrade = () => {},
   onDowngrade = () => {},
   onCancel = () => {},
@@ -172,11 +181,7 @@ export default function SubscriptionManagement({
           <button className="text-sm text-emerald-400 hover:text-emerald-300">View All</button>
         </div>
         <div className="space-y-3">
-          {[
-            { date: 'Feb 19, 2026', amount: currentPrice, status: 'Paid' },
-            { date: 'Jan 19, 2026', amount: currentPrice, status: 'Paid' },
-            { date: 'Dec 19, 2025', amount: currentPrice, status: 'Paid' },
-          ].map((invoice, idx) => (
+          {invoices.length > 0 ? invoices.map((invoice, idx) => (
             <div
               key={idx}
               className="flex items-center justify-between p-3 bg-slate-800/30 rounded-lg border border-slate-700/50"
@@ -184,16 +189,32 @@ export default function SubscriptionManagement({
               <div className="flex items-center gap-3">
                 <CreditCard className="w-5 h-5 text-slate-400" />
                 <div>
-                  <p className="font-medium text-white">{invoice.date}</p>
+                  <p className="font-medium text-white">{new Date(invoice.date).toLocaleDateString()}</p>
                   <p className="text-xs text-slate-400">Invoice #{idx + 1}</p>
                 </div>
               </div>
-              <div className="text-right">
-                <p className="font-semibold text-white">${invoice.amount.toFixed(2)}</p>
-                <p className="text-xs text-emerald-400">{invoice.status}</p>
+              <div className="flex items-center gap-4">
+                <div className="text-right">
+                  <p className="font-semibold text-white">${(invoice.amount / 100).toFixed(2)}</p>
+                  <p className={`text-xs ${invoice.status === 'paid' ? 'text-emerald-400' : 'text-amber-400'}`}>
+                    {invoice.status.charAt(0).toUpperCase() + invoice.status.slice(1)}
+                  </p>
+                </div>
+                {invoice.invoiceUrl && (
+                  <a
+                    href={invoice.invoiceUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs text-cyan-400 hover:text-cyan-300"
+                  >
+                    View
+                  </a>
+                )}
               </div>
             </div>
-          ))}
+          )) : (
+            <p className="text-slate-500 text-sm py-4 text-center">No invoices yet</p>
+          )}
         </div>
       </div>
 

@@ -10,6 +10,7 @@ import SupportSystem from "./account/support-system";
 import SubscriptionManagement from "./account/subscription-management";
 import CommunityPortal from "./account/community-portal";
 import EnterpriseFeatures from "./account/enterprise-features";
+import MFASetupWizard from "./security/mfa-setup-wizard";
 
 interface ApiKey {
   key_id?: string;
@@ -40,6 +41,10 @@ export default function AccountContent() {
   const [newKeyName, setNewKeyName] = useState("");
   const [apiKeysLoading, setApiKeysLoading] = useState(false);
   const [apiKeysError, setApiKeysError] = useState<string | null>(null);
+  const [teamData, setTeamData] = useState<{ id: string; name: string; members: Array<{ id: string; email: string; name: string; role: 'owner' | 'admin' | 'member'; joinedAt: string }> } | null>(null);
+  const [teamLoading, setTeamLoading] = useState(false);
+  const [invoices, setInvoices] = useState<Array<{ date: string; amount: number; status: string; invoiceUrl?: string }>>([]);
+  const [tickets, setTickets] = useState<Array<{ id: string; ticketNumber: string; subject: string; status: 'open' | 'in-progress' | 'waiting' | 'resolved' | 'closed'; priority: 'low' | 'normal' | 'high' | 'urgent'; createdAt: string; lastUpdated: string; responses: number }>>([]);
   const [passwordData, setPasswordData] = useState({ old: "", new: "", confirm: "" });
   const [passwordChangeError, setPasswordChangeError] = useState<string | null>(null);
   const [passwordChangeSuccess, setPasswordChangeSuccess] = useState(false);
@@ -56,6 +61,15 @@ export default function AccountContent() {
     }
     if (activeTab === "billing" && user) {
       loadSubscription();
+    }
+    if (activeTab === "team" && user) {
+      loadTeam();
+    }
+    if ((activeTab === "subscription") && user) {
+      loadInvoices();
+    }
+    if (activeTab === "support" && user) {
+      loadTickets();
     }
   }, [activeTab, user]);
 
@@ -82,6 +96,99 @@ export default function AccountContent() {
     }
   };
 
+  const loadInvoices = async () => {
+    try {
+      const res = await fetch("/api/subscriptions/invoices");
+      if (res.ok) {
+        const data = await res.json();
+        setInvoices(data.invoices || []);
+      }
+    } catch {
+      console.error("Failed to load invoices");
+    }
+  };
+
+  const loadTickets = async () => {
+    try {
+      const res = await fetch("/api/support/tickets");
+      if (res.ok) {
+        const data = await res.json();
+        setTickets(data.tickets || []);
+      }
+    } catch {
+      console.error("Failed to load tickets");
+    }
+  };
+
+  const createTicket = async (formData: { subject: string; category: string; priority: string; description: string }) => {
+    try {
+      const res = await fetch("/api/support/tickets", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
+      if (res.ok) {
+        await loadTickets();
+      }
+    } catch {
+      console.error("Failed to create ticket");
+    }
+  };
+
+  const loadTeam = async () => {
+    setTeamLoading(true);
+    try {
+      const res = await fetch("/api/teams");
+      if (!res.ok) throw new Error("Failed to load teams");
+      const data = await res.json();
+      const team = data.teams?.[0];
+      if (team) {
+        // Fetch full team with members
+        const membersRes = await fetch(`/api/teams/${team.id}/members`);
+        const membersData = membersRes.ok ? await membersRes.json() : { members: [] };
+        setTeamData({
+          id: team.id,
+          name: team.name,
+          members: (membersData.members || []).map((m: Record<string, string>) => ({
+            ...m,
+            role: m.id === user?.id ? "owner" : (m.role || "member"),
+            joinedAt: m.joinedAt || new Date().toISOString(),
+          })),
+        });
+      }
+    } catch (err) {
+      console.error("Failed to load team:", err);
+    } finally {
+      setTeamLoading(false);
+    }
+  };
+
+  const addTeamMember = async (email: string) => {
+    if (!teamData) return;
+    const res = await fetch(`/api/teams/${teamData.id}/members`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email }),
+    });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      throw new Error(data.error || "Failed to invite member");
+    }
+    await loadTeam();
+  };
+
+  const removeTeamMember = async (memberId: string) => {
+    if (!teamData) return;
+    const res = await fetch(`/api/teams/${teamData.id}/members/${memberId}`, {
+      method: "DELETE",
+    });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      throw new Error(data.error || "Failed to remove member");
+    }
+    await loadTeam();
+  };
+
   const generateNewKey = async () => {
     if (!newKeyName.trim()) return;
     
@@ -101,6 +208,15 @@ export default function AccountContent() {
       setApiKeys(apiKeys.filter(k => (k.key_id || k.id) !== keyId));
     } catch (error) {
       setApiKeysError(error instanceof Error ? error.message : "Failed to revoke API key");
+    }
+  };
+
+  const rotateKey = async (keyName: string) => {
+    try {
+      const response = await apiClient.rotateAPIKey(keyName) as ApiKey;
+      setApiKeys(apiKeys.map(k => k.name === keyName ? { ...k, ...response, key: response.key } : k));
+    } catch (error) {
+      setApiKeysError(error instanceof Error ? error.message : "Failed to rotate API key");
     }
   };
 
@@ -147,6 +263,7 @@ export default function AccountContent() {
     { id: "community", label: "Community" },
     { id: "enterprise", label: "Enterprise" },
     { id: "api-keys", label: "API Keys" },
+    { id: "security", label: "Security" },
     { id: "settings", label: "Settings" },
   ];
 
@@ -307,12 +424,20 @@ export default function AccountContent() {
                             <h3 className="font-semibold text-white">{apiKey.name}</h3>
                             <p className="text-xs text-slate-400">Created {new Date(apiKey.created_at).toLocaleDateString()}</p>
                           </div>
-                          <button
-                            onClick={() => revokeKey(apiKey.key_id || apiKey.id || "", apiKey.name)}
-                            className="px-3 py-1 text-xs bg-red-500/20 text-red-400 rounded hover:bg-red-500/30"
-                          >
-                            Revoke
-                          </button>
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => rotateKey(apiKey.name)}
+                              className="px-3 py-1 text-xs bg-cyan-500/20 text-cyan-400 rounded hover:bg-cyan-500/30"
+                            >
+                              Rotate
+                            </button>
+                            <button
+                              onClick={() => revokeKey(apiKey.key_id || apiKey.id || "", apiKey.name)}
+                              className="px-3 py-1 text-xs bg-red-500/20 text-red-400 rounded hover:bg-red-500/30"
+                            >
+                              Revoke
+                            </button>
+                          </div>
                         </div>
 
                         {apiKey.key && (
@@ -367,6 +492,7 @@ export default function AccountContent() {
                   currentPrice={user.tier === "starter" ? 9.99 : user.tier === "teams" ? 99 : 0}
                   nextBillingDate={new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()}
                   usagePercentage={subscription ? Math.round((subscription.tokens_used / subscription.tokens_limit) * 100) : 0}
+                  invoices={invoices}
                 />
               </div>
             )}
@@ -374,13 +500,21 @@ export default function AccountContent() {
             {activeTab === "team" && (
               <div>
                 <h1 className="text-3xl font-bold text-white mb-6">Team Management</h1>
-                <TeamManagement
-                  userTier={user.tier || "free"}
-                  teamName="Development Team"
-                  teamMembers={[
-                    { id: "1", email: "you@company.com", name: user.name || "You", role: "owner", joinedAt: new Date().toISOString() }
-                  ]}
-                />
+                {teamLoading ? (
+                  <div className="rounded-2xl border border-slate-800 bg-slate-900/50 p-6">
+                    <p className="text-slate-400">Loading team data...</p>
+                  </div>
+                ) : (
+                  <TeamManagement
+                    userTier={user.tier || "free"}
+                    teamName={teamData?.name || "My Team"}
+                    teamMembers={teamData?.members || [
+                      { id: user.id || "1", email: user.email, name: user.name || "You", role: "owner", joinedAt: new Date().toISOString() }
+                    ]}
+                    onAddMember={addTeamMember}
+                    onRemoveMember={removeTeamMember}
+                  />
+                )}
               </div>
             )}
 
@@ -389,7 +523,8 @@ export default function AccountContent() {
                 <h1 className="text-3xl font-bold text-white mb-6">Support & Help</h1>
                 <SupportSystem
                   userTier={user.tier || "free"}
-                  tickets={[]}
+                  tickets={tickets}
+                  onCreateTicket={createTicket}
                 />
               </div>
             )}
@@ -405,6 +540,19 @@ export default function AccountContent() {
               <div>
                 <h1 className="text-3xl font-bold text-white mb-6">Enterprise Solutions</h1>
                 <EnterpriseFeatures />
+              </div>
+            )}
+
+            {activeTab === "security" && (
+              <div className="space-y-6">
+                <h1 className="text-3xl font-bold text-white">Security</h1>
+                <div className="rounded-2xl border border-slate-800 bg-slate-900/50 p-6">
+                  <h3 className="text-lg font-semibold text-white mb-4">Two-Factor Authentication</h3>
+                  <p className="text-sm text-slate-400 mb-6">
+                    Add an extra layer of security to your account with TOTP-based two-factor authentication.
+                  </p>
+                  <MFASetupWizard />
+                </div>
               </div>
             )}
 

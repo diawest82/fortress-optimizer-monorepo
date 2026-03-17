@@ -3,20 +3,9 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
+import { sendEmail } from '@/lib/email';
 
 const prisma = new PrismaClient();
-
-// Placeholder for SendGrid integration
-async function sendEmail(
-  to: string,
-  subject: string,
-  htmlBody: string,
-  plainBody: string
-) {
-  // TODO: Integrate with SendGrid, Resend, or your email service
-  console.log(`Email queued: ${to} - ${subject}`);
-  return true;
-}
 
 export async function POST(req: NextRequest) {
   try {
@@ -56,13 +45,12 @@ export async function POST(req: NextRequest) {
     // Send each email in sequence with delays
     const emailIds = [];
     for (const emailTemplate of sequence.emails) {
-      // Schedule the email
-      await sendEmail(
-        recipientEmail,
-        emailTemplate.subject,
-        emailTemplate.htmlBody,
-        emailTemplate.plainBody || ''
-      );
+      // Schedule the email via Resend
+      await sendEmail({
+        to: recipientEmail,
+        subject: emailTemplate.subject,
+        html: emailTemplate.htmlBody,
+      });
 
       // Record the send
       const sent = await prisma.emailSent.create({

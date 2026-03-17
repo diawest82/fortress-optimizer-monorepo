@@ -37,16 +37,39 @@ export default function SettingsPage() {
     }
 
     if (session.status === 'authenticated' && session.data?.user) {
-      // Initialize settings from session
-      setSettings({
-        name: session.data.user.name || '',
-        email: session.data.user.email || '',
-        defaultProvider: 'openai',
-        defaultModel: 'gpt-4',
-        notificationsEnabled: true,
-        darkMode: false,
-      });
-      setLoading(false);
+      // Load settings from API
+      fetch('/api/dashboard/settings', {
+        headers: {
+          'x-user-context': btoa(JSON.stringify({
+            userId: (session.data.user as Record<string, unknown>).id || '',
+            email: session.data.user.email || '',
+            role: 'member',
+          })),
+        },
+      })
+        .then(res => res.ok ? res.json() : null)
+        .then(data => {
+          setSettings({
+            name: session.data!.user!.name || '',
+            email: session.data!.user!.email || '',
+            defaultProvider: data?.dashboardSettings?.metricsToDisplay?.[0] ? 'openai' : 'openai',
+            defaultModel: 'gpt-4',
+            notificationsEnabled: true,
+            darkMode: data?.dashboardSettings?.theme === 'dark',
+          });
+        })
+        .catch(() => {
+          // Fallback to session defaults
+          setSettings({
+            name: session.data!.user!.name || '',
+            email: session.data!.user!.email || '',
+            defaultProvider: 'openai',
+            defaultModel: 'gpt-4',
+            notificationsEnabled: true,
+            darkMode: false,
+          });
+        })
+        .finally(() => setLoading(false));
     }
   }, [mounted, session.status, session.data, router]);
 
@@ -55,15 +78,36 @@ export default function SettingsPage() {
     
     setSaving(true);
     try {
-      // Simulate saving settings
-      // In production, this would call an API endpoint
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
+      const res = await fetch('/api/dashboard/settings', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-user-context': btoa(JSON.stringify({
+            userId: (session.data?.user as Record<string, unknown>)?.id || '',
+            email: session.data?.user?.email || '',
+            role: 'member',
+          })),
+        },
+        body: JSON.stringify({
+          theme: settings.darkMode ? 'dark' : 'light',
+          refreshInterval: 5000,
+          defaultProvider: settings.defaultProvider,
+          defaultModel: settings.defaultModel,
+          notificationsEnabled: settings.notificationsEnabled,
+          name: settings.name,
+        }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || `Save failed (${res.status})`);
+      }
+
       setMessage({
         type: 'success',
         text: 'Settings saved successfully!',
       });
-      
+
       setTimeout(() => setMessage(null), 3000);
     } catch (error) {
       setMessage({

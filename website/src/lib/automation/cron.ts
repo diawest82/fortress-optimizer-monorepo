@@ -5,6 +5,8 @@ import { PrismaClient } from '@prisma/client';
 import { createMetricsSnapshot } from './analytics';
 import { generateDailyReport, sendReportEmail } from './reporting';
 import { generateSitemap, validateBlogPostSeo } from './seo';
+import { writeFile } from 'fs/promises';
+import { join } from 'path';
 
 const prisma = new PrismaClient();
 
@@ -33,8 +35,9 @@ export async function runDailyAutomation() {
     // 3. Generate sitemap (would save to filesystem or CDN)
     console.log('[CRON] Generating sitemap...');
     const sitemap = await generateSitemap();
-    // TODO: Save sitemap to public directory
-    console.log('[CRON] ✓ Sitemap generated');
+    const publicDir = join(process.cwd(), 'public');
+    await writeFile(join(publicDir, 'sitemap.xml'), sitemap, 'utf-8');
+    console.log('[CRON] ✓ Sitemap generated and saved to public/sitemap.xml');
 
     // 4. Send daily email report
     console.log('[CRON] Sending daily reports...');

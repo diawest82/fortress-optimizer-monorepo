@@ -9,6 +9,54 @@ import prisma from '@/lib/prisma';
 import { checkTeamSeatLimit } from '@/lib/team-limits';
 import { sendTeamInviteEmail } from '@/lib/email';
 
+export async function GET(
+  req: NextRequest,
+  { params }: { params: Promise<{ teamId: string }> }
+) {
+  try {
+    const session = await getServerSession();
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const { teamId } = await params;
+
+    const team = await prisma.team.findUnique({
+      where: { id: teamId },
+      include: {
+        members: { select: { id: true, email: true, name: true, createdAt: true } },
+      },
+    });
+
+    if (!team) {
+      return NextResponse.json({ error: 'Team not found' }, { status: 404 });
+    }
+
+    // Only team members can view the member list
+    const isMember = team.members.some(m => m.id === session.user.id);
+    if (!isMember && team.ownerId !== session.user.id) {
+      return NextResponse.json({ error: 'Not a member of this team' }, { status: 403 });
+    }
+
+    return NextResponse.json({
+      success: true,
+      members: team.members.map(m => ({
+        id: m.id,
+        email: m.email,
+        name: m.name,
+        role: m.id === team.ownerId ? 'owner' : 'member',
+        joinedAt: m.createdAt?.toISOString() || new Date().toISOString(),
+      })),
+    });
+  } catch (error) {
+    console.error('GET /api/teams/:teamId/members error:', error);
+    return NextResponse.json(
+      { error: 'Failed to fetch team members' },
+      { status: 500 }
+    );
+  }
+}
+
 export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ teamId: string }> }

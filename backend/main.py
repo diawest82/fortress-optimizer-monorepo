@@ -4,9 +4,10 @@ Main API application with optimization, auth, and metrics endpoints
 """
 
 from fastapi import FastAPI, Depends, HTTPException, Header, Request
+from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 from typing import Optional, Literal, List, Dict
 from datetime import datetime, timedelta
 from collections import defaultdict
@@ -31,6 +32,7 @@ from shared_libs.fortress_types import (
 from database import get_db, init_db, engine, Base
 from models import ApiKey, OptimizationLog
 from cleanup import run_cleanup
+from extension_routes import router as extension_router
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -97,6 +99,14 @@ class RateLimiter:
             "rpd_limit": self.rpd,
         }
 
+    def get_headers(self, key_hash: str) -> dict:
+        usage = self.get_usage(key_hash)
+        return {
+            "X-RateLimit-Limit": str(self.rpm),
+            "X-RateLimit-Remaining": str(max(0, self.rpm - usage["requests_this_minute"])),
+            "X-RateLimit-Reset": str(int(time.time()) + 60),
+        }
+
 
 _redis_url = os.getenv("REDIS_URL")
 if _redis_url:
@@ -114,20 +124,20 @@ _is_production = os.getenv("FORTRESS_ENV", os.getenv("ENVIRONMENT", "development
 app = FastAPI(
     title="Fortress Token Optimizer API",
     description="Backend API for token optimization (IP Protected)",
-    version="1.2.0",
+    version="1.5.0",
     docs_url=None if _is_production else "/docs",
     redoc_url=None if _is_production else "/redoc",
     openapi_url=None if _is_production else "/openapi.json",
 )
 
-# Add CORS middleware — allow localhost for dev, production domains for deploy
+# Add CORS middleware — production domains only in production
 CORS_ORIGINS = [
     "https://fortress-optimizer.com",
     "https://www.fortress-optimizer.com",
     "https://app.fortress-optimizer.com",
-    "http://localhost:3000",
-    "http://localhost:5173",
 ]
+if not _is_production:
+    CORS_ORIGINS.extend(["http://localhost:3000", "http://localhost:5173"])
 
 from middleware import RequestIdMiddleware
 
@@ -142,6 +152,9 @@ app.add_middleware(
     max_age=600,
 )
 
+# Mount extension routes (/api/extension/*)
+app.include_router(extension_router)
+
 
 # ============================================================================
 # Request/Response Models
@@ -154,6 +167,13 @@ class OptimizeRequest(BaseModel):
     prompt: str = Field(..., min_length=1, max_length=50000)
     level: Literal["conservative", "balanced", "aggressive"] = "balanced"
     provider: str = Field("openai", description="LLM provider")
+
+    @field_validator("prompt")
+    @classmethod
+    def reject_null_bytes(cls, v: str) -> str:
+        if "\x00" in v:
+            raise ValueError("Prompt must not contain null bytes")
+        return v
 
 
 class OptimizeResponse(BaseModel):
@@ -187,7 +207,7 @@ class RegisterKeyRequest(BaseModel):
     """Request to register a new API key"""
 
     name: str = Field(..., min_length=1, max_length=100)
-    tier: Literal["free", "pro", "team", "enterprise"] = "free"
+    tier: Literal["free"] = "free"  # Only free tier via self-service; paid tiers require Stripe
 
 
 # ============================================================================
@@ -258,7 +278,7 @@ async def health_check(db: Session = Depends(get_db)):
     response_data = HealthResponse(
         status=status,
         timestamp=datetime.utcnow(),
-        version="1.2.0",
+        version="1.5.0",
         database=db_status,
     )
 
@@ -348,7 +368,7 @@ async def optimize(
             f"({result.savings_percentage:.1f}%) via {result.technique_used}"
         )
 
-        return OptimizeResponse(
+        response_data = OptimizeResponse(
             request_id=request_id,
             status="success",
             optimization={
@@ -363,6 +383,13 @@ async def optimize(
             },
             timestamp=datetime.utcnow(),
             technique=result.technique_used,
+        )
+
+        # Add rate limit headers
+        rl_headers = rate_limiter.get_headers(key_hash)
+        return JSONResponse(
+            content=jsonable_encoder(response_data),
+            headers=rl_headers,
         )
 
     except HTTPException:
@@ -462,12 +489,31 @@ async def get_pricing():
     }
 
 
+# Simple IP-based rate limit for key registration (max 5 per hour per IP)
+_registration_tracker: Dict[str, list] = defaultdict(list)
+
+
 @app.post("/api/keys/register")
 async def register_api_key(
     request: RegisterKeyRequest,
+    req: Request,
     db: Session = Depends(get_db),
 ):
     """Register a new API key (self-service)"""
+    # Rate limit: max 5 registrations per hour per IP
+    client_ip = req.client.host if req.client else "unknown"
+    now = time.time()
+    hour_ago = now - 3600
+    _registration_tracker[client_ip] = [
+        t for t in _registration_tracker[client_ip] if t > hour_ago
+    ]
+    if len(_registration_tracker[client_ip]) >= 5:
+        raise HTTPException(
+            status_code=429,
+            detail="Too many key registrations. Max 5 per hour.",
+        )
+    _registration_tracker[client_ip].append(now)
+
     new_key = f"fk_{uuid.uuid4().hex}"
     key_hash = _hash_key(new_key)
 
@@ -640,6 +686,10 @@ def _seed_dev_keys(db: Session):
 @app.on_event("startup")
 async def startup_event():
     logger.info("Starting Fortress Token Optimizer API v1.2.0")
+
+    # Validate production environment
+    if _is_production:
+        _validate_production_env()
 
     # Create tables (IF NOT EXISTS — safe to call repeatedly)
     Base.metadata.create_all(bind=engine)

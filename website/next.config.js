@@ -1,13 +1,9 @@
 /** @type {import('next').NextConfig} */
 
-// Load environment variables explicitly for production
+// Production requires DATABASE_URL and PRISMA_DATABASE_URL set via Vercel env vars
 if (process.env.NODE_ENV === 'production') {
-  // Ensure DATABASE_URL is available at build/runtime
   if (!process.env.DATABASE_URL) {
-    process.env.DATABASE_URL = 'postgres://ebe7b9fdb7b1c89c0447d39e00aaf1b3a1d83db90a6014c23cc21db252a4c854:sk_hfDIAJVXZeEnRxAxHEh8p@db.prisma.io:5432/postgres?sslmode=require';
-  }
-  if (!process.env.PRISMA_DATABASE_URL) {
-    process.env.PRISMA_DATABASE_URL = 'prisma+postgres://accelerate.prisma-data.net/?api_key=REDACTED_PRISMA_KEY';
+    console.error('CRITICAL: DATABASE_URL not set in production environment');
   }
 }
 
@@ -55,7 +51,7 @@ const nextConfig = {
         headers: [
           {
             key: 'Content-Security-Policy',
-            value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https:; frame-ancestors 'none';",
+            value: "default-src 'self'; script-src 'self' https://js.stripe.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https: wss:; frame-src https://js.stripe.com https://hooks.stripe.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self';",
           },
           {
             key: 'X-Frame-Options',

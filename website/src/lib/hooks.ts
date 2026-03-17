@@ -32,8 +32,8 @@ export function useAuth() {
   const [user, setUser] = useState<any>(null);
   const { execute, loading, error } = useApi();
 
-  const signup = useCallback(async (email: string, password: string) => {
-    const result = await execute(() => apiClient.signup(email, password));
+  const signup = useCallback(async (email: string, password: string, name?: string) => {
+    const result = await execute(() => apiClient.signup(email, password, name || email.split('@')[0]));
     if (result) {
       setUser({ email, id: result.user_id });
       return result;

@@ -148,10 +148,17 @@ export async function trackTokenUsage(
   operation: string
 ): Promise<void> {
   try {
-    // TODO: Create analytics record when analytics table is available
-    console.log(
-      `Token usage tracked: user=${userId}, tokens=${tokensUsed}, operation=${operation}`
-    );
+    await prisma.event.create({
+      data: {
+        name: 'token_usage',
+        category: 'optimization',
+        properties: {
+          userId,
+          tokensUsed,
+          operation,
+        },
+      },
+    });
   } catch (error) {
     console.error('Failed to track token usage:', error);
     // Don't throw - logging is non-critical
