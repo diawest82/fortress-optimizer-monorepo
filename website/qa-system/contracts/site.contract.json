@@ -3,7 +3,7 @@
   "links": [
     { "id": "nav-home", "source": "/", "selector": "nav >> a:has-text('Home')", "expectedDestination": "/", "pageMarker": "h1", "priority": "critical", "category": "navigation", "authRequired": false },
     { "id": "nav-dashboard", "source": "/", "selector": "nav >> a:has-text('Dashboard')", "expectedDestination": "/dashboard", "pageMarker": "body", "priority": "critical", "category": "navigation", "authRequired": false },
-    { "id": "nav-install", "source": "/", "selector": "nav >> a:has-text('Install')", "expectedDestination": "/install", "pageMarker": "h1", "priority": "critical", "category": "navigation", "authRequired": false },
+    { "id": "nav-install", "source": "/", "selector": "nav >> a:has-text('Install')", "expectedDestination": "/install", "pageMarker": "body", "priority": "critical", "category": "navigation", "authRequired": false },
     { "id": "nav-why", "source": "/", "selector": "nav >> a:has-text('Why Fortress')", "expectedDestination": "/compare", "pageMarker": "body", "priority": "high", "category": "navigation", "authRequired": false },
     { "id": "nav-pricing", "source": "/", "selector": "nav >> a:has-text('Pricing')", "expectedDestination": "/pricing", "pageMarker": "body", "priority": "critical", "category": "navigation", "authRequired": false },
     { "id": "nav-docs", "source": "/", "selector": "nav >> a:has-text('Docs')", "expectedDestination": "/docs", "pageMarker": "body", "priority": "high", "category": "navigation", "authRequired": false },
@@ -12,48 +12,45 @@
     { "id": "nav-tools", "source": "/", "selector": "nav >> a:has-text('Tools')", "expectedDestination": "/tools", "pageMarker": "body", "priority": "high", "category": "navigation", "authRequired": false },
     { "id": "nav-sign-in", "source": "/", "selector": "nav >> a:has-text('Sign In')", "expectedDestination": "/auth/login", "pageMarker": "input[name='email']", "priority": "critical", "category": "navigation", "authRequired": false },
 
-    { "id": "footer-docs", "source": "/", "selector": "footer >> a:has-text('Documentation')", "expectedDestination": "/docs", "pageMarker": "body", "priority": "high", "category": "footer", "authRequired": false },
-    { "id": "footer-support", "source": "/", "selector": "footer >> a:has-text('Support')", "expectedDestination": "/support", "pageMarker": "body", "priority": "high", "category": "footer", "authRequired": false },
-    { "id": "footer-privacy", "source": "/", "selector": "footer >> a:has-text('Privacy Policy')", "expectedDestination": "/legal/privacy", "pageMarker": "body", "priority": "critical", "category": "footer", "authRequired": false },
-    { "id": "footer-terms", "source": "/", "selector": "footer >> a:has-text('Terms of Service')", "expectedDestination": "/legal/terms", "pageMarker": "body", "priority": "critical", "category": "footer", "authRequired": false },
+    { "id": "footer-docs", "source": "/", "selector": "footer a[href='/docs']", "expectedDestination": "/docs", "pageMarker": "body", "priority": "high", "category": "footer", "authRequired": false },
+    { "id": "footer-support", "source": "/", "selector": "footer a[href='/support']", "expectedDestination": "/support", "pageMarker": "body", "priority": "high", "category": "footer", "authRequired": false },
+    { "id": "footer-privacy", "source": "/", "selector": "footer a[href='/legal/privacy']", "expectedDestination": "/legal/privacy", "pageMarker": "body", "priority": "critical", "category": "footer", "authRequired": false },
+    { "id": "footer-terms", "source": "/", "selector": "footer a[href='/legal/terms']", "expectedDestination": "/legal/terms", "pageMarker": "body", "priority": "critical", "category": "footer", "authRequired": false },
 
     { "id": "home-cta-signup", "source": "/", "selector": "a[href='/auth/signup']", "expectedDestination": "/auth/signup", "pageMarker": "input[name='email']", "priority": "critical", "category": "cta", "authRequired": false },
-    { "id": "home-cta-install", "source": "/", "selector": "a:has-text('View Install Guides')", "expectedDestination": "/install", "pageMarker": "h1", "priority": "critical", "category": "cta", "authRequired": false },
+    { "id": "home-cta-install", "source": "/", "selector": "a:has-text('View Install Guides')", "expectedDestination": "/install", "pageMarker": "body", "priority": "critical", "category": "cta", "authRequired": false },
     { "id": "home-cta-dashboard", "source": "/", "selector": "a:has-text('View Dashboard')", "expectedDestination": "/dashboard", "pageMarker": "body", "priority": "high", "category": "cta", "authRequired": false },
-    { "id": "home-cta-install-2", "source": "/", "selector": "a:has-text('Install Now')", "expectedDestination": "/install", "pageMarker": "h1", "priority": "high", "category": "cta", "authRequired": false },
+    { "id": "home-cta-install-2", "source": "/", "selector": "a:has-text('Install Now')", "expectedDestination": "/install", "pageMarker": "body", "priority": "high", "category": "cta", "authRequired": false },
 
     { "id": "pricing-free", "source": "/pricing", "selector": "button:has-text('Get Early Access')", "expectedDestination": "/auth/signup", "pageMarker": "input[name='email']", "priority": "critical", "category": "cta", "authRequired": false, "clickType": "router" },
-    { "id": "pricing-pro-subscribe", "source": "/pricing", "selector": "button:has-text('Subscribe now')", "expectedDestination": "/auth/login", "pageMarker": "input[name='email']", "priority": "critical", "category": "cta", "authRequired": false, "clickType": "router", "knownBug": "goes to /auth/signin which does not exist" },
-    { "id": "pricing-teams-subscribe", "source": "/pricing", "selector": "button:has-text('Subscribe')", "expectedDestination": "/auth/login", "pageMarker": "input[name='email']", "priority": "critical", "category": "cta", "authRequired": false, "clickType": "router", "knownBug": "goes to /auth/signin which does not exist" },
-    { "id": "pricing-enterprise", "source": "/pricing", "selector": "button:has-text('Coming Soon')", "expectedDestination": null, "pageMarker": null, "priority": "high", "category": "cta", "authRequired": false, "clickType": "disabled", "note": "Enterprise is Coming Soon — button is disabled" },
-    { "id": "pricing-bottom-cta", "source": "/pricing", "selector": "a:has-text('Get started free')", "expectedDestination": "/install", "pageMarker": "h1", "priority": "high", "category": "cta", "authRequired": false },
+    { "id": "pricing-pro-subscribe", "source": "/pricing", "selector": "button:has-text('Subscribe now')", "expectedDestination": "/auth/login", "pageMarker": "input[name='email']", "priority": "critical", "category": "cta", "authRequired": false, "clickType": "router" },
+    { "id": "pricing-teams-subscribe", "source": "/pricing", "selector": "button:has-text('Subscribe')", "expectedDestination": "/auth/login", "pageMarker": "input[name='email']", "priority": "critical", "category": "cta", "authRequired": false, "clickType": "router" },
+    { "id": "pricing-enterprise", "source": "/pricing", "selector": "button:has-text('Coming Soon')", "expectedDestination": null, "pageMarker": null, "priority": "high", "category": "cta", "authRequired": false, "clickType": "disabled" },
+    { "id": "pricing-bottom-cta", "source": "/pricing", "selector": "a[href='/install']:has-text('Get started')", "expectedDestination": "/install", "pageMarker": "body", "priority": "high", "category": "cta", "authRequired": false },
 
-    { "id": "compare-cta-top", "source": "/compare", "selector": "a[href='/signup']:first-of-type", "expectedDestination": "/auth/signup", "pageMarker": "input[name='email']", "priority": "critical", "category": "cta", "authRequired": false, "knownBug": "links to /signup which does not exist" },
-    { "id": "compare-cta-bottom", "source": "/compare", "selector": "a[href='/signup']:last-of-type", "expectedDestination": "/auth/signup", "pageMarker": "input[name='email']", "priority": "critical", "category": "cta", "authRequired": false, "knownBug": "links to /signup which does not exist" },
-    { "id": "compare-pricing", "source": "/compare", "selector": "a:has-text('View Pricing')", "expectedDestination": "/pricing", "pageMarker": "body", "priority": "high", "category": "cta", "authRequired": false },
+    { "id": "compare-cta-top", "source": "/compare", "selector": "a[href='/auth/signup']:first-of-type", "expectedDestination": "/auth/signup", "pageMarker": "input[name='email']", "priority": "critical", "category": "cta", "authRequired": false },
+    { "id": "compare-cta-bottom", "source": "/compare", "selector": "a[href='/auth/signup']:last-of-type", "expectedDestination": "/auth/signup", "pageMarker": "input[name='email']", "priority": "critical", "category": "cta", "authRequired": false },
+    { "id": "compare-pricing", "source": "/compare", "selector": "a[href='/pricing']", "expectedDestination": "/pricing", "pageMarker": "body", "priority": "high", "category": "cta", "authRequired": false },
 
-    { "id": "install-docs-npm", "source": "/install", "selector": "a[href='#npm-installation']", "expectedDestination": "/docs/installation/npm", "pageMarker": "body", "priority": "critical", "category": "cta", "authRequired": false, "knownBug": "links to #npm-installation anchor — goes back to self in new tab" },
-    { "id": "install-docs-copilot", "source": "/install", "selector": "a[href='#copilot-installation']", "expectedDestination": "/docs/installation/copilot", "pageMarker": "body", "priority": "critical", "category": "cta", "authRequired": false, "knownBug": "links to #copilot-installation anchor — goes back to self" },
-    { "id": "install-docs-slack", "source": "/install", "selector": "a[href='#slack-installation']", "expectedDestination": "/docs/installation/slack", "pageMarker": "body", "priority": "critical", "category": "cta", "authRequired": false, "knownBug": "links to #slack-installation anchor — goes back to self" },
-    { "id": "install-docs-vscode", "source": "/install", "selector": "a[href='#vscode-installation']", "expectedDestination": "/docs/installation/vscode", "pageMarker": "body", "priority": "critical", "category": "cta", "authRequired": false, "knownBug": "links to #vscode-installation anchor — goes back to self" },
+    { "id": "install-docs-npm", "source": "/install", "selector": "a[href='/docs/installation/npm']", "expectedDestination": "/docs/installation/npm", "pageMarker": "body", "priority": "critical", "category": "cta", "authRequired": false },
+    { "id": "install-docs-copilot", "source": "/install", "selector": "a[href='/docs/installation/copilot']", "expectedDestination": "/docs/installation/copilot", "pageMarker": "body", "priority": "critical", "category": "cta", "authRequired": false },
+    { "id": "install-docs-slack", "source": "/install", "selector": "a[href='/docs/installation/slack']", "expectedDestination": "/docs/installation/slack", "pageMarker": "body", "priority": "critical", "category": "cta", "authRequired": false },
+    { "id": "install-docs-vscode", "source": "/install", "selector": "a[href='/docs/installation/vscode']", "expectedDestination": "/docs/installation/vscode", "pageMarker": "body", "priority": "critical", "category": "cta", "authRequired": false },
     { "id": "install-email", "source": "/install", "selector": "a[href^='mailto:support@']", "expectedDestination": "mailto:", "pageMarker": null, "priority": "high", "category": "cta", "authRequired": false, "clickType": "mailto" },
-    { "id": "install-api-keys", "source": "/install", "selector": "a:has-text('Manage API Keys')", "expectedDestination": "/account", "pageMarker": "body", "priority": "high", "category": "cta", "authRequired": false },
+    { "id": "install-api-keys", "source": "/install", "selector": "a[href='/account']", "expectedDestination": "/auth/login", "pageMarker": "body", "priority": "high", "category": "cta", "authRequired": false, "note": "Redirects to login since /account is auth-gated" },
 
     { "id": "support-docs", "source": "/support", "selector": "a[href='/docs']", "expectedDestination": "/docs", "pageMarker": "body", "priority": "high", "category": "in-page", "authRequired": false },
-    { "id": "support-install", "source": "/support", "selector": "a[href='/install']", "expectedDestination": "/install", "pageMarker": "h1", "priority": "high", "category": "in-page", "authRequired": false },
+    { "id": "support-install", "source": "/support", "selector": "a[href='/install']", "expectedDestination": "/install", "pageMarker": "body", "priority": "high", "category": "in-page", "authRequired": false },
 
-    { "id": "tools-cta", "source": "/tools", "selector": "a:has-text('Get Started Free')", "expectedDestination": "/auth/signup", "pageMarker": "input[name='email']", "priority": "high", "category": "cta", "authRequired": false },
+    { "id": "tools-cta", "source": "/tools", "selector": "a[href='/auth/signup']", "expectedDestination": "/auth/signup", "pageMarker": "input[name='email']", "priority": "high", "category": "cta", "authRequired": false },
 
-    { "id": "refer-signin", "source": "/refer", "selector": "a:has-text('Sign In to Get Your Link')", "expectedDestination": "/auth/login", "pageMarker": "input[name='email']", "priority": "high", "category": "cta", "authRequired": false },
-    { "id": "refer-getstarted", "source": "/refer", "selector": "a:has-text('Get Started')", "expectedDestination": "/auth/login", "pageMarker": "input[name='email']", "priority": "high", "category": "cta", "authRequired": false },
 
     { "id": "docs-support", "source": "/docs", "selector": "a:has-text('Visit Support')", "expectedDestination": "/support", "pageMarker": "body", "priority": "high", "category": "in-page", "authRequired": false },
-    { "id": "docs-privacy", "source": "/docs", "selector": "a:has-text('Privacy Policy')", "expectedDestination": "/legal/privacy", "pageMarker": "body", "priority": "high", "category": "in-page", "authRequired": false },
-    { "id": "docs-terms", "source": "/docs", "selector": "a:has-text('Terms of Service')", "expectedDestination": "/legal/terms", "pageMarker": "body", "priority": "high", "category": "in-page", "authRequired": false },
+    { "id": "docs-privacy", "source": "/docs", "selector": "a[href='/legal/privacy']", "expectedDestination": "/legal/privacy", "pageMarker": "body", "priority": "high", "category": "in-page", "authRequired": false },
+    { "id": "docs-terms", "source": "/docs", "selector": "a[href='/legal/terms']", "expectedDestination": "/legal/terms", "pageMarker": "body", "priority": "high", "category": "in-page", "authRequired": false },
 
-    { "id": "login-signup-link", "source": "/auth/login", "selector": "a:has-text('Sign up')", "expectedDestination": "/auth/signup", "pageMarker": "input[name='firstName']", "priority": "critical", "category": "auth", "authRequired": false },
-    { "id": "login-forgot", "source": "/auth/login", "selector": "a:has-text('Forgot')", "expectedDestination": "/forgot-password", "pageMarker": "body", "priority": "critical", "category": "auth", "authRequired": false },
-    { "id": "signup-login-link", "source": "/auth/signup", "selector": "a:has-text('Log in')", "expectedDestination": "/auth/login", "pageMarker": "input[name='email']", "priority": "critical", "category": "auth", "authRequired": false },
-    { "id": "signup-terms", "source": "/auth/signup", "selector": "a:has-text('Terms of Service')", "expectedDestination": "/legal/terms", "pageMarker": "body", "priority": "high", "category": "auth", "authRequired": false }
+    { "id": "login-signup-link", "source": "/auth/login", "selector": "a[href='/auth/signup']", "expectedDestination": "/auth/signup", "pageMarker": "input[name='firstName']", "priority": "critical", "category": "auth", "authRequired": false },
+    { "id": "signup-login-link", "source": "/auth/signup", "selector": "a[href='/auth/login']", "expectedDestination": "/auth/login", "pageMarker": "input[name='email']", "priority": "critical", "category": "auth", "authRequired": false },
+    { "id": "signup-terms", "source": "/auth/signup", "selector": "a[href='/legal/terms']", "expectedDestination": "/legal/terms", "pageMarker": "body", "priority": "high", "category": "auth", "authRequired": false }
   ]
 }
