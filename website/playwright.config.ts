@@ -45,6 +45,18 @@ export default defineConfig({
       timeout: 30000,
     },
     {
+      name: 'qa-accessibility',
+      testDir: './qa-system/specs',
+      testMatch: '03-accessibility.spec.ts',
+      timeout: 30000,
+    },
+    {
+      name: 'qa-forms',
+      testDir: './qa-system/specs',
+      testMatch: '04-forms.spec.ts',
+      timeout: 30000,
+    },
+    {
       name: 'qa-system',
       testDir: './qa-system/specs',
       testMatch: '*.spec.ts',

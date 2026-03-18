@@ -16,6 +16,7 @@
     "test:e2e": "playwright test",
     "test:e2e:debug": "playwright test --debug",
     "test:e2e:headed": "playwright test --headed",
+    "test:e2e:live": "E2E_BASE_URL=https://www.fortress-optimizer.com playwright test",
     "test:security": "jest src/__tests__/security",
     "test:performance": "jest src/__tests__/performance",
     "test:integration": "jest src/__tests__/integration",
@@ -56,6 +57,7 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.11.1",
     "@playwright/test": "^1.58.2",
     "@tailwindcss/postcss": "^4",
     "@testing-library/jest-dom": "^6.9.1",
