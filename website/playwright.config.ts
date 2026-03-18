@@ -57,6 +57,42 @@ export default defineConfig({
       timeout: 30000,
     },
     {
+      name: 'qa-visual',
+      testDir: './qa-system/specs',
+      testMatch: '05-visual.spec.ts',
+      timeout: 30000,
+    },
+    {
+      name: 'qa-mobile',
+      testDir: './qa-system/specs',
+      testMatch: '06-mobile.spec.ts',
+      timeout: 30000,
+    },
+    {
+      name: 'qa-seo',
+      testDir: './qa-system/specs',
+      testMatch: '07-seo-meta.spec.ts',
+      timeout: 30000,
+    },
+    {
+      name: 'qa-security',
+      testDir: './qa-system/specs',
+      testMatch: '08-security.spec.ts',
+      timeout: 30000,
+    },
+    {
+      name: 'qa-content',
+      testDir: './qa-system/specs',
+      testMatch: '09-content.spec.ts',
+      timeout: 30000,
+    },
+    {
+      name: 'qa-performance',
+      testDir: './qa-system/specs',
+      testMatch: '10-performance.spec.ts',
+      timeout: 30000,
+    },
+    {
       name: 'qa-system',
       testDir: './qa-system/specs',
       testMatch: '*.spec.ts',
