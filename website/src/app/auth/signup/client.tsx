@@ -83,11 +83,13 @@ function SignUpContent() {
 
     setLoading(true);
     try {
-      await signup(formData.email, formData.password, `${formData.firstName} ${formData.lastName}`);
-      // Signup successful, redirect to dashboard
-      router.push('/dashboard');
+      const result = await signup(formData.email, formData.password, `${formData.firstName} ${formData.lastName}`);
+      if (result) {
+        // Signup successful, redirect to dashboard
+        router.push('/dashboard');
+      }
+      // If result is null, signup failed — error shown via authError state
     } catch (error) {
-      // Error is handled by AuthContext and stored in authError
       console.error('Signup failed:', error);
     } finally {
       setLoading(false);

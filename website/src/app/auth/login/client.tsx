@@ -59,12 +59,14 @@ function LoginContent() {
 
     setLoading(true);
     try {
-      await login(formData.email, formData.password);
-      // Login successful, redirect to dashboard (or callback URL)
-      const callbackUrl = searchParams.get('callbackUrl') || '/dashboard';
-      router.push(callbackUrl);
+      const result = await login(formData.email, formData.password);
+      if (result) {
+        // Login successful, redirect to dashboard (or callback URL)
+        const callbackUrl = searchParams.get('callbackUrl') || '/dashboard';
+        router.push(callbackUrl);
+      }
+      // If result is null, login failed — error shown via authError state
     } catch (error) {
-      // Error is handled by AuthContext and stored in authError
       console.error('Login failed:', error);
     } finally {
       setLoading(false);
