@@ -82,7 +82,7 @@ function LoginContent() {
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} action="javascript:void(0)" className="space-y-4">
           {/* Error message */}
           {authError && (
             <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400 text-sm">

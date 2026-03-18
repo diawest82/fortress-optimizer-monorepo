@@ -105,6 +105,7 @@ export default function Install() {
                       <button
                         onClick={() => copyToClipboard(step.cmd, `${guide.id}-${idx}`)}
                         className="text-zinc-500 hover:text-white transition"
+                        aria-label={`Copy ${step.desc}`}
                       >
                         {copied === `${guide.id}-${idx}` ? (
                           <Check className="w-5 h-5 text-green-400" />

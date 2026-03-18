@@ -321,6 +321,7 @@ export default function PricingClient() {
                       max={100}
                       value={seatsToSlider(teamSeats)}
                       onChange={(e) => setTeamSeats(sliderToSeats(Number(e.target.value)))}
+                      aria-label="Team seat count slider"
                       className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-cyan-500"
                     />
                     <div className="flex items-center gap-1">
@@ -329,6 +330,7 @@ export default function PricingClient() {
                         min={2}
                         max={500}
                         value={teamSeats}
+                        aria-label="Team seat count"
                         onChange={(e) => {
                           const v = Math.max(2, Math.min(500, Number(e.target.value) || 2));
                           setTeamSeats(v);

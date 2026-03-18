@@ -103,9 +103,11 @@ export default function HowItWorks() {
             Prompt input
           </label>
           <textarea
+            id="prompt-input"
             rows={6}
             value={input}
             onChange={(event) => setInput(event.target.value)}
+            aria-label="Prompt input"
             className="mt-3 w-full rounded-xl border border-slate-800 bg-slate-950/70 p-4 text-sm text-slate-200 outline-none transition focus:border-emerald-400/60"
           />
           <div className="mt-4 flex flex-col gap-2">
@@ -120,6 +122,7 @@ export default function HowItWorks() {
               min={1}
               max={5}
               value={level}
+              aria-label="Optimization level"
               onChange={(event) => setLevel(Number(event.target.value))}
               className="h-2 w-full cursor-pointer accent-emerald-400"
             />

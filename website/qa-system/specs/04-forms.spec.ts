@@ -87,8 +87,7 @@ test.describe('Forms Agent: Signup', () => {
     expect(page.url()).toContain('/auth/signup');
   });
 
-  test.fixme('[sad] Password without special characters stays on signup (not accepted)', async ({ page }) => {
-    // BUG: Weak password is accepted — client-side validation bypassed during hydration
+  test('[sad] Password without special characters stays on signup (not accepted)', async ({ page }) => {
     await page.locator('input[name="firstName"]').fill('Test');
     await page.locator('input[name="lastName"]').fill('User');
     await page.locator('input[name="email"]').fill(`no-special-${UNIQUE}@test.com`);
@@ -122,8 +121,7 @@ test.describe('Forms Agent: Login', () => {
     expect(page.url()).toContain('/auth/login');
   });
 
-  test.fixme('[sad] Invalid credentials do not redirect to dashboard', async ({ page }) => {
-    // BUG: Form submits as native GET before React hydration — lands on /dashboard
+  test('[sad] Invalid credentials do not redirect to dashboard', async ({ page }) => {
     await page.locator('input[name="email"]').fill('nonexistent@test.com');
     await page.locator('input[name="password"]').fill('WrongP@ss123');
     await page.locator('button[type="submit"]').click();

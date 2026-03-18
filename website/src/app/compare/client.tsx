@@ -58,6 +58,7 @@ export default function ComparePage() {
                 step="1000000"
                 value={monthlyTokens}
                 onChange={(e) => setMonthlyTokens(Number(e.target.value))}
+                aria-label="Monthly token usage slider"
                 className={styles.slider}
               />
               <div className={styles.tokenInput}>
@@ -65,6 +66,7 @@ export default function ComparePage() {
                   type="number"
                   value={monthlyTokens.toLocaleString()}
                   onChange={(e) => setMonthlyTokens(Number(e.target.value.replace(/,/g, '')))}
+                  aria-label="Monthly token usage"
                   className={styles.numberInput}
                 />
               </div>

@@ -110,6 +110,7 @@ export default function DemoCard({
           value={input}
           onChange={(event) => setInput(event.target.value)}
           rows={4}
+          aria-label="Live input"
           className="w-full rounded-xl border border-slate-800 bg-slate-900/70 p-3 text-sm text-slate-200 outline-none transition focus:border-emerald-400/60"
         />
       </div>
