@@ -150,7 +150,8 @@ test.describe('Navigation Agent: Router-Based Navigation', () => {
         `${link.id}: Expected ${link.expectedDestination}, login with callback, or stay on ${link.source}, but got ${currentUrl}`
       ).toBe(true);
 
-      if (link.pageMarker) {
+      // Only check page marker if we actually navigated away
+      if (link.pageMarker && !stayedOnSource) {
         await expect(page.locator(link.pageMarker).first()).toBeVisible({ timeout: 5000 });
       }
 
