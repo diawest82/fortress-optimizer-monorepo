@@ -1,0 +1,164 @@
+{
+  "$schema": "products-contract-v1",
+  "products": [
+    {
+      "id": "npm",
+      "name": "@fortress-optimizer/core",
+      "type": "npm-package",
+      "language": "typescript",
+      "installCmd": "npm install",
+      "testCmd": "npm test",
+      "buildCmd": "npm run build",
+      "entryPoint": "dist/index.js",
+      "exports": ["FortressClient"],
+      "methods": ["optimize", "getUsage", "getProviders", "healthCheck"],
+      "canAutoTest": true
+    },
+    {
+      "id": "openclaw",
+      "name": "@fortress-optimizer/openclaw-skill",
+      "type": "npm-package",
+      "language": "typescript",
+      "installCmd": "npm install",
+      "testCmd": "npm test",
+      "buildCmd": "npm run build",
+      "entryPoint": "dist/index.js",
+      "exports": ["registerSkill"],
+      "canAutoTest": true
+    },
+    {
+      "id": "vercel-ai-sdk",
+      "name": "@fortress-optimizer/vercel-ai",
+      "type": "npm-package",
+      "language": "typescript",
+      "installCmd": "npm install",
+      "testCmd": "npm test",
+      "buildCmd": "npm run build",
+      "entryPoint": "dist/index.js",
+      "exports": ["fortressMiddleware", "createFortressClient"],
+      "canAutoTest": true
+    },
+    {
+      "id": "anthropic-sdk",
+      "name": "fortress-anthropic",
+      "type": "python-package",
+      "language": "python",
+      "installCmd": "pip install -r requirements.txt",
+      "entryPoint": "wrapper.py",
+      "exports": ["FortressAnthropicClient", "FortressAsyncAnthropicClient"],
+      "canAutoTest": true
+    },
+    {
+      "id": "langchain",
+      "name": "fortress-langchain",
+      "type": "python-package",
+      "language": "python",
+      "installCmd": "pip install -r requirements.txt",
+      "entryPoint": "fortress_langchain/__init__.py",
+      "exports": ["FortressCallbackHandler", "FortressOptimizedLLM", "FortressClient"],
+      "canAutoTest": true
+    },
+    {
+      "id": "slack",
+      "name": "fortress-slack-bot",
+      "type": "python-app",
+      "language": "python",
+      "installCmd": "pip install -r requirements.txt",
+      "entryPoint": "bot.py",
+      "commands": ["optimize", "usage", "help", "pricing"],
+      "canAutoTest": true
+    },
+    {
+      "id": "sublime",
+      "name": "fortress-sublime",
+      "type": "editor-plugin",
+      "language": "python",
+      "entryPoint": "fortress.py",
+      "commands": ["optimize_selection", "optimize_line", "show_usage"],
+      "canAutoTest": false,
+      "contractOnly": true
+    },
+    {
+      "id": "copilot",
+      "name": "fortress-copilot",
+      "type": "vscode-extension",
+      "language": "typescript",
+      "entryPoint": "extension.ts",
+      "commands": ["optimize", "usage", "level"],
+      "canAutoTest": false,
+      "contractOnly": true
+    },
+    {
+      "id": "cursor",
+      "name": "fortress-cursor",
+      "type": "vscode-extension",
+      "language": "typescript",
+      "entryPoint": "src/extension.ts",
+      "commands": ["optimizeSelection", "optimizeClipboard", "showUsage"],
+      "canAutoTest": false,
+      "contractOnly": true
+    },
+    {
+      "id": "vscode-enhanced",
+      "name": "fortress-vscode-enhanced",
+      "type": "vscode-extension",
+      "language": "typescript",
+      "entryPoint": "src/extension.ts",
+      "commands": ["optimize", "batchOptimize", "showAnalytics"],
+      "canAutoTest": false,
+      "contractOnly": true
+    },
+    {
+      "id": "jetbrains",
+      "name": "fortress-jetbrains",
+      "type": "ide-plugin",
+      "language": "kotlin",
+      "buildCmd": "gradle build",
+      "canAutoTest": false,
+      "contractOnly": true
+    },
+    {
+      "id": "neovim",
+      "name": "fortress-neovim",
+      "type": "editor-plugin",
+      "language": "lua",
+      "entryPoint": "init.lua",
+      "commands": ["FortressOptimize", "FortressOptimizeBuffer", "FortressUsage"],
+      "canAutoTest": false,
+      "contractOnly": true
+    },
+    {
+      "id": "claude-desktop",
+      "name": "fortress-claude-desktop",
+      "type": "electron-app",
+      "language": "typescript",
+      "buildCmd": "npm run build",
+      "canAutoTest": false,
+      "contractOnly": true
+    },
+    {
+      "id": "gpt-store",
+      "name": "fortress-gpt",
+      "type": "openai-gpt",
+      "language": "json",
+      "canAutoTest": false,
+      "contractOnly": true
+    },
+    {
+      "id": "bing-copilot",
+      "name": "fortress-bing",
+      "type": "bing-plugin",
+      "language": "typescript",
+      "canAutoTest": false,
+      "contractOnly": true
+    },
+    {
+      "id": "make-zapier",
+      "name": "fortress-automation",
+      "type": "automation-integration",
+      "language": "json",
+      "canAutoTest": false,
+      "contractOnly": true
+    }
+  ]
+}

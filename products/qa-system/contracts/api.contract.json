@@ -1,0 +1,115 @@
+{
+  "$schema": "api-contract-v1",
+  "baseUrl": "https://api.fortress-optimizer.com",
+  "endpoints": {
+    "health": {
+      "method": "GET",
+      "path": "/health",
+      "auth": false,
+      "expectedStatus": 200,
+      "responseSchema": {
+        "required": ["status", "timestamp", "version", "database"],
+        "status": "healthy",
+        "database": "connected"
+      }
+    },
+    "pricing": {
+      "method": "GET",
+      "path": "/api/pricing",
+      "auth": false,
+      "expectedStatus": 200,
+      "responseSchema": {
+        "required": ["tiers"],
+        "tiers": ["free", "pro", "team", "enterprise"]
+      }
+    },
+    "providers": {
+      "method": "GET",
+      "path": "/api/providers",
+      "auth": true,
+      "expectedStatus": 200,
+      "responseSchema": {
+        "required": ["providers", "count"],
+        "minProviders": 6
+      }
+    },
+    "optimize": {
+      "method": "POST",
+      "path": "/api/optimize",
+      "auth": true,
+      "expectedStatus": 200,
+      "requestSchema": {
+        "required": ["prompt"],
+        "optional": ["level", "provider"],
+        "promptMinLength": 1,
+        "promptMaxLength": 50000,
+        "validLevels": ["conservative", "balanced", "aggressive"],
+        "validProviders": ["openai", "anthropic", "azure", "gemini", "groq", "ollama"]
+      },
+      "responseSchema": {
+        "required": ["request_id", "status", "optimization", "tokens", "timestamp"],
+        "requestIdPattern": "^opt_",
+        "optimization": {
+          "required": ["optimized_prompt", "technique"]
+        },
+        "tokens": {
+          "required": ["original", "optimized", "savings", "savings_percentage"]
+        }
+      }
+    },
+    "usage": {
+      "method": "GET",
+      "path": "/api/usage",
+      "auth": true,
+      "expectedStatus": 200,
+      "responseSchema": {
+        "required": ["tier", "tokens_optimized", "tokens_saved", "requests", "tokens_limit", "tokens_remaining", "rate_limit"]
+      }
+    },
+    "register": {
+      "method": "POST",
+      "path": "/api/keys/register",
+      "auth": false,
+      "expectedStatus": 200,
+      "requestSchema": {
+        "required": ["name"],
+        "optional": ["tier"],
+        "tierRestriction": "free"
+      },
+      "responseSchema": {
+        "required": ["api_key", "tier", "name", "rate_limits"],
+        "apiKeyPattern": "^fk_"
+      }
+    },
+    "rotate": {
+      "method": "POST",
+      "path": "/api/keys/rotate",
+      "auth": true,
+      "expectedStatus": 200,
+      "responseSchema": {
+        "required": ["api_key", "message"],
+        "apiKeyPattern": "^fk_"
+      }
+    },
+    "deactivate": {
+      "method": "DELETE",
+      "path": "/api/keys",
+      "auth": true,
+      "expectedStatus": 200,
+      "responseSchema": {
+        "required": ["message"]
+      }
+    }
+  },
+  "rateLimits": {
+    "requestsPerMinute": 100,
+    "requestsPerDay": 10000,
+    "headers": ["X-RateLimit-Limit", "X-RateLimit-Remaining", "X-RateLimit-Reset"]
+  },
+  "tiers": {
+    "free": { "tokensPerMonth": 50000, "unlimited": false },
+    "pro": { "tokensPerMonth": null, "unlimited": true },
+    "team": { "tokensPerMonth": null, "unlimited": true },
+    "enterprise": { "tokensPerMonth": null, "unlimited": true }
+  }
+}

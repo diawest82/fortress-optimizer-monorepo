@@ -98,5 +98,54 @@ export default defineConfig({
       testMatch: '*.spec.ts',
       timeout: 30000,
     },
+    // ─── Product QA Agents ───────────────────────────────────────
+    {
+      name: 'product-api-contract',
+      testDir: './qa-system/product-agents',
+      testMatch: '01-api-contract.spec.ts',
+      timeout: 30000,
+    },
+    {
+      name: 'product-quality',
+      testDir: './qa-system/product-agents',
+      testMatch: '02-optimization-quality.spec.ts',
+      timeout: 30000,
+    },
+    {
+      name: 'product-npm-sdk',
+      testDir: './qa-system/product-agents',
+      testMatch: '03-npm-sdk.spec.ts',
+      timeout: 120000,
+    },
+    {
+      name: 'product-python-sdk',
+      testDir: './qa-system/product-agents',
+      testMatch: '04-python-sdk.spec.ts',
+      timeout: 30000,
+    },
+    {
+      name: 'product-key-lifecycle',
+      testDir: './qa-system/product-agents',
+      testMatch: '05-key-lifecycle.spec.ts',
+      timeout: 30000,
+    },
+    {
+      name: 'product-cross',
+      testDir: './qa-system/product-agents',
+      testMatch: '06-cross-product.spec.ts',
+      timeout: 30000,
+    },
+    {
+      name: 'product-ide-plugins',
+      testDir: './qa-system/product-agents',
+      testMatch: '07-ide-plugins.spec.ts',
+      timeout: 30000,
+    },
+    {
+      name: 'product-all',
+      testDir: './qa-system/product-agents',
+      testMatch: '*.spec.ts',
+      timeout: 120000,
+    },
   ],
 });
