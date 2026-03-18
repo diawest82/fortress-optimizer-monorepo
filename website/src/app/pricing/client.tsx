@@ -74,11 +74,29 @@ export default function PricingClient() {
       return;
     }
 
-    // Check both NextAuth session and custom auth token
+    // Check authentication — need to be logged in for paid tiers
     const hasCustomAuth = typeof window !== 'undefined' && !!localStorage.getItem('auth_token');
-    if (!sessionResult.data && !hasCustomAuth) {
-      router.push("/auth/login");
-      return;
+    const isAuthenticated = !!sessionResult.data || hasCustomAuth;
+    const isSessionLoading = sessionResult.status === 'loading';
+
+    if (!isAuthenticated) {
+      // If session is still loading, wait briefly then check again
+      if (isSessionLoading) {
+        setLoading(tierDisplay);
+        // Give NextAuth a moment to resolve
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        const stillNoAuth = !sessionResult.data && !localStorage.getItem('auth_token');
+        if (stillNoAuth) {
+          setLoading(null);
+          router.push(`/auth/login?callbackUrl=${encodeURIComponent('/pricing')}`);
+          return;
+        }
+        setLoading(null);
+      } else {
+        // Definitively unauthenticated
+        router.push(`/auth/login?callbackUrl=${encodeURIComponent('/pricing')}`);
+        return;
+      }
     }
 
     if (tier === "enterprise") {

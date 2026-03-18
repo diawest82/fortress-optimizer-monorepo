@@ -132,17 +132,22 @@ test.describe('Navigation Agent: Router-Based Navigation', () => {
       await el.scrollIntoViewIfNeeded();
       await el.click();
 
-      // Router navigation is client-side — wait for URL change
-      await page.waitForTimeout(5000);
+      // Router navigation is client-side — subscribe buttons now wait for session then redirect
+      // Wait up to 10s for the redirect (2s session check + navigation time)
+      try {
+        await page.waitForURL(url => !url.toString().includes(link.source), { timeout: 10000 });
+      } catch {
+        // If still on source page, that's acceptable if session check is in progress
+      }
 
       const currentUrl = page.url().replace(BASE, '');
-      // Router-based nav may stay on page if session is loading
-      // At minimum, must NOT go to a broken route
       const wentToExpected = currentUrl.includes(link.expectedDestination);
+      const wentToLoginWithCallback = currentUrl.includes('/auth/login') && currentUrl.includes('callbackUrl');
       const stayedOnSource = currentUrl.includes(link.source.slice(1));
+
       expect(
-        wentToExpected || stayedOnSource,
-        `${link.id}: Expected ${link.expectedDestination} or stay on ${link.source}, but got ${currentUrl}`
+        wentToExpected || wentToLoginWithCallback || stayedOnSource,
+        `${link.id}: Expected ${link.expectedDestination}, login with callback, or stay on ${link.source}, but got ${currentUrl}`
       ).toBe(true);
 
       if (link.pageMarker) {
