@@ -4,7 +4,10 @@ import { logLoginAttempt, logAccountLocked } from "@/lib/audit-log";
 import { setAuthTokenCookie } from "@/lib/secure-cookies";
 import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
 import { prisma } from "@/lib/prisma";
+
+const JWT_SECRET = process.env.JWT_SECRET || process.env.NEXTAUTH_SECRET || "CHANGE-THIS-IN-PRODUCTION";
 
 export async function POST(req: NextRequest) {
   try {
@@ -71,15 +74,12 @@ export async function POST(req: NextRequest) {
       // ============ PHASE 4: Audit Log - Successful Login ============
       await logLoginAttempt(email, clientIp, userAgent, true);
 
-      // ============ Generate Simple Token (Base64 encoded JSON) ============
-      const tokenData = {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        iat: Math.floor(Date.now() / 1000),
-        exp: Math.floor(Date.now() / 1000) + 86400, // 24 hours
-      };
-      const token = Buffer.from(JSON.stringify(tokenData)).toString("base64");
+      // ============ Generate Signed JWT ============
+      const token = jwt.sign(
+        { id: user.id, email: user.email, name: user.name },
+        JWT_SECRET,
+        { expiresIn: "24h" }
+      );
 
       const response = NextResponse.json(
         {

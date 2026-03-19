@@ -4,27 +4,15 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { getUserIdFromRequest } from '@/lib/jwt-auth';
 import { prisma } from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
 
-function extractUserIdFromToken(req: NextRequest): string | null {
-  const authHeader = req.headers.get('authorization');
-  if (!authHeader?.startsWith('Bearer ')) {
-    return null;
-  }
 
-  try {
-    const token = authHeader.substring(7);
-    const decoded = JSON.parse(Buffer.from(token, 'base64').toString('utf-8'));
-    return decoded.id;
-  } catch {
-    return null;
-  }
-}
 
 export async function POST(req: NextRequest) {
   try {
-    const userId = extractUserIdFromToken(req);
+    const userId = getUserIdFromRequest(req);
     if (!userId) {
       return NextResponse.json(
         { error: 'Unauthorized' },

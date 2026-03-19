@@ -5,6 +5,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { getUserIdFromRequest } from '@/lib/jwt-auth';
 import crypto from 'crypto';
 
 // In-memory store for API keys (replace with database in production)
@@ -17,20 +18,7 @@ const apiKeys: Map<string, {
   lastUsed?: Date;
 }> = new Map();
 
-function extractUserIdFromToken(req: NextRequest): string | null {
-  const authHeader = req.headers.get('authorization');
-  if (!authHeader?.startsWith('Bearer ')) {
-    return null;
-  }
 
-  try {
-    const token = authHeader.substring(7);
-    const decoded = JSON.parse(Buffer.from(token, 'base64').toString('utf-8'));
-    return decoded.id;
-  } catch {
-    return null;
-  }
-}
 
 function generateApiKey(): string {
   return 'fz_' + crypto.randomBytes(32).toString('hex');
@@ -38,7 +26,7 @@ function generateApiKey(): string {
 
 export async function GET(req: NextRequest) {
   try {
-    const userId = extractUserIdFromToken(req);
+    const userId = getUserIdFromRequest(req);
     if (!userId) {
       return NextResponse.json(
         { error: 'Unauthorized' },
@@ -69,7 +57,7 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    const userId = extractUserIdFromToken(req);
+    const userId = getUserIdFromRequest(req);
     if (!userId) {
       return NextResponse.json(
         { error: 'Unauthorized' },

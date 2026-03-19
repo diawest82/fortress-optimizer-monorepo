@@ -6,6 +6,9 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import jwt from 'jsonwebtoken';
+
+const JWT_SECRET = process.env.JWT_SECRET || process.env.NEXTAUTH_SECRET || 'CHANGE-THIS-IN-PRODUCTION';
 
 function extractUserIdFromToken(req: NextRequest): string | null {
   const authHeader = req.headers.get('authorization');
@@ -15,8 +18,7 @@ function extractUserIdFromToken(req: NextRequest): string | null {
 
   try {
     const token = authHeader.substring(7);
-    // Token is base64 encoded JSON
-    const decoded = JSON.parse(Buffer.from(token, 'base64').toString('utf-8'));
+    const decoded = jwt.verify(token, JWT_SECRET) as { id: string };
     return decoded.id;
   } catch {
     return null;

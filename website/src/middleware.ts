@@ -1,11 +1,29 @@
 import { getToken } from "next-auth/jwt";
+import { jwtVerify } from "jose";
 import { NextRequest, NextResponse } from "next/server";
 
+const JWT_SECRET = new TextEncoder().encode(
+  process.env.JWT_SECRET || process.env.NEXTAUTH_SECRET || "CHANGE-THIS-IN-PRODUCTION"
+);
+
+async function verifyCustomToken(token: string): Promise<boolean> {
+  try {
+    await jwtVerify(token, JWT_SECRET);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 export async function middleware(request: NextRequest) {
-  // Check both NextAuth session and custom auth cookie
+  // Check NextAuth session
   const nextAuthToken = await getToken({ req: request });
-  const customAuthToken = request.cookies.get("fortress_auth_token")?.value;
-  const token = nextAuthToken || customAuthToken;
+
+  // Check custom auth cookie — VERIFY the JWT signature, don't just check existence
+  const customCookie = request.cookies.get("fortress_auth_token")?.value;
+  const customTokenValid = customCookie ? await verifyCustomToken(customCookie) : false;
+
+  const isAuthenticated = !!nextAuthToken || customTokenValid;
   const pathname = request.nextUrl.pathname;
 
   // Block test pages entirely in production
@@ -21,7 +39,7 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith(route)
   );
 
-  if (isProtected && !token) {
+  if (isProtected && !isAuthenticated) {
     const url = request.nextUrl.clone();
     url.pathname = "/auth/login";
     url.searchParams.set("callbackUrl", pathname);
@@ -31,7 +49,7 @@ export async function middleware(request: NextRequest) {
   // Redirect logged-in users away from auth pages
   if (
     (pathname.startsWith("/auth/login") || pathname.startsWith("/auth/signup")) &&
-    token
+    isAuthenticated
   ) {
     return NextResponse.redirect(new URL("/account", request.url));
   }

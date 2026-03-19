@@ -4,6 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { getUserIdFromRequest } from '@/lib/jwt-auth';
 
 // Note: This should use a database in production. For now using in-memory storage.
 interface ApiKey {
@@ -17,20 +18,7 @@ interface ApiKey {
 
 const apiKeys: Map<string, ApiKey> = new Map();
 
-function extractUserIdFromToken(req: NextRequest): string | null {
-  const authHeader = req.headers.get('authorization');
-  if (!authHeader?.startsWith('Bearer ')) {
-    return null;
-  }
 
-  try {
-    const token = authHeader.substring(7);
-    const decoded = JSON.parse(Buffer.from(token, 'base64').toString('utf-8'));
-    return decoded.id;
-  } catch {
-    return null;
-  }
-}
 
 export async function DELETE(
   req: NextRequest,
@@ -38,7 +26,7 @@ export async function DELETE(
 ) {
   try {
     const { id: keyId } = await params;
-    const userId = extractUserIdFromToken(req);
+    const userId = getUserIdFromRequest(req);
     if (!userId) {
       return NextResponse.json(
         { error: 'Unauthorized' },

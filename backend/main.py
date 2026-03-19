@@ -152,8 +152,9 @@ app.add_middleware(
     max_age=600,
 )
 
-# Mount extension routes (/api/extension/*)
-app.include_router(extension_router)
+# Extension routes are stubbed — only mount in development
+if not _is_production:
+    app.include_router(extension_router)
 
 
 # ============================================================================
@@ -318,12 +319,19 @@ async def optimize(
     Never exposes algorithm details to the client.
     """
     try:
-        # Enforce free tier token limit
+        # Enforce free tier token limit (with monthly reset)
         key_hash = _hash_key(api_key)
         db_key = db.query(ApiKey).filter(ApiKey.key_hash == key_hash).first()
         if db_key:
+            # Reset monthly counter if a new month has started
+            now = datetime.utcnow()
+            if db_key.monthly_reset_at is None or now.month != db_key.monthly_reset_at.month or now.year != db_key.monthly_reset_at.year:
+                db_key.monthly_tokens_used = 0
+                db_key.monthly_reset_at = now
+                db.commit()
+
             tier_config = PRICING_TIERS.get(db_key.tier, PRICING_TIERS["free"])
-            if not tier_config.get("unlimited") and db_key.tokens_optimized >= tier_config["tokens_per_month"]:
+            if not tier_config.get("unlimited") and db_key.monthly_tokens_used >= tier_config["tokens_per_month"]:
                 raise HTTPException(
                     status_code=429,
                     detail=f"Free tier limit of {tier_config['tokens_per_month']} tokens/month exceeded. Upgrade to Pro for unlimited.",
@@ -343,6 +351,7 @@ async def optimize(
         if db_key:
             db_key.tokens_optimized += result.original_tokens
             db_key.tokens_saved += result.savings
+            db_key.monthly_tokens_used += result.original_tokens
             db_key.requests += 1
             db_key.last_used_at = datetime.utcnow()
             if not db_key.first_used_at:

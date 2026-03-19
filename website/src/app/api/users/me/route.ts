@@ -6,26 +6,14 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { getUserIdFromRequest } from '@/lib/jwt-auth';
 import { prisma } from '@/lib/prisma';
 
-function extractUserIdFromToken(req: NextRequest): string | null {
-  const authHeader = req.headers.get('authorization');
-  if (!authHeader?.startsWith('Bearer ')) {
-    return null;
-  }
 
-  try {
-    const token = authHeader.substring(7);
-    const decoded = JSON.parse(Buffer.from(token, 'base64').toString('utf-8'));
-    return decoded.id;
-  } catch {
-    return null;
-  }
-}
 
 export async function GET(req: NextRequest) {
   try {
-    const userId = extractUserIdFromToken(req);
+    const userId = getUserIdFromRequest(req);
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -56,7 +44,7 @@ export async function GET(req: NextRequest) {
 
 export async function PUT(req: NextRequest) {
   try {
-    const userId = extractUserIdFromToken(req);
+    const userId = getUserIdFromRequest(req);
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -94,7 +82,7 @@ export async function PUT(req: NextRequest) {
 
 export async function DELETE(req: NextRequest) {
   try {
-    const userId = extractUserIdFromToken(req);
+    const userId = getUserIdFromRequest(req);
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
