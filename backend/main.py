@@ -453,7 +453,7 @@ async def get_pricing():
             },
             "pro": {
                 "tokens_per_month": "unlimited",
-                "price_monthly": 9.99,
+                "price_monthly": 15.00,
                 "max_seats": 1,
                 "features": ["Unlimited tokens", "All 12 integration platforms", "Advanced analytics", "API access", "Email support"],
             },
@@ -462,11 +462,11 @@ async def get_pricing():
                 "price_monthly": "sliding_scale",
                 "max_seats": 500,
                 "pricing_scale": {
-                    "1-5": {"base": 49, "per_seat": 9.80},
-                    "6-25": {"per_seat": 8.00},
-                    "26-100": {"per_seat": 6.00},
-                    "101-249": {"per_seat": 5.00},
-                    "250-500": {"per_seat": 4.00},
+                    "1-5": {"base": 60, "per_seat": 12.00},
+                    "6-25": {"per_seat": 10.00},
+                    "26-100": {"per_seat": 8.00},
+                    "101-249": {"per_seat": 7.00},
+                    "250-500": {"per_seat": 6.00},
                 },
                 "features": [
                     "Unlimited tokens for every seat",

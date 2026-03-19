@@ -489,7 +489,7 @@ export default function AccountContent() {
                 <h1 className="text-3xl font-bold text-white mb-6">Subscription & Billing</h1>
                 <SubscriptionManagement
                   currentTier={user.tier || "free"}
-                  currentPrice={user.tier === "starter" ? 9.99 : user.tier === "teams" ? 99 : 0}
+                  currentPrice={user.tier === "starter" ? 15 : user.tier === "teams" ? 60 : 0}
                   nextBillingDate={new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()}
                   usagePercentage={subscription ? Math.round((subscription.tokens_used / subscription.tokens_limit) * 100) : 0}
                   invoices={invoices}

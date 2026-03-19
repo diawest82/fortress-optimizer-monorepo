@@ -9,19 +9,19 @@ import { analytics } from "@/lib/tracking";
 // Sliding scale team pricing calculator — graduated tiers
 function calculateTeamPrice(seats: number): { total: number; perSeat: number; tier: string; discount: number } {
   if (seats <= 5) {
-    return { total: 49, perSeat: 49 / seats, tier: "Team Starter", discount: 0 };
+    return { total: 60, perSeat: 60 / seats, tier: "Team Starter", discount: 0 };
   } else if (seats <= 25) {
-    const total = 49 + (seats - 5) * 8;
-    return { total, perSeat: total / seats, tier: "Team", discount: Math.round((1 - (total / seats) / 9.80) * 100) };
+    const total = 60 + (seats - 5) * 10;
+    return { total, perSeat: total / seats, tier: "Team", discount: Math.round((1 - (total / seats) / 12.00) * 100) };
   } else if (seats <= 100) {
-    const total = 49 + 20 * 8 + (seats - 25) * 6;
-    return { total, perSeat: total / seats, tier: "Team Business", discount: Math.round((1 - (total / seats) / 9.80) * 100) };
+    const total = 60 + 20 * 10 + (seats - 25) * 8;
+    return { total, perSeat: total / seats, tier: "Team Business", discount: Math.round((1 - (total / seats) / 12.00) * 100) };
   } else if (seats <= 249) {
-    const total = 49 + 20 * 8 + 75 * 6 + (seats - 100) * 5;
-    return { total, perSeat: total / seats, tier: "Team Scale", discount: Math.round((1 - (total / seats) / 9.80) * 100) };
+    const total = 60 + 20 * 10 + 75 * 8 + (seats - 100) * 7;
+    return { total, perSeat: total / seats, tier: "Team Scale", discount: Math.round((1 - (total / seats) / 12.00) * 100) };
   } else if (seats <= 500) {
-    const total = 49 + 20 * 8 + 75 * 6 + 149 * 5 + (seats - 249) * 4;
-    return { total, perSeat: total / seats, tier: "Team Scale+", discount: Math.round((1 - (total / seats) / 9.80) * 100) };
+    const total = 60 + 20 * 10 + 75 * 8 + 149 * 7 + (seats - 249) * 6;
+    return { total, perSeat: total / seats, tier: "Team Scale+", discount: Math.round((1 - (total / seats) / 12.00) * 100) };
   }
   return { total: 0, perSeat: 0, tier: "Enterprise", discount: 0 };
 }
@@ -189,7 +189,7 @@ export default function PricingClient() {
               <p className="text-sm text-slate-400">For individual developers</p>
             </div>
             <div className="mb-8">
-              <span className="text-4xl font-bold text-white">$9.99</span>
+              <span className="text-4xl font-bold text-white">$15</span>
               <span className="text-slate-400">/month</span>
             </div>
             <button
@@ -361,7 +361,7 @@ export default function PricingClient() {
                   <h4 className="text-sm font-semibold text-white mb-4">Pricing Breakdown</h4>
                   <div className="space-y-3">
                     {[
-                      { range: "1-5 seats", rate: "$9.80/seat", total: "$49 base" },
+                      { range: "1-5 seats", rate: "$12.00/seat", total: "$60 base" },
                       { range: "6-25 seats", rate: "$8.00/seat", total: "+$8 each" },
                       { range: "26-100 seats", rate: "$6.00/seat", total: "+$6 each" },
                       { range: "101-249 seats", rate: "$5.00/seat", total: "+$5 each" },
@@ -474,7 +474,7 @@ export default function PricingClient() {
           {[
             {
               q: "How does team pricing work?",
-              a: "Team pricing uses a sliding scale — the more seats you add, the less you pay per seat. It starts at $9.80/seat for the first 5, drops to $8/seat for 6-25, $6/seat for 26-100, and $4/seat for 101-500. Use the calculator above to see your exact price.",
+              a: "Team pricing uses a sliding scale — the more seats you add, the less you pay per seat. It starts at $12/seat for the first 5, drops to $10/seat for 6-25, $8/seat for 26-100, $7/seat for 101-249, and $6/seat for 250-500. Use the calculator above to see your exact price.",
             },
             {
               q: "Can I add or remove seats anytime?",

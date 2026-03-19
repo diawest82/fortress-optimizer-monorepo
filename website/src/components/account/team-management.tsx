@@ -63,7 +63,7 @@ export default function TeamManagement({
           <div>
             <h3 className="text-xl font-semibold text-white mb-2">Team Management</h3>
             <p className="text-slate-400 mb-4">
-              Upgrade to <span className="font-semibold text-cyan-400">Teams ($99/month)</span> to:
+              Upgrade to <span className="font-semibold text-cyan-400">Teams (from $60/month)</span> to:
             </p>
             <ul className="space-y-2 text-sm text-slate-300">
               <li className="flex items-center gap-2">

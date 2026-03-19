@@ -45,8 +45,8 @@ export default function SubscriptionManagement({
     },
     {
       id: 'starter',
-      name: 'Sign Up',
-      price: 9.99,
+      name: 'Pro',
+      price: 15,
       tokens: 'Unlimited',
       features: ['Unlimited tokens', 'All 5 integration channels', 'Advanced analytics', 'API access', 'Email support'],
       color: 'from-blue-500 to-blue-600',
@@ -55,7 +55,7 @@ export default function SubscriptionManagement({
     {
       id: 'teams',
       name: 'Teams',
-      price: 99,
+      price: 60,
       tokens: 'Unlimited',
       features: ['Unlimited tokens', 'Team management', 'Advanced analytics', 'Priority support', 'Slack integration'],
       color: 'from-cyan-500 to-cyan-600',

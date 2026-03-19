@@ -144,8 +144,8 @@ export async function POST(req: NextRequest) {
         if (user?.email) {
           try {
             const tierPrices: Record<string, string> = {
-              starter: '$9.99/month',
-              individual: '$9.99/month',
+              starter: '$15/month',
+              individual: '$15/month',
               teams: '$99/month',
               enterprise: 'Custom',
             };

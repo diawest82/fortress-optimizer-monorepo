@@ -14,13 +14,13 @@ export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
 // Pricing tier configuration
 export const PRICING_TIERS = {
   individual: {
-    name: 'Individual',
-    price: 9.99,
+    name: 'Pro',
+    price: 15,
     currency: 'usd',
     interval: 'month' as const,
     features: [
-      '500K tokens/month',
-      'All 5 integration channels',
+      'Unlimited tokens',
+      'All 12 integration platforms',
       'Real-time optimization',
       'Advanced analytics dashboard',
       'Email support',
@@ -31,7 +31,7 @@ export const PRICING_TIERS = {
   },
   teams: {
     name: 'Teams',
-    price: 99,
+    price: 60,
     currency: 'usd',
     interval: 'month' as const,
     features: [
