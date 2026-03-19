@@ -29,35 +29,52 @@ const ADJECTIVES = new Set([
 const countTokens = (value: string) =>
   value.trim().length === 0 ? 0 : value.trim().split(/\s+/).length;
 
+// Client-side optimization demo — mirrors backend techniques
+const FILLERS = new Set(['please', 'basically', 'essentially', 'actually', 'really', 'very', 'quite', 'just', 'simply', 'literally', 'honestly', 'clearly', 'obviously', 'definitely', 'certainly', 'perhaps', 'maybe', 'possibly']);
+const REDUNDANT_PHRASES: [RegExp, string][] = [
+  [/in order to/gi, 'to'],
+  [/as a result of/gi, 'from'],
+  [/at this point in time/gi, 'now'],
+  [/due to the fact that/gi, 'because'],
+  [/for the purpose of/gi, 'for'],
+  [/in the event that/gi, 'if'],
+  [/a large number of/gi, 'many'],
+  [/the vast majority of/gi, 'most'],
+  [/provide a .* summary/gi, 'summarize'],
+  [/provide .* analysis/gi, 'analyze'],
+  [/and also /gi, 'and '],
+  [/each and every/gi, 'every'],
+  [/first and foremost/gi, 'first'],
+];
+
 const optimize = (value: string, level: number) => {
-  let text = value.replace(/\s{2,}/g, " ").trim();
+  let text = value.replace(/\s{2,}/g, ' ').trim();
+
+  // Level 1: normalize whitespace only
   if (level >= 2) {
-    text = text.replace(/please/gi, "");
-    text = text.replace(/provide a/gi, "");
-    text = text.replace(/very /gi, "");
+    // Remove filler words
+    const words = text.split(/\s+/);
+    text = words.filter(w => !FILLERS.has(w.toLowerCase().replace(/[.,!?;:]/g, ''))).join(' ');
   }
   if (level >= 3) {
-    text = text.replace(/highlight/gi, "list");
-    text = text.replace(/and comprehensive/gi, "");
-    text = text.replace(/and any/gi, "and");
-    text = text.replace(/that might/gi, "that");
-    text = text.replace(/Include /gi, "");
+    // Replace redundant phrases
+    for (const [pattern, replacement] of REDUNDANT_PHRASES) {
+      text = text.replace(pattern, replacement);
+    }
   }
   if (level >= 4) {
-    text = text.replace(/deployment timeline/gi, "launch");
-    text = text.replace(/support call/gi, "call");
-    text = text.replace(/technical details and recommendations/gi, "details");
-    text = text.replace(/potential solutions/gi, "solutions");
+    // Remove unnecessary adjectives
+    text = text.split(/\s+/)
+      .filter(w => !ADJECTIVES.has(w.toLowerCase()))
+      .join(' ');
   }
   if (level >= 5) {
-    text = text.replace(/and discuss /gi, "");
-    text = text.replace(/carefully /gi, "");
+    // Aggressive: shorten common patterns
+    text = text.replace(/\band\b/gi, '&');
+    text = text.replace(/\bwith\b/gi, 'w/');
   }
-  const tokens = text
-    .split(/\s+/)
-    .filter((word) => word.length > 0)
-    .filter((word) => (level >= 5 ? !ADJECTIVES.has(word.toLowerCase()) : true));
-  return tokens.join(" ");
+
+  return text.replace(/\s{2,}/g, ' ').trim();
 };
 
 export default function HowItWorks() {

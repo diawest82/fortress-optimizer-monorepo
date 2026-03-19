@@ -43,6 +43,7 @@ export default function PricingClient() {
   const [loading, setLoading] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
   const [teamSeats, setTeamSeats] = useState(5);
+  const [annual, setAnnual] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -147,6 +148,20 @@ export default function PricingClient() {
       <section className="space-y-12">
         <PricingHero />
 
+        {/* Billing toggle */}
+        <div className="flex items-center justify-center gap-3">
+          <span className={`text-sm font-medium ${!annual ? 'text-white' : 'text-slate-500'}`}>Monthly</span>
+          <button
+            onClick={() => setAnnual(!annual)}
+            className={`relative w-12 h-6 rounded-full transition ${annual ? 'bg-emerald-500' : 'bg-slate-700'}`}
+            aria-label="Toggle annual billing"
+          >
+            <div className={`absolute top-0.5 w-5 h-5 rounded-full bg-white transition ${annual ? 'left-6' : 'left-0.5'}`} />
+          </button>
+          <span className={`text-sm font-medium ${annual ? 'text-white' : 'text-slate-500'}`}>Annual</span>
+          {annual && <span className="text-xs bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded-full font-semibold">Save 20%</span>}
+        </div>
+
         {/* Free + Pro cards side by side */}
         <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3 max-w-6xl mx-auto w-full">
           {/* Free */}
@@ -189,8 +204,8 @@ export default function PricingClient() {
               <p className="text-sm text-slate-400">For individual developers</p>
             </div>
             <div className="mb-8">
-              <span className="text-4xl font-bold text-white">$15</span>
-              <span className="text-slate-400">/month</span>
+              <span className="text-4xl font-bold text-white">${annual ? '12' : '15'}</span>
+              <span className="text-slate-400">/{annual ? 'mo (billed annually)' : 'month'}</span>
             </div>
             <button
               onClick={() => handleCheckout("Pro")}

@@ -144,7 +144,7 @@ export default function ComparePage() {
                   borderBottom: '2px solid rgba(59, 130, 246, 0.3)',
                   color: '#c7d2fe',
                   fontSize: '0.95rem',
-                }}>CloudFlare</th>
+                }}>Response Caching</th>
                 <th style={{
                   padding: '16px',
                   textAlign: 'left',
@@ -152,7 +152,7 @@ export default function ComparePage() {
                   borderBottom: '2px solid rgba(59, 130, 246, 0.3)',
                   color: '#c7d2fe',
                   fontSize: '0.95rem',
-                }}>Azure/Google</th>
+                }}>Prompt Caching</th>
                 <th style={{
                   padding: '16px',
                   textAlign: 'left',
@@ -532,24 +532,24 @@ export default function ComparePage() {
         
         <div className={styles.failuresGrid}>
           <div className={styles.failure}>
-            <h3>❌ CloudFlare</h3>
+            <h3>Response Caching (Portkey, GPTCache)</h3>
             <p>
-              <strong>The problem:</strong> Focuses on edge computing and caching, not token 
-              reduction. You still pay full price for the tokens you send.
+              <strong>The limitation:</strong> Only helps with repeated identical prompts.
+              Most real-world usage has unique prompts — caching miss rate is 80%+.
             </p>
             <p className={styles.failureDetail}>
-              Result: 0% actual cost reduction
+              Result: 5-15% savings on cache hits only
             </p>
           </div>
 
           <div className={styles.failure}>
-            <h3>❌ Azure/Google Built-in Optimization</h3>
+            <h3>Prompt Caching (Anthropic, OpenAI)</h3>
             <p>
-              <strong>The problem:</strong> Minimal compression (2-5%) and locks you into 
-              their ecosystem. Migration costs thousands.
+              <strong>The limitation:</strong> Caches system prompts and prefixes, not user content.
+              Saves on repeated system messages but not on the variable parts of prompts.
             </p>
             <p className={styles.failureDetail}>
-              Result: 2-5% savings, $$$$ switching cost
+              Result: 10-50% on system prompt tokens only
             </p>
           </div>
 

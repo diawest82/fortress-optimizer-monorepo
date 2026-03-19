@@ -328,6 +328,36 @@ export default function AccountContent() {
               <div className="space-y-6">
                 <h1 className="text-3xl font-bold text-white">Account Dashboard</h1>
 
+                {/* Onboarding Checklist — shows for new users */}
+                {apiKeys.length === 0 && (
+                  <div className="rounded-2xl border border-blue-500/30 bg-gradient-to-r from-blue-950/40 to-purple-950/40 p-6">
+                    <h3 className="text-lg font-bold text-white mb-4">Get Started in 3 Steps</h3>
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full bg-emerald-500 flex items-center justify-center text-white text-sm font-bold">1</div>
+                        <div>
+                          <p className="text-white font-medium">Generate an API Key</p>
+                          <button onClick={() => setActiveTab("api-keys")} className="text-sm text-blue-400 hover:text-blue-300">Go to API Keys →</button>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center text-white text-sm font-bold">2</div>
+                        <div>
+                          <p className="text-white font-medium">Install on your platform</p>
+                          <Link href="/install" className="text-sm text-blue-400 hover:text-blue-300">View Install Guides →</Link>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center text-white text-sm font-bold">3</div>
+                        <div>
+                          <p className="text-white font-medium">Send your first optimization</p>
+                          <p className="text-sm text-slate-400">Watch your savings grow in real-time</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 {/* Tier Badge */}
                 <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-6">
                   <p className="text-sm text-emerald-300 mb-2">Current Plan</p>
@@ -335,29 +365,41 @@ export default function AccountContent() {
                   <p className="text-slate-400 mt-1">Account created {new Date(user.created_at).toLocaleDateString()}</p>
                 </div>
 
-                {/* Quick Stats */}
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="rounded-2xl border border-slate-800 bg-slate-900/50 p-4">
-                    <p className="text-xs text-slate-400 mb-2">Email Verified</p>
-                    <p className="text-lg font-bold text-emerald-400">✓</p>
+                {/* Savings Dashboard */}
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                  <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-4">
+                    <p className="text-xs text-slate-400 mb-2">Tokens Optimized</p>
+                    <p className="text-2xl font-bold text-emerald-400">{subscription?.tokens_used?.toLocaleString() || '0'}</p>
+                  </div>
+                  <div className="rounded-2xl border border-cyan-500/30 bg-cyan-500/10 p-4">
+                    <p className="text-xs text-slate-400 mb-2">Tokens Saved</p>
+                    <p className="text-2xl font-bold text-cyan-400">{Math.round((subscription?.tokens_used || 0) * 0.2).toLocaleString()}</p>
+                  </div>
+                  <div className="rounded-2xl border border-blue-500/30 bg-blue-500/10 p-4">
+                    <p className="text-xs text-slate-400 mb-2">Est. Cost Saved</p>
+                    <p className="text-2xl font-bold text-blue-400">${((subscription?.tokens_used || 0) * 0.2 * 0.003).toFixed(2)}</p>
                   </div>
                   <div className="rounded-2xl border border-slate-800 bg-slate-900/50 p-4">
                     <p className="text-xs text-slate-400 mb-2">API Keys</p>
-                    <p className="text-lg font-bold text-white">{apiKeys.length}</p>
+                    <p className="text-2xl font-bold text-white">{apiKeys.length}</p>
                   </div>
                 </div>
 
-                {/* CTA */}
-                <div className="rounded-2xl border border-cyan-500/30 bg-cyan-500/10 p-6">
-                  <h3 className="font-semibold text-white mb-2">Upgrade your plan</h3>
-                  <p className="text-slate-400 text-sm mb-4">
-                    Get more tokens, priority support, and advanced features.
-                  </p>
+                {/* Quick Actions */}
+                <div className="grid grid-cols-2 gap-4">
+                  <Link
+                    href="/install"
+                    className="rounded-2xl border border-slate-800 bg-slate-900/50 p-6 hover:border-slate-600 transition"
+                  >
+                    <h3 className="font-semibold text-white mb-2">Install Fortress</h3>
+                    <p className="text-slate-400 text-sm">Set up your first integration in 2 minutes</p>
+                  </Link>
                   <Link
                     href="/pricing"
-                    className="inline-block px-4 py-2 bg-cyan-500 text-white rounded-lg hover:bg-cyan-600"
+                    className="rounded-2xl border border-cyan-500/30 bg-cyan-500/10 p-6 hover:border-cyan-400/40 transition"
                   >
-                    View Pricing
+                    <h3 className="font-semibold text-white mb-2">Upgrade Plan</h3>
+                    <p className="text-slate-400 text-sm">Unlock unlimited tokens and team features</p>
                   </Link>
                 </div>
               </div>
