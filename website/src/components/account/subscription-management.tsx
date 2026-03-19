@@ -246,14 +246,21 @@ export default function SubscriptionManagement({
                   </li>
                 ))}
               </ul>
-              <button className={`w-full py-2 rounded-lg font-semibold transition ${
-                tier.id === 'enterprise'
-                  ? 'bg-purple-600 hover:bg-purple-500 text-white'
-                  : currentTier === 'free'
-                  ? 'bg-emerald-600 hover:bg-emerald-500 text-white'
-                  : 'bg-slate-800 hover:bg-slate-700 text-slate-300'
-              }`}>
-                {tier.id === 'enterprise' ? 'Contact Sales' : 'Switch Plan'}
+              <button
+                onClick={() => {
+                  if (tier.id === 'enterprise') return;
+                  window.location.assign('/pricing');
+                }}
+                disabled={tier.id === 'enterprise'}
+                className={`w-full py-2 rounded-lg font-semibold transition ${
+                  tier.id === 'enterprise'
+                    ? 'bg-slate-800 text-slate-500 cursor-not-allowed'
+                    : currentTier === 'free'
+                    ? 'bg-emerald-600 hover:bg-emerald-500 text-white'
+                    : 'bg-slate-800 hover:bg-slate-700 text-slate-300'
+                }`}
+              >
+                {tier.id === 'enterprise' ? 'Coming Soon' : 'Switch Plan'}
               </button>
             </div>
           ))}

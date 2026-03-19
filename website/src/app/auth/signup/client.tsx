@@ -201,7 +201,7 @@ function SignUpContent() {
               className="w-full px-4 py-2 bg-zinc-900 border border-zinc-800 rounded-lg focus:outline-none focus:border-blue-500 transition"
             />
             {formData.password.length > 0 && (
-              <div className="mt-2">
+              <div id="password-strength" className="mt-2">
                 <div className="flex gap-1">
                   {[1, 2, 3, 4].map((i) => {
                     const len = formData.password.length;

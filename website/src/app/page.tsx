@@ -80,16 +80,16 @@ export default function Home() {
           </div>
           <div className="flex flex-wrap gap-4 justify-center">
             <Link
-              href="/dashboard"
-              className="rounded-full border border-blue-500/40 bg-blue-500/10 px-6 py-3 text-sm font-semibold text-blue-300 hover:bg-blue-500/20 transition"
+              href="/auth/signup"
+              className="rounded-full bg-blue-600 hover:bg-blue-500 px-8 py-3 text-sm font-semibold text-white transition"
             >
-              📊 View Dashboard
+              Start Free — No Credit Card
             </Link>
             <Link
               href="/install"
               className="rounded-full border border-blue-500 px-6 py-3 text-sm font-semibold text-blue-300 hover:bg-blue-950/30 transition"
             >
-              ⚡ Install Now
+              View Install Guides
             </Link>
           </div>
         </div>

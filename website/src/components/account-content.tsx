@@ -493,6 +493,19 @@ export default function AccountContent() {
                   nextBillingDate={new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()}
                   usagePercentage={subscription ? Math.round((subscription.tokens_used / subscription.tokens_limit) * 100) : 0}
                   invoices={invoices}
+                  onUpgrade={() => window.location.assign('/pricing')}
+                  onDowngrade={async () => {
+                    try {
+                      await fetch('/api/subscriptions/downgrade', { method: 'POST', credentials: 'include' });
+                      window.location.reload();
+                    } catch { alert('Failed to downgrade. Please contact support.'); }
+                  }}
+                  onCancel={async () => {
+                    try {
+                      await fetch('/api/subscriptions/cancel', { method: 'POST', credentials: 'include' });
+                      window.location.reload();
+                    } catch { alert('Failed to cancel. Please contact support.'); }
+                  }}
                 />
               </div>
             )}
