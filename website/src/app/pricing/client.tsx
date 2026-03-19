@@ -262,7 +262,7 @@ export default function PricingClient() {
                   </p>
                 </div>
 
-                <div className="mb-6">
+                <div className="mb-6" aria-live="polite" aria-atomic="true">
                   <div className="flex items-baseline gap-2">
                     <span className="text-4xl font-bold text-white">
                       ${teamPricing.total}

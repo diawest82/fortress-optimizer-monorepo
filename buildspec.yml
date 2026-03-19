@@ -9,12 +9,12 @@ phases:
       - echo "=== Source files ==="
       - ls -la shared-libs/
       - echo Building Docker image...
-      - docker build --no-cache -f backend/Dockerfile -t fortress-optimizer-backend:v1.2.0 .
+      - docker build --no-cache -f backend/Dockerfile -t fortress-optimizer-backend:v1.5.0 .
       - echo "=== Verifying image contents ==="
-      - docker run --rm fortress-optimizer-backend:v1.2.0 ls -la /app/shared_libs/
-      - docker run --rm fortress-optimizer-backend:v1.2.0 python -c "from shared_libs.fortress_types import OptimizationLevel; print('Import OK')"
+      - docker run --rm fortress-optimizer-backend:v1.5.0 ls -la /app/shared_libs/
+      - docker run --rm fortress-optimizer-backend:v1.5.0 python -c "from shared_libs.fortress_types import OptimizationLevel; print('Import OK')"
   post_build:
     commands:
-      - docker tag fortress-optimizer-backend:v1.2.0 673895432464.dkr.ecr.us-east-1.amazonaws.com/fortress-optimizer-backend:production
+      - docker tag fortress-optimizer-backend:v1.5.0 673895432464.dkr.ecr.us-east-1.amazonaws.com/fortress-optimizer-backend:production
       - docker push 673895432464.dkr.ecr.us-east-1.amazonaws.com/fortress-optimizer-backend:production
       - echo Build complete
