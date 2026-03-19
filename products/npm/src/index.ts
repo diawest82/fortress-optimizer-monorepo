@@ -50,8 +50,11 @@ export class FortressClient {
 
   constructor(apiKey: string, options: ClientOptions = {}) {
     const baseUrl = options.baseUrl || 'https://api.fortress-optimizer.com';
+    if (!baseUrl.startsWith('https://') && !baseUrl.startsWith('http://localhost')) {
+      throw new Error('Fortress API requires HTTPS. Use https:// URLs only.');
+    }
     const timeout = options.timeout || 10000;
-    this.maxRetries = options.maxRetries ?? 3;
+    this.maxRetries = Math.min(options.maxRetries ?? 3, 10);
 
     this.api = axios.create({
       baseURL: baseUrl,

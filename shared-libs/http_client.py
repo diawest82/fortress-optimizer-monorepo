@@ -22,6 +22,8 @@ class FortressClient:
         base_url: str = "https://api.fortress-optimizer.com",
         timeout: float = 10.0,
     ):
+        if not base_url.startswith("https://") and not base_url.startswith("http://localhost"):
+            raise ValueError("Fortress API requires HTTPS. Use https:// URLs only.")
         self.api_key = api_key
         self.base_url = base_url
         self.timeout = timeout
@@ -103,6 +105,8 @@ class FortressAsyncClient:
         base_url: str = "https://api.fortress-optimizer.com",
         timeout: float = 10.0,
     ):
+        if not base_url.startswith("https://") and not base_url.startswith("http://localhost"):
+            raise ValueError("Fortress API requires HTTPS. Use https:// URLs only.")
         self.api_key = api_key
         self.base_url = base_url
         self.timeout = timeout

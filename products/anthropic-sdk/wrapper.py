@@ -40,6 +40,8 @@ class FortressAnthropicClient:
     ):
         self.anthropic_client = Anthropic(api_key=api_key)
         self.fortress_api_key = fortress_api_key
+        if not fortress_url.startswith('https://') and not fortress_url.startswith('http://localhost'):
+            raise ValueError('Fortress API requires HTTPS.')
         self.fortress_url = fortress_url
         self.http_client = httpx.Client(
             base_url=fortress_url,
@@ -147,6 +149,8 @@ class FortressAsyncAnthropicClient:
     ):
         self.anthropic_client = AsyncAnthropic(api_key=api_key)
         self.fortress_api_key = fortress_api_key
+        if not fortress_url.startswith('https://') and not fortress_url.startswith('http://localhost'):
+            raise ValueError('Fortress API requires HTTPS.')
         self.fortress_url = fortress_url
         self.http_client = httpx.AsyncClient(
             base_url=fortress_url,

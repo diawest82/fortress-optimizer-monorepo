@@ -8,7 +8,11 @@ export class FortressCopilotProvider {
   constructor() {
     const config = vscode.workspace.getConfiguration('fortress');
     this.apiKey = config.get('apiKey') || process.env.FORTRESS_API_KEY || '';
-    this.apiUrl = config.get('apiUrl') || 'https://api.fortress-optimizer.com';
+    const url = config.get<string>('apiUrl') || 'https://api.fortress-optimizer.com';
+    if (!url.startsWith('https://') && !url.startsWith('http://localhost')) {
+      throw new Error('Fortress API requires HTTPS.');
+    }
+    this.apiUrl = url;
   }
 
   /**

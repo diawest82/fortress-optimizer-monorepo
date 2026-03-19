@@ -65,11 +65,17 @@ function M.call_api(text)
     provider = "general",
   })
   
-  -- Use curl to call API
+  -- HTTPS enforcement
+  if not M.config.api_url:match("^https://") and not M.config.api_url:match("^http://localhost") then
+    vim.notify("Fortress API requires HTTPS.", vim.log.levels.ERROR)
+    return
+  end
+
+  -- Use curl to call API (all arguments shell-escaped to prevent injection)
   local cmd = string.format(
-    'curl -s -X POST "%s/api/optimize" -H "Authorization: Bearer %s" -H "Content-Type: application/json" -d %s',
-    M.config.api_url,
-    M.config.api_key,
+    'curl -s -X POST %s -H %s -H "Content-Type: application/json" -d %s',
+    vim.fn.shellescape(M.config.api_url .. "/api/optimize"),
+    vim.fn.shellescape("Authorization: Bearer " .. M.config.api_key),
     vim.fn.shellescape(payload)
   )
   
