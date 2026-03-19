@@ -20,19 +20,20 @@ const routes = loadPagesContract().routes.filter(r => !r.authRequired);
 
 test.describe('SEO Agent: Essential Meta Tags', () => {
   for (const route of routes) {
-    test(`[meta] ${route.path} has title + description`, async ({ page }) => {
-      await page.goto(`${BASE}${route.path}`, { timeout: 15000, waitUntil: 'domcontentloaded' });
+    test(`[meta] ${route.path} has title + description`, async ({ request }) => {
+      const resp = await request.get(`${BASE}${route.path}`);
+      const html = await resp.text();
 
       // Title must exist and not be empty
-      const title = await page.title();
-      expect(title.length, `${route.path} has empty title`).toBeGreaterThan(0);
+      const titleMatch = html.match(/<title>([^<]*)<\/title>/);
+      expect(titleMatch, `${route.path} missing <title>`).toBeTruthy();
+      expect(titleMatch![1].length, `${route.path} has empty title`).toBeGreaterThan(0);
 
       // Meta description
-      const description = await page.locator('meta[name="description"]').getAttribute('content');
+      const descMatch = html.match(/<meta name="description" content="([^"]*)"/);
       if (route.path === '/') {
-        // Homepage must have description
-        expect(description, 'Homepage missing meta description').toBeTruthy();
-        expect(description!.length).toBeGreaterThan(50);
+        expect(descMatch, 'Homepage missing meta description').toBeTruthy();
+        expect(descMatch![1].length).toBeGreaterThan(50);
       }
     });
   }
