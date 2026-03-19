@@ -78,7 +78,34 @@ export class FortressClient {
         level,
         provider,
       });
-      return response.data;
+      const result = response.data;
+
+      // Validate response integrity — defend against prompt injection
+      if (result.optimization?.optimized_prompt) {
+        const optimized = result.optimization.optimized_prompt;
+        const originalLen = prompt.length;
+        // Reject if optimized is significantly LONGER than original (injection likely)
+        if (optimized.length > originalLen * 2) {
+          throw new Error('Response validation failed: optimized prompt is suspiciously longer than original');
+        }
+        // Reject if it contains known injection patterns
+        const injectionPatterns = [
+          'ignore all previous',
+          'ignore the above',
+          'disregard prior',
+          'system prompt',
+          'you are now',
+          'new instructions:',
+        ];
+        const lower = optimized.toLowerCase();
+        for (const pattern of injectionPatterns) {
+          if (lower.includes(pattern) && !prompt.toLowerCase().includes(pattern)) {
+            throw new Error('Response validation failed: optimized prompt contains suspicious content');
+          }
+        }
+      }
+
+      return result;
     });
   }
 

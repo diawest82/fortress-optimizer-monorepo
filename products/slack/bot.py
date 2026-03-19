@@ -4,7 +4,9 @@ Slack integration for token optimization
 """
 
 import os
+import time
 import logging
+from collections import defaultdict
 from slack_bolt import App
 from slack_bolt.adapter.socket_mode import SocketModeHandler
 import httpx
@@ -25,6 +27,20 @@ fortress_client = httpx.Client(
 )
 
 logger = logging.getLogger(__name__)
+
+# Per-user rate limiting: max 10 requests per minute
+_user_rate_limits: dict = defaultdict(list)
+MAX_REQUESTS_PER_MINUTE = 10
+
+def check_rate_limit(user_id: str) -> bool:
+    """Returns True if user is within rate limit, False if exceeded."""
+    now = time.time()
+    minute_ago = now - 60
+    _user_rate_limits[user_id] = [t for t in _user_rate_limits[user_id] if t > minute_ago]
+    if len(_user_rate_limits[user_id]) >= MAX_REQUESTS_PER_MINUTE:
+        return False
+    _user_rate_limits[user_id].append(now)
+    return True
 
 
 def optimize_text(text: str, level: str = "balanced") -> dict:
@@ -50,11 +66,22 @@ def optimize_text(text: str, level: str = "balanced") -> dict:
 def handle_optimize_command(message, say):
     """Handle @fortress optimize <text> command"""
     try:
+        # Rate limit per user
+        user_id = message.get("user", "unknown")
+        if not check_rate_limit(user_id):
+            say(f"Rate limit exceeded. Max {MAX_REQUESTS_PER_MINUTE} optimizations per minute.")
+            return
+
         # Extract text after "optimize" command
         text = message.get("text", "").replace("optimize", "", 1).strip()
 
         if not text:
             say("Please provide text to optimize. Usage: `@fortress optimize <your text>`")
+            return
+
+        # Input length limit
+        if len(text) > 10000:
+            say("Text too long. Please limit to 10,000 characters.")
             return
 
         # Optimize
@@ -87,7 +114,8 @@ def handle_optimize_command(message, say):
 
     except Exception as e:
         logger.error(f"Command handler error: {e}")
-        say(f"Error: {str(e)}")
+        say("An error occurred. Please try again later.")
+        logger.error(f"Optimize error for user {user_id}: {e}")
 
 
 @app.message("usage")
@@ -121,7 +149,7 @@ def handle_usage_command(message, say):
         """
         say(message_text)
     except Exception as e:
-        say(f"Could not fetch usage: {str(e)}")
+        say("Could not fetch usage. Please try again later.")
 
 
 @app.message("help")

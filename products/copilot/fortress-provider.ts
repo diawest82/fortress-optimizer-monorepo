@@ -5,14 +5,30 @@ export class FortressCopilotProvider {
   private apiKey: string;
   private apiUrl: string;
 
-  constructor() {
+  constructor(private context?: vscode.ExtensionContext) {
     const config = vscode.workspace.getConfiguration('fortress');
-    this.apiKey = config.get('apiKey') || process.env.FORTRESS_API_KEY || '';
+    // Prefer env var over settings (settings.json is plaintext)
+    this.apiKey = process.env.FORTRESS_API_KEY || config.get('apiKey') || '';
     const url = config.get<string>('apiUrl') || 'https://api.fortress-optimizer.com';
     if (!url.startsWith('https://') && !url.startsWith('http://localhost')) {
       throw new Error('Fortress API requires HTTPS.');
     }
     this.apiUrl = url;
+
+    // Load API key from SecretStorage if available (async)
+    if (context?.secrets) {
+      context.secrets.get('fortress-api-key').then(secret => {
+        if (secret) this.apiKey = secret;
+      });
+    }
+  }
+
+  /** Store API key securely via VS Code SecretStorage */
+  async setApiKey(key: string): Promise<void> {
+    this.apiKey = key;
+    if (this.context?.secrets) {
+      await this.context.secrets.store('fortress-api-key', key);
+    }
   }
 
   /**

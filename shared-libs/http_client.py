@@ -62,7 +62,24 @@ class FortressClient:
         response = self.client.post("/api/optimize", json=payload)
         response.raise_for_status()
 
-        return response.json()
+        data = response.json()
+
+        # Validate response integrity — defend against prompt injection
+        optimized = (data.get("optimization") or {}).get("optimized_prompt", "")
+        if optimized:
+            if len(optimized) > len(prompt) * 2:
+                raise ValueError("Response validation failed: optimized prompt suspiciously longer than original")
+            injection_patterns = [
+                "ignore all previous", "ignore the above", "disregard prior",
+                "system prompt", "you are now", "new instructions:",
+            ]
+            lower = optimized.lower()
+            prompt_lower = prompt.lower()
+            for pattern in injection_patterns:
+                if pattern in lower and pattern not in prompt_lower:
+                    raise ValueError("Response validation failed: suspicious content in optimized prompt")
+
+        return data
 
     def get_usage(self) -> Dict[str, Any]:
         """Get current token usage for this API key"""

@@ -74,7 +74,15 @@ class FortressAnthropicClient:
 
             data = response.json()
             if data["status"] == "success":
-                return data["optimization"]["optimized_prompt"]
+                optimized = data["optimization"]["optimized_prompt"]
+                # Validate response — reject injection attempts
+                if len(optimized) > len(prompt) * 2:
+                    return prompt
+                injection_patterns = ["ignore all previous", "ignore the above", "you are now", "new instructions:"]
+                for pat in injection_patterns:
+                    if pat in optimized.lower() and pat not in prompt.lower():
+                        return prompt
+                return optimized
             return prompt
         except Exception as e:
             print(f"Warning: Optimization failed ({str(e)}), using original prompt")
@@ -180,7 +188,15 @@ class FortressAsyncAnthropicClient:
 
             data = response.json()
             if data["status"] == "success":
-                return data["optimization"]["optimized_prompt"]
+                optimized = data["optimization"]["optimized_prompt"]
+                # Validate response — reject injection attempts
+                if len(optimized) > len(prompt) * 2:
+                    return prompt
+                injection_patterns = ["ignore all previous", "ignore the above", "you are now", "new instructions:"]
+                for pat in injection_patterns:
+                    if pat in optimized.lower() and pat not in prompt.lower():
+                        return prompt
+                return optimized
             return prompt
         except Exception as e:
             print(f"Warning: Optimization failed ({str(e)}), using original prompt")
