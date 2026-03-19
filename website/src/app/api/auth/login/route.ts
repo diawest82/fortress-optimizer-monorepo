@@ -10,6 +10,10 @@ import { prisma } from "@/lib/prisma";
 
 const JWT_SECRET = process.env.JWT_SECRET || process.env.NEXTAUTH_SECRET || "CHANGE-THIS-IN-PRODUCTION";
 
+if (JWT_SECRET === "CHANGE-THIS-IN-PRODUCTION" && process.env.NODE_ENV === "production") {
+  throw new Error("FATAL: JWT_SECRET not set in production.");
+}
+
 export async function POST(req: NextRequest) {
   try {
     const { email, password } = await req.json();

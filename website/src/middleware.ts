@@ -2,11 +2,14 @@ import { getToken } from "next-auth/jwt";
 import { jwtVerify } from "jose";
 import { NextRequest, NextResponse } from "next/server";
 
-const JWT_SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET || process.env.NEXTAUTH_SECRET || "CHANGE-THIS-IN-PRODUCTION"
-);
+const _rawSecret = process.env.JWT_SECRET || process.env.NEXTAUTH_SECRET || "CHANGE-THIS-IN-PRODUCTION";
+const JWT_SECRET = new TextEncoder().encode(_rawSecret);
+
+// Edge runtime can't throw at module level, but we can reject all tokens if secret is default
+const SECRET_IS_SAFE = _rawSecret !== "CHANGE-THIS-IN-PRODUCTION" || process.env.NODE_ENV !== "production";
 
 async function verifyCustomToken(token: string): Promise<boolean> {
+  if (!SECRET_IS_SAFE) return false; // Reject all tokens if secret is insecure
   try {
     await jwtVerify(token, JWT_SECRET);
     return true;

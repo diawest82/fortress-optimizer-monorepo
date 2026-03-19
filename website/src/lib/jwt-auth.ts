@@ -9,7 +9,7 @@ import { NextRequest } from 'next/server';
 const JWT_SECRET = process.env.JWT_SECRET || process.env.NEXTAUTH_SECRET || 'CHANGE-THIS-IN-PRODUCTION';
 
 if (JWT_SECRET === 'CHANGE-THIS-IN-PRODUCTION' && process.env.NODE_ENV === 'production') {
-  console.error('CRITICAL: JWT_SECRET is not set in production. Authentication is insecure.');
+  throw new Error('FATAL: JWT_SECRET is not set. Refusing to start with insecure default. Set JWT_SECRET or NEXTAUTH_SECRET environment variable.');
 }
 
 export interface JWTPayload {
