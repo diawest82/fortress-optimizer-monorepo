@@ -76,11 +76,13 @@ export default function PricingClient() {
 
     // Check authentication — need to be logged in for paid tiers
     const hasCustomAuth = typeof window !== 'undefined' && !!localStorage.getItem('auth_token');
-    const isAuthenticated = !!sessionResult.data || hasCustomAuth;
+    const sessionLoaded = sessionResult.status !== 'loading';
+    const isAuthenticated = (sessionLoaded && !!sessionResult.data) || hasCustomAuth;
 
     if (!isAuthenticated) {
-      // Redirect to login with callback to return here after auth
-      window.location.href = `/auth/login?callbackUrl=${encodeURIComponent('/pricing')}`;
+      // Hard redirect to login — always works even if React state is stale
+      const loginUrl = `/auth/login?callbackUrl=${encodeURIComponent('/pricing')}`;
+      window.location.assign(loginUrl);
       return;
     }
 
