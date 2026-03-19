@@ -46,11 +46,11 @@ export default function CommunityPortal() {
         <div className="max-w-2xl">
           <h2 className="text-3xl font-bold text-white mb-3">Join the Community</h2>
           <p className="text-slate-300 mb-6">
-            Connect with 8,000+ developers using Fortress Token Optimizer. Share tips, get help, discuss features, and collaborate on the future of prompt optimization.
+            Join developers exploring prompt optimization. Share tips, get help, discuss features, and shape the future of Fortress together.
           </p>
           <div className="flex items-center gap-2">
             <Users className="w-5 h-5 text-emerald-400" />
-            <span className="text-emerald-400 font-semibold">8,000+ active community members</span>
+            <span className="text-emerald-400 font-semibold">Growing community — join early</span>
           </div>
         </div>
       </div>

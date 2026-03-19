@@ -48,7 +48,7 @@ export default function SubscriptionManagement({
       name: 'Pro',
       price: 15,
       tokens: 'Unlimited',
-      features: ['Unlimited tokens', 'All 5 integration channels', 'Advanced analytics', 'API access', 'Email support'],
+      features: ['Unlimited tokens', 'All 12 integration platforms', 'Advanced analytics', 'API access', 'Email support'],
       color: 'from-blue-500 to-blue-600',
       textColor: 'text-blue-400',
     },

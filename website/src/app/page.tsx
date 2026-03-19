@@ -57,8 +57,8 @@ export default function Home() {
               <p className="text-xs uppercase tracking-[0.35em] text-blue-200 mb-2">
                 Coverage
               </p>
-              <p className="text-4xl font-bold text-white">5</p>
-              <p className="text-sm text-blue-200 mt-1">Integration channels</p>
+              <p className="text-4xl font-bold text-white">12+</p>
+              <p className="text-sm text-blue-200 mt-1">Integration platforms</p>
             </div>
           </div>
         </div>
