@@ -93,6 +93,12 @@ export default defineConfig({
       timeout: 30000,
     },
     {
+      name: 'qa-auth-crawler',
+      testDir: './qa-system/specs',
+      testMatch: '12-authenticated-crawler.spec.ts',
+      timeout: 60000,
+    },
+    {
       name: 'qa-destination-crawler',
       testDir: './qa-system/specs',
       testMatch: '11-destination-crawler.spec.ts',
