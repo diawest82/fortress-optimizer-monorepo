@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { useSession } from "next-auth/react";
+// Auth check uses localStorage token (not NextAuth session — avoids hydration mismatch)
 import Link from "next/link";
 import { analytics } from "@/lib/tracking";
 
@@ -40,7 +40,6 @@ function seatsToSlider(seats: number): number {
 
 export default function PricingClient() {
   const router = useRouter();
-  const sessionResult = useSession();
   const [loading, setLoading] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
   const [teamSeats, setTeamSeats] = useState(5);
@@ -75,14 +74,11 @@ export default function PricingClient() {
     }
 
     // Check authentication — need to be logged in for paid tiers
-    const hasCustomAuth = typeof window !== 'undefined' && !!localStorage.getItem('auth_token');
-    const sessionLoaded = sessionResult.status !== 'loading';
-    const isAuthenticated = (sessionLoaded && !!sessionResult.data) || hasCustomAuth;
+    const hasAuth = typeof window !== 'undefined' && !!localStorage.getItem('auth_token');
 
-    if (!isAuthenticated) {
-      // Hard redirect to login — always works even if React state is stale
-      const loginUrl = `/auth/login?callbackUrl=${encodeURIComponent('/pricing')}`;
-      window.location.assign(loginUrl);
+    if (!hasAuth) {
+      // Hard redirect to login
+      window.location.assign(`/auth/login?callbackUrl=${encodeURIComponent('/pricing')}`);
       return;
     }
 
@@ -91,7 +87,7 @@ export default function PricingClient() {
       return;
     }
 
-    const currentTier = (sessionResult.data?.user as any)?.tier || "free";
+    const currentTier = "free"; // Tier will be determined by Stripe checkout
     analytics.upgradeStarted(currentTier, tier);
 
     setLoading(tierDisplay);
