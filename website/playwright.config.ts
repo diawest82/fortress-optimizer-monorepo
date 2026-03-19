@@ -5,7 +5,7 @@ export default defineConfig({
   timeout: 60000,
   retries: 1,
   use: {
-    baseURL: process.env.TEST_BASE_URL || 'https://www.fortress-optimizer.com',
+    baseURL: process.env.TEST_BASE_URL || 'http://localhost:3000',
     screenshot: 'only-on-failure',
     trace: 'on-first-retry',
   },

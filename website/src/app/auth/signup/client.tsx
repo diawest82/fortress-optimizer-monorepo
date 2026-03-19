@@ -96,11 +96,6 @@ function SignUpContent() {
     }
   };
 
-  const strengthColor = {
-    weak: "text-red-500",
-    medium: "text-amber-500",
-    strong: "text-emerald-500",
-  };
 
   return (
     <div className="min-h-screen bg-black text-white flex items-center justify-center px-4">
@@ -135,10 +130,12 @@ function SignUpContent() {
                 onChange={handleChange}
                 placeholder="John"
                 autoComplete="given-name"
+                aria-describedby={fieldErrors.firstName ? 'firstName-error' : undefined}
+                aria-invalid={!!fieldErrors.firstName}
                 className="w-full px-4 py-2 bg-zinc-900 border border-zinc-800 rounded-lg focus:outline-none focus:border-blue-500 transition"
               />
               {fieldErrors.firstName && (
-                <p className="text-red-400 text-sm mt-1">{fieldErrors.firstName}</p>
+                <p id="firstName-error" role="alert" className="text-red-400 text-sm mt-1">{fieldErrors.firstName}</p>
               )}
             </div>
 
@@ -154,10 +151,12 @@ function SignUpContent() {
                 onChange={handleChange}
                 placeholder="Doe"
                 autoComplete="family-name"
+                aria-describedby={fieldErrors.lastName ? 'lastName-error' : undefined}
+                aria-invalid={!!fieldErrors.lastName}
                 className="w-full px-4 py-2 bg-zinc-900 border border-zinc-800 rounded-lg focus:outline-none focus:border-blue-500 transition"
               />
               {fieldErrors.lastName && (
-                <p className="text-red-400 text-sm mt-1">{fieldErrors.lastName}</p>
+                <p id="lastName-error" role="alert" className="text-red-400 text-sm mt-1">{fieldErrors.lastName}</p>
               )}
             </div>
           </div>
@@ -175,10 +174,12 @@ function SignUpContent() {
               onChange={handleChange}
               placeholder="you@example.com"
               autoComplete="email"
+              aria-describedby={fieldErrors.email ? 'signup-email-error' : undefined}
+              aria-invalid={!!fieldErrors.email}
               className="w-full px-4 py-2 bg-zinc-900 border border-zinc-800 rounded-lg focus:outline-none focus:border-blue-500 transition"
             />
             {fieldErrors.email && (
-              <p className="text-red-400 text-sm mt-1">{fieldErrors.email}</p>
+              <p id="signup-email-error" role="alert" className="text-red-400 text-sm mt-1">{fieldErrors.email}</p>
             )}
           </div>
 
@@ -195,6 +196,8 @@ function SignUpContent() {
               onChange={handleChange}
               placeholder="At least 8 characters"
               autoComplete="new-password"
+              aria-describedby={fieldErrors.password ? 'signup-password-error' : 'password-strength'}
+              aria-invalid={!!fieldErrors.password}
               className="w-full px-4 py-2 bg-zinc-900 border border-zinc-800 rounded-lg focus:outline-none focus:border-blue-500 transition"
             />
             {formData.password.length > 0 && (
