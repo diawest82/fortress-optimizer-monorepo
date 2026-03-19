@@ -35,9 +35,12 @@ test.describe('Navigation Agent: Route Health', () => {
 
 test.describe('Navigation Agent: Route Titles', () => {
   for (const route of routes) {
-    test(`[title] ${route.path} contains "${route.expectedTitle}"`, async ({ page }) => {
-      await page.goto(`${BASE}${route.path}`);
-      await expect(page).toHaveTitle(new RegExp(route.expectedTitle, 'i'));
+    test(`[title] ${route.path} contains "${route.expectedTitle}"`, async ({ request }) => {
+      const resp = await request.get(`${BASE}${route.path}`);
+      const html = await resp.text();
+      const titleMatch = html.match(/<title>([^<]*)<\/title>/);
+      expect(titleMatch).toBeTruthy();
+      expect(titleMatch![1].toLowerCase()).toContain(route.expectedTitle.toLowerCase());
     });
   }
 });
