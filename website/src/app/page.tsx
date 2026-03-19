@@ -13,13 +13,13 @@ export default function Home() {
         <div className="space-y-8">
           <div>
             <p className="text-xs uppercase tracking-[0.4em] text-blue-300 font-semibold mb-4">
-              🚀 Stop Wasting Tokens
+              Cut AI Costs Automatically
             </p>
             <h1 className="text-5xl font-bold text-white mb-4">
-              Real token optimization for every AI surface
+              Cut your AI API costs by 20% without changing your code
             </h1>
             <p className="max-w-2xl text-lg text-slate-300 mb-8">
-              Stop paying for verbose prompts. Compress your prompts in realtime across npm, Copilot, VS Code, Slack, and Claude Desktop while keeping quality high. Join 500+ teams saving 20% on token costs instantly.
+              Fortress compresses your prompts in realtime across npm, Copilot, VS Code, Slack, and Claude Desktop — reducing token usage while preserving quality. Start free, no credit card required.
             </p>
             <div className="flex flex-wrap gap-4">
               <Link

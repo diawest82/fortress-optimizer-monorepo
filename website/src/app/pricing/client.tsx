@@ -178,7 +178,12 @@ export default function PricingClient() {
           </div>
 
           {/* Pro */}
-          <div className="relative rounded-3xl border border-slate-700 bg-gradient-to-br from-slate-950/60 to-slate-900/40 p-8 flex flex-col hover:border-slate-600 transition-all duration-300">
+          <div className="relative rounded-3xl border border-blue-500/50 bg-gradient-to-br from-blue-950/30 to-slate-900/40 p-8 flex flex-col hover:border-blue-400/60 transition-all duration-300 ring-1 ring-blue-500/20">
+            <div className="absolute -top-4 left-1/2 -translate-x-1/2">
+              <span className="inline-block bg-blue-600 px-4 py-1 rounded-full text-xs font-semibold text-white">
+                Most Popular
+              </span>
+            </div>
             <div className="mb-8">
               <h3 className="text-2xl font-bold text-white mb-2">Pro</h3>
               <p className="text-sm text-slate-400">For individual developers</p>
@@ -248,7 +253,7 @@ export default function PricingClient() {
           <div className="relative rounded-3xl border border-cyan-500/60 bg-gradient-to-br from-cyan-500/10 to-slate-900/20 shadow-lg shadow-cyan-500/20 p-8">
             <div className="absolute -top-4 left-1/2 -translate-x-1/2">
               <span className="inline-block bg-gradient-to-r from-cyan-500 to-emerald-500 px-4 py-1 rounded-full text-xs font-bold text-white">
-                Most Popular
+                Best for Teams
               </span>
             </div>
 

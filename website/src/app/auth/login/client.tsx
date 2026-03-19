@@ -136,6 +136,13 @@ function LoginContent() {
             )}
           </div>
 
+          {/* Forgot password */}
+          <div className="text-right">
+            <Link href="/forgot-password" className="text-sm text-blue-400 hover:text-blue-300 transition">
+              Forgot your password?
+            </Link>
+          </div>
+
           {/* Submit button */}
           <button
             type="submit"

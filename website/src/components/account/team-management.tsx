@@ -32,7 +32,7 @@ export default function TeamManagement({
   const [invitingSuccess, setInvitingSuccess] = useState(false);
 
   const isTeamsTier = userTier === 'teams' || userTier === 'enterprise';
-  const maxSeats = userTier === 'enterprise' ? 999 : 5;
+  const maxSeats = userTier === 'enterprise' ? 999 : 500;
 
   const handleInvite = async () => {
     if (!inviteEmail) {

@@ -510,8 +510,8 @@ export default function ComparePage() {
             <div className={styles.reasonIcon}>✅</div>
             <h3>Quality Consistent</h3>
             <p>
-              20% token reduction without sacrificing output quality. Tested on 10,000+ 
-              real-world prompts.
+              20% average token reduction without sacrificing output quality. Techniques include
+              semantic deduplication, filler removal, and context compression.
             </p>
           </div>
 
@@ -579,21 +579,21 @@ export default function ComparePage() {
 
       {/* Social Proof */}
       <section className={styles.socialProof}>
-        <h2>Trusted by Teams Everywhere</h2>
-        <p>From startups to enterprises, engineers choose Fortress</p>
-        
+        <h2>Built for Developer Teams</h2>
+        <p>Early access — join teams already optimizing their AI spend</p>
+
         <div className={styles.statsRow}>
           <div className={styles.proofStat}>
-            <span className={styles.proofNumber}>10K+</span>
-            <span className={styles.proofLabel}>Developers</span>
+            <span className={styles.proofNumber}>20%</span>
+            <span className={styles.proofLabel}>Avg Token Savings</span>
           </div>
           <div className={styles.proofStat}>
-            <span className={styles.proofNumber}>$50M+</span>
-            <span className={styles.proofLabel}>Saved Annually</span>
+            <span className={styles.proofNumber}>68ms</span>
+            <span className={styles.proofLabel}>Optimization Latency</span>
           </div>
           <div className={styles.proofStat}>
-            <span className={styles.proofNumber}>98.5%</span>
-            <span className={styles.proofLabel}>Quality Retention</span>
+            <span className={styles.proofNumber}>12</span>
+            <span className={styles.proofLabel}>Integration Platforms</span>
           </div>
         </div>
       </section>
