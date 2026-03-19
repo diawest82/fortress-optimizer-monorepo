@@ -105,10 +105,12 @@ function LoginContent() {
               onChange={handleChange}
               placeholder="you@example.com"
               autoComplete="email"
+              aria-describedby={fieldErrors.email ? 'email-error' : undefined}
+              aria-invalid={!!fieldErrors.email}
               className="w-full px-4 py-2 bg-zinc-900 border border-zinc-800 rounded-lg focus:outline-none focus:border-blue-500 transition"
             />
             {fieldErrors.email && (
-              <p className="text-red-400 text-sm mt-1">{fieldErrors.email}</p>
+              <p id="email-error" role="alert" className="text-red-400 text-sm mt-1">{fieldErrors.email}</p>
             )}
           </div>
 
@@ -125,10 +127,12 @@ function LoginContent() {
               onChange={handleChange}
               placeholder="Your password"
               autoComplete="current-password"
+              aria-describedby={fieldErrors.password ? 'password-error' : undefined}
+              aria-invalid={!!fieldErrors.password}
               className="w-full px-4 py-2 bg-zinc-900 border border-zinc-800 rounded-lg focus:outline-none focus:border-blue-500 transition"
             />
             {fieldErrors.password && (
-              <p className="text-red-400 text-sm mt-1">{fieldErrors.password}</p>
+              <p id="password-error" role="alert" className="text-red-400 text-sm mt-1">{fieldErrors.password}</p>
             )}
           </div>
 

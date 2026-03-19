@@ -75,6 +75,9 @@ export default function RootLayout({
         />
       </head>
       <body className="bg-black text-white">
+        <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-[100] focus:bg-blue-600 focus:text-white focus:px-4 focus:py-2 focus:rounded">
+          Skip to main content
+        </a>
         <Suspense fallback={null}><AnalyticsProvider>
           <AuthProvider>
             <nav className="border-b border-zinc-800 sticky top-0 z-50 bg-black/95 backdrop-blur">
@@ -99,7 +102,7 @@ export default function RootLayout({
                 </Suspense>
               </div>
             </nav>
-            {children}
+            <main id="main-content">{children}</main>
             <CookieConsentBanner />
           </AuthProvider>
         </AnalyticsProvider></Suspense>

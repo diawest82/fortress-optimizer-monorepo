@@ -62,6 +62,14 @@ export class ApiClient {
       headers['Authorization'] = `Bearer ${this.apiKey}`;
     }
 
+    // CSRF: read token from cookie and send in header (double-submit pattern)
+    if (typeof document !== 'undefined') {
+      const csrfMatch = document.cookie.match(/fortress_csrf_token=([^;]+)/);
+      if (csrfMatch) {
+        headers['X-CSRF-Token'] = csrfMatch[1];
+      }
+    }
+
     return headers;
   }
 

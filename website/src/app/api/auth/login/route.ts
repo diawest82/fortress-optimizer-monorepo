@@ -1,7 +1,8 @@
 import { checkLoginRateLimit } from "@/lib/rate-limit";
 import { isAccountLocked, recordFailedAttempt, clearFailedAttempts } from "@/lib/account-lockout";
 import { logLoginAttempt, logAccountLocked } from "@/lib/audit-log";
-import { setAuthTokenCookie } from "@/lib/secure-cookies";
+import { setAuthTokenCookie, setCsrfTokenCookie } from "@/lib/secure-cookies";
+import crypto from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
@@ -95,6 +96,10 @@ export async function POST(req: NextRequest) {
 
       // ============ PHASE 4: Set Secure httpOnly Cookie ============
       setAuthTokenCookie(response, token);
+
+      // ============ Set CSRF Token Cookie (double-submit pattern) ============
+      const csrfToken = crypto.randomBytes(32).toString('hex');
+      setCsrfTokenCookie(response, csrfToken);
 
       return response;
     } catch (authError) {

@@ -30,6 +30,17 @@ export function SiteNav() {
     };
   }, []);
 
+  // Close mobile menu on Escape key
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && mobileMenuOpen) {
+        setMobileMenuOpen(false);
+      }
+    };
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
+  }, [mobileMenuOpen]);
+
   const handleSignOut = () => {
     localStorage.removeItem('auth_token');
     localStorage.removeItem('api_key');
