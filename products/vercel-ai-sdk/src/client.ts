@@ -1,3 +1,6 @@
+// CANONICAL SOURCE: shared-libs/ts/fortress-client.ts
+// Keep in sync — do not modify independently
+
 /**
  * Fortress Token Optimizer - HTTP Client
  * Zero external dependencies - uses native fetch

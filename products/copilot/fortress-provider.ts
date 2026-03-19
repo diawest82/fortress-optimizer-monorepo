@@ -47,7 +47,8 @@ export class FortressCopilotProvider {
     try {
       return await this.optimizePrompt(prompt);
     } catch (error) {
-      return `Error optimizing prompt: ${error}`;
+      console.error('Fortress optimization error:', error);
+      return 'Optimization unavailable. Please try again.';
     }
   }
 

@@ -38,18 +38,14 @@ class FortressAnthropicClient:
         fortress_api_key: str,
         fortress_url: str = "https://api.fortress-optimizer.com",
     ):
+        import sys, os
+        sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", "shared-libs"))
+        from http_client import FortressClient as _SharedClient
+
         self.anthropic_client = Anthropic(api_key=api_key)
         self.fortress_api_key = fortress_api_key
-        if not fortress_url.startswith('https://') and not fortress_url.startswith('http://localhost'):
-            raise ValueError('Fortress API requires HTTPS.')
         self.fortress_url = fortress_url
-        self.http_client = httpx.Client(
-            base_url=fortress_url,
-            headers={
-                "Authorization": f"Bearer {fortress_api_key}",
-                "X-Client-Version": "1.0.0",
-            },
-        )
+        self._fortress = _SharedClient(api_key=fortress_api_key, base_url=fortress_url)
 
     def _optimize_prompt(
         self,
@@ -61,18 +57,7 @@ class FortressAnthropicClient:
         Returns optimized prompt (algorithm stays backend).
         """
         try:
-            response = self.http_client.post(
-                "/api/optimize",
-                json={
-                    "prompt": prompt,
-                    "level": level,
-                    "provider": "anthropic",
-                },
-                timeout=10.0,
-            )
-            response.raise_for_status()
-
-            data = response.json()
+            data = self._fortress.optimize(prompt, level=level, provider="anthropic")
             if data["status"] == "success":
                 optimized = data["optimization"]["optimized_prompt"]
                 # Validate response — reject injection attempts

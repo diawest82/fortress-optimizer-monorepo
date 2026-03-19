@@ -14,10 +14,16 @@ import httpx
 # Initialize Slack app
 app = App(token=os.environ.get("SLACK_BOT_TOKEN"))
 
-# Fortress client
-FORTRESS_API_KEY = os.environ.get("FORTRESS_API_KEY")
+# Fortress client — use shared library
+import sys
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", "shared-libs"))
+from http_client import FortressClient
+
+FORTRESS_API_KEY = os.environ.get("FORTRESS_API_KEY", "")
 FORTRESS_URL = os.environ.get("FORTRESS_URL", "https://api.fortress-optimizer.com")
 
+fortress_shared_client = FortressClient(api_key=FORTRESS_API_KEY, base_url=FORTRESS_URL)
+# Keep raw httpx client for non-optimize calls (usage, health)
 fortress_client = httpx.Client(
     base_url=FORTRESS_URL,
     headers={
@@ -44,22 +50,12 @@ def check_rate_limit(user_id: str) -> bool:
 
 
 def optimize_text(text: str, level: str = "balanced") -> dict:
-    """Call Fortress API to optimize text"""
+    """Call Fortress API to optimize text (uses shared client with HTTPS + injection validation)"""
     try:
-        response = fortress_client.post(
-            "/api/optimize",
-            json={
-                "prompt": text,
-                "level": level,
-                "provider": "general",
-            },
-            timeout=10.0,
-        )
-        response.raise_for_status()
-        return response.json()
+        return fortress_shared_client.optimize(text, level=level, provider="general")
     except Exception as e:
         logger.error(f"Optimization error: {e}")
-        return {"status": "error", "error": str(e)}
+        return {"status": "error", "error": "Optimization failed"}
 
 
 @app.message("optimize")

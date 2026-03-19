@@ -1,9 +1,6 @@
-// CANONICAL SOURCE: shared-libs/ts/fortress-client.ts
-// Keep in sync — do not modify independently
-
 /**
  * Fortress Token Optimizer - HTTP Client
- * Zero external dependencies — uses native fetch (Node 22+)
+ * Zero external dependencies - uses native fetch
  */
 
 import {
@@ -20,9 +17,13 @@ export class FortressClient {
     this.config = config;
   }
 
+  /**
+   * Optimize a prompt via the Fortress API.
+   */
   async optimize(prompt: string): Promise<OptimizeResponse> {
     const url = `${this.config.baseUrl}/api/optimize`;
-    return this.request<OptimizeResponse>(url, {
+
+    const response = await this.request<OptimizeResponse>(url, {
       method: 'POST',
       body: JSON.stringify({
         prompt,
@@ -30,13 +31,21 @@ export class FortressClient {
         provider: this.config.provider,
       }),
     });
+
+    return response;
   }
 
+  /**
+   * Retrieve current usage statistics.
+   */
   async getUsage(): Promise<UsageResponse> {
     const url = `${this.config.baseUrl}/api/usage`;
     return this.request<UsageResponse>(url, { method: 'GET' });
   }
 
+  /**
+   * Check if the Fortress API is reachable.
+   */
   async healthCheck(): Promise<boolean> {
     try {
       const url = `${this.config.baseUrl}/health`;
@@ -67,7 +76,7 @@ export class FortressClient {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${this.config.apiKey}`,
           'X-API-Key': this.config.apiKey,
-          'X-Client': '@fortress-optimizer/openclaw-skill',
+          'X-Client': '@fortress-optimizer/vercel-ai',
           'X-Client-Version': '0.1.0',
         },
       });

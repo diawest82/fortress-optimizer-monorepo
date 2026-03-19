@@ -154,6 +154,12 @@ export default defineConfig({
       timeout: 30000,
     },
     {
+      name: 'product-integration',
+      testDir: './qa-system/product-agents',
+      testMatch: '08-integration.spec.ts',
+      timeout: 30000,
+    },
+    {
       name: 'product-all',
       testDir: './qa-system/product-agents',
       testMatch: '*.spec.ts',
