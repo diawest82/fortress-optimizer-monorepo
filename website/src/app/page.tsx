@@ -1,6 +1,7 @@
 import Link from "next/link";
 import HowItWorks from "@/components/how-it-works";
 import ProductDemoGrid from "@/components/product-demo-grid";
+import SiteFooter from "@/components/site-footer";
 
 export const dynamic = 'force-dynamic';
 
@@ -94,34 +95,7 @@ export default function Home() {
         </div>
       </section>
 
-      <footer className="border-t border-zinc-800 mt-16 pt-8 pb-8">
-        <div className="max-w-7xl mx-auto flex flex-col gap-8 md:flex-row md:items-center md:justify-between">
-          <div className="flex items-center gap-3">
-            <span className="text-lg font-bold">Fortress</span>
-            <p className="text-sm text-zinc-400">© 2026 Fortress Token Optimizer. All rights reserved.</p>
-          </div>
-          <div className="flex flex-wrap gap-6">
-            <Link href="/support" className="text-sm text-zinc-400 hover:text-white transition">
-              Support
-            </Link>
-            <Link href="/docs" className="text-sm text-zinc-400 hover:text-white transition">
-              Documentation
-            </Link>
-            <Link href="/legal/privacy" className="text-sm text-zinc-400 hover:text-white transition">
-              Privacy
-            </Link>
-            <Link href="/legal/terms" className="text-sm text-zinc-400 hover:text-white transition">
-              Terms
-            </Link>
-            <Link href="/pricing" className="text-sm text-zinc-400 hover:text-white transition">
-              Pricing
-            </Link>
-            <Link href="/install" className="text-sm text-zinc-400 hover:text-white transition">
-              Install
-            </Link>
-          </div>
-        </div>
-      </footer>
+      <SiteFooter />
     </div>
   );
 }

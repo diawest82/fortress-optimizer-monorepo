@@ -197,6 +197,32 @@ function SignUpContent() {
               autoComplete="new-password"
               className="w-full px-4 py-2 bg-zinc-900 border border-zinc-800 rounded-lg focus:outline-none focus:border-blue-500 transition"
             />
+            {formData.password.length > 0 && (
+              <div className="mt-2">
+                <div className="flex gap-1">
+                  {[1, 2, 3, 4].map((i) => {
+                    const len = formData.password.length;
+                    const hasUpper = /[A-Z]/.test(formData.password);
+                    const hasLower = /[a-z]/.test(formData.password);
+                    const hasNum = /[0-9]/.test(formData.password);
+                    const hasSpecial = /[!@#$%^&*()_+=\-\[\]{};:'",.<>?/\\|`~]/.test(formData.password);
+                    const score = (len >= 8 ? 1 : 0) + (hasUpper && hasLower ? 1 : 0) + (hasNum ? 1 : 0) + (hasSpecial ? 1 : 0);
+                    const color = i <= score
+                      ? score <= 1 ? 'bg-red-500' : score <= 2 ? 'bg-amber-500' : score <= 3 ? 'bg-emerald-400' : 'bg-emerald-500'
+                      : 'bg-zinc-700';
+                    return <div key={i} className={`h-1 flex-1 rounded ${color}`} />;
+                  })}
+                </div>
+                <p className={`text-xs mt-1 ${
+                  formData.password.length < 8 ? 'text-red-400' :
+                  /[!@#$%^&*()_+=\-\[\]{};:\'".,<>?/\\|`~]/.test(formData.password) ? 'text-emerald-400' : 'text-amber-400'
+                }`}>
+                  {formData.password.length < 8 ? 'Too short — need 8+ characters' :
+                   !/[!@#$%^&*()_+=\-\[\]{};:\'".,<>?/\\|`~]/.test(formData.password) ? 'Add a special character (!@#$...)' :
+                   'Strong password'}
+                </p>
+              </div>
+            )}
             {fieldErrors.password && (
               <p className="text-red-400 text-sm mt-1">{fieldErrors.password}</p>
             )}
