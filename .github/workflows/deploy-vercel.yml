@@ -52,10 +52,26 @@ jobs:
           NEXT_PUBLIC_API_URL: https://api.fortress-optimizer.com
           NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY }}
       
+      - name: Install Playwright browsers
+        working-directory: ${{ env.WORKING_DIRECTORY }}
+        run: npx playwright install --with-deps chromium
+
+      - name: Run smoke tests against production
+        working-directory: ${{ env.WORKING_DIRECTORY }}
+        run: npx playwright test --project=smoke --retries=1
+        env:
+          TEST_BASE_URL: https://www.fortress-optimizer.com
+
+      - name: Run destination crawler
+        working-directory: ${{ env.WORKING_DIRECTORY }}
+        run: npx playwright test --project=qa-destination-crawler --retries=1
+        env:
+          TEST_BASE_URL: https://www.fortress-optimizer.com
+
       - name: Test deployment
         run: |
-          echo "✓ Website deployed to Vercel"
-          echo "Check https://fortress-optimizer.com or your Vercel domain"
+          echo "✓ Website deployed and smoke tests passed"
+          echo "Check https://fortress-optimizer.com"
       
       - name: Notify success
         if: success()

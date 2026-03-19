@@ -694,7 +694,17 @@ def _seed_dev_keys(db: Session):
 
 @app.on_event("startup")
 async def startup_event():
-    logger.info("Starting Fortress Token Optimizer API v1.2.0")
+    logger.info("Starting Fortress Token Optimizer API v1.5.0")
+
+    # Initialize Sentry error tracking
+    sentry_dsn = os.getenv("SENTRY_DSN")
+    if sentry_dsn:
+        try:
+            from sentry_setup import init_sentry
+            init_sentry()
+            logger.info("Sentry initialized")
+        except Exception as e:
+            logger.warning(f"Sentry initialization failed: {e}")
 
     # Validate production environment
     if _is_production:

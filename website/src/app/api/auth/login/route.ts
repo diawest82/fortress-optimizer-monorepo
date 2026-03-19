@@ -81,9 +81,9 @@ export async function POST(req: NextRequest) {
         { expiresIn: "24h" }
       );
 
+      // Return user info but NOT the token — token goes in httpOnly cookie only
       const response = NextResponse.json(
         {
-          token,
           user: {
             id: user.id,
             email: user.email,

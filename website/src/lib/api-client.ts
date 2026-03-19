@@ -89,17 +89,16 @@ export class ApiClient {
     return data;
   }
 
-  async login(email: string, password: string): Promise<{ token: string; user_id?: string; user?: any }> {
+  async login(email: string, password: string): Promise<{ user_id?: string; user?: any }> {
     const response = await fetch(`${this.baseUrl}/api/auth/login`, {
       method: 'POST',
       headers: this.getHeaders(),
       credentials: 'include',
       body: JSON.stringify({ email, password }),
     });
-    const data = await this.handleResponse<{ token: string; user?: any }>(response);
-    this.setToken(data.token);
+    const data = await this.handleResponse<{ user?: any }>(response);
+    // Token is now in httpOnly cookie only — not stored in localStorage
     return {
-      token: data.token,
       user_id: data.user?.id,
       user: data.user,
     };
