@@ -13,6 +13,16 @@ from main import _hash_key
 
 
 def _register_key(client, name="test", tier="free"):
+    if tier != "free":
+        # Non-free tiers can't be self-registered; insert directly into DB
+        import uuid
+        raw_key = f"fk_{uuid.uuid4().hex}"
+        key_hash = _hash_key(raw_key)
+        db = database.SessionLocal()
+        db.add(models.ApiKey(key_hash=key_hash, name=name, tier=tier))
+        db.commit()
+        db.close()
+        return raw_key
     resp = client.post("/api/keys/register", json={"name": name, "tier": tier})
     assert resp.status_code == 200
     return resp.json()["api_key"]

@@ -1,0 +1,105 @@
+{
+  "name": "fortress-copilot",
+  "displayName": "Fortress Token Optimizer for Copilot",
+  "description": "GitHub Copilot extension that optimizes prompts for token efficiency",
+  "version": "1.0.0",
+  "publisher": "Diawest82",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "AI",
+    "Other"
+  ],
+  "activationEvents": [
+    "onChatParticipant:fortress"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "chatParticipants": [
+      {
+        "id": "fortress",
+        "fullName": "Fortress Token Optimizer",
+        "description": "Optimize your prompts for token efficiency",
+        "isSticky": true,
+        "commands": [
+          {
+            "name": "optimize",
+            "description": "Optimize selected text"
+          },
+          {
+            "name": "usage",
+            "description": "Show token usage"
+          },
+          {
+            "name": "level",
+            "description": "Set optimization level"
+          }
+        ]
+      }
+    ],
+    "commands": [
+      {
+        "command": "fortress.optimize",
+        "title": "Fortress: Optimize Selection"
+      },
+      {
+        "command": "fortress.usage",
+        "title": "Fortress: Show Usage"
+      },
+      {
+        "command": "fortress.setLevel",
+        "title": "Fortress: Set Optimization Level"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "fortress.optimize",
+        "key": "cmd+shift+o",
+        "mac": "cmd+shift+o",
+        "when": "editorTextFocus"
+      }
+    ],
+    "configuration": {
+      "title": "Fortress Token Optimizer",
+      "properties": {
+        "fortress.apiKey": {
+          "type": "string",
+          "description": "Fortress API key (set via environment variable FORTRESS_API_KEY)"
+        },
+        "fortress.apiUrl": {
+          "type": "string",
+          "default": "https://api.fortress-optimizer.com",
+          "description": "Fortress API endpoint"
+        },
+        "fortress.optimizationLevel": {
+          "type": "string",
+          "enum": [
+            "conservative",
+            "balanced",
+            "aggressive"
+          ],
+          "default": "balanced",
+          "description": "Default optimization aggressiveness"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile && npm run lint",
+    "lint": "eslint src",
+    "test": "node ./out/test/runTest.js"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.85.0",
+    "@types/node": "^20.0.0",
+    "typescript": "^5.3.3",
+    "eslint": "^8.50.0"
+  },
+  "dependencies": {
+    "axios": "^1.6.0"
+  }
+}

@@ -34,10 +34,19 @@ def registered_key(client):
 
 @pytest.fixture(scope="module")
 def pro_key(client):
-    """Register a pro tier key"""
-    resp = client.post("/api/keys/register", json={"name": "e2e-pro", "tier": "pro"})
-    assert resp.status_code == 200
-    return resp.json()["api_key"]
+    """Create a pro tier key directly in DB"""
+    import uuid, hashlib
+    from main import API_KEY_SECRET
+    from models import ApiKey
+    from conftest import _TestSession
+
+    raw_key = f"fk_{uuid.uuid4().hex}"
+    key_hash = hashlib.sha256(f"{API_KEY_SECRET}:{raw_key}".encode()).hexdigest()
+    db = _TestSession()
+    db.add(ApiKey(key_hash=key_hash, name="e2e-pro", tier="pro"))
+    db.commit()
+    db.close()
+    return raw_key
 
 
 def auth(key):

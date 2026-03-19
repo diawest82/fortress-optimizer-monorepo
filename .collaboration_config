@@ -1,0 +1,36 @@
+# Workspace Hub Access Configuration
+# Generated: 2026-02-15
+# Workspace: fortress_optimizer
+
+# Primary hub endpoint (all workspaces connect through this)
+PRIMARY_HUB_URL=http://localhost:8000
+
+# This workspace's direct hub endpoint
+COLLABORATION_HUB_URL=http://localhost:8014
+
+# Workspace identifier
+WORKSPACE_NAME=fortress_optimizer
+
+# Agent instance type (copilot, specialist, expert)
+AGENT_INSTANCE_TYPE=copilot
+
+# Access token for hub authentication
+ACCESS_TOKEN=ws_dfea4a6a83835fb25bf58da3192f0c33
+
+# Heartbeat interval (seconds)
+HEARTBEAT_INTERVAL=30
+
+# Automatic reconnection on disconnect
+AUTO_RECONNECT=true
+
+# Reconnection timeout (seconds)
+RECONNECT_TIMEOUT=10
+
+# Sync mode (async, sync)
+SYNC_MODE=async
+
+# Maximum retry attempts for hub connection
+MAX_RETRIES=3
+
+# Debug mode
+DEBUG=false

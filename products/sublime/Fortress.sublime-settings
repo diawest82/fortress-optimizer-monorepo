@@ -1,0 +1,8 @@
+{
+    "api_key": "",
+    "base_url": "https://api.fortress-optimizer.com",
+    "optimization_level": "balanced",
+    "auto_optimize": false,
+    "show_status": true,
+    "timeout": 10
+}

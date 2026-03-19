@@ -1,0 +1,226 @@
+// Fortress Business Lifecycle — Circular Workflow
+// The complete loop: build → publish → onboard → serve → bill → analyze → improve → build
+// Compile: imalc compile business_lifecycle.imal --target all
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// THE LOOP — 8 stages, each guarded by the responsible agent
+//
+//    ┌──────────┐     ┌──────────┐     ┌──────────┐     ┌──────────┐
+//    │ 1. BUILD │ ──▶ │ 2. SHIP  │ ──▶ │3.ONBOARD │ ──▶ │ 4. SERVE │
+//    │ Infra    │     │ Platform │     │ Concierge│     │ Backend  │
+//    └──────────┘     └──────────┘     └──────────┘     └──────────┘
+//         ▲                                                   │
+//         │                                                   ▼
+//    ┌──────────┐     ┌──────────┐     ┌──────────┐     ┌──────────┐
+//    │8.IMPROVE │ ◀── │7.REINVEST│ ◀── │ 6. BILL  │ ◀── │5.ANALYZE │
+//    │ Council  │     │ Human    │     │ Billing  │     │ Analytics│
+//    └──────────┘     └──────────┘     └──────────┘     └──────────┘
+//
+// ═══════════════════════════════════════════════════════════════════════════════
+
+// ─── Stage 1: BUILD — InfrastructureGuard ───────────────────────────────────
+// Input:  Improvement decision from Stage 8
+// Output: Healthy, tested backend ready for deployment
+// Agent:  InfrastructureGuard
+// Auto:   CodeBuild trigger, ECS task definition registration, health check
+// Human:  Architecture decisions, cost approval >$50/mo, new AWS services
+
+context BuildStage {
+    domain: infrastructure
+    risk_mode: balanced
+    token_budget: 2048
+
+    @intent(build)
+    @confidence(required = 0.80)
+    fn execute_build(improvement: ImprovementPlan) -> ReleaseCandidate {
+        // 1. Create CodeBuild job with updated source
+        // 2. Run security scan
+        // 3. Run test suite
+        // 4. Build Docker image
+        // 5. Push to ECR
+        let candidate: ReleaseCandidate = CodeBuild.run(improvement)
+
+        if (candidate.test_coverage > 0.80 && candidate.security_scan == "pass") {
+            return candidate
+        } else {
+            escalate(to: DeploymentReview, subject: candidate, tier: L2)
+        }
+    }
+}
+
+// ─── Stage 2: SHIP — PlatformPublisher ──────────────────────────────────────
+// Input:  Approved ReleaseCandidate from Stage 1
+// Output: Updated packages across 15 platforms
+// Agent:  PlatformPublisher + SecuritySentinel (co-review)
+// Auto:   npm publish, PyPI upload, marketplace submissions
+// Human:  First publish to any new platform, major version bumps
+
+context ShipStage {
+    domain: distribution
+    risk_mode: conservative
+    token_budget: 2048
+
+    @intent(publish)
+    @confidence(required = 0.85)
+    fn publish_platforms(candidate: ReleaseCandidate) -> PublishResult {
+        // Auto-publishable: npm, PyPI, VSCode marketplace, Sublime, Neovim
+        // Manual-submit: JetBrains, Slack, Zapier, GPT Store, Bing
+        let auto_count: Int = 9
+        let manual_count: Int = 6
+
+        // Always requires human approval for first publish
+        escalate(to: DeploymentReview, subject: candidate, tier: L2)
+    }
+}
+
+// ─── Stage 3: ONBOARD — OnboardingConcierge ─────────────────────────────────
+// Input:  New API key registration
+// Output: Active, educated user
+// Agent:  OnboardingConcierge
+// Auto:   Welcome email, quickstart guide, usage tips at milestones
+// Human:  Enterprise onboarding, custom integration requests
+
+context OnboardStage {
+    domain: customer_experience
+    risk_mode: balanced
+    token_budget: 1024
+
+    @intent(onboard)
+    @confidence(required = 0.70)
+    fn onboard_user(key: ApiKey) -> OnboardingState {
+        // Day 0: Welcome email + quickstart for their platform
+        // Day 1: Check if first request made, nudge if not
+        // Day 3: Send optimization tips
+        // Day 7: Send usage report + upgrade prompt for free tier
+        let age_days: Int = key.age_in_days()
+        let requests: Int = key.total_requests()
+
+        if (age_days > 1 && requests == 0) {
+            return OnboardingState("nudge", "send_quickstart")
+        } else if (requests > 10) {
+            return OnboardingState("engaged", "send_power_tips")
+        } else {
+            return OnboardingState("monitoring", "wait")
+        }
+    }
+}
+
+// ─── Stage 4: SERVE — InfrastructureGuard + SecuritySentinel ────────────────
+// Input:  API optimization requests
+// Output: Optimized prompts, usage logged
+// Agent:  InfrastructureGuard (uptime), SecuritySentinel (abuse detection)
+// Auto:   Request handling, rate limiting, usage tracking, DB writes
+// Human:  Never (fully automated — this is the core revenue engine)
+
+context ServeStage {
+    domain: operations
+    risk_mode: balanced
+    token_budget: 512
+
+    @intent(serve)
+    @confidence(required = 0.90)
+    fn process_request(request: OptimizeRequest) -> OptimizeResponse {
+        // 1. Validate API key (DB lookup)
+        // 2. Check rate limits (in-memory)
+        // 3. Check tier usage limits (DB)
+        // 4. Run TokenOptimizer
+        // 5. Log to optimization_logs table
+        // 6. Update api_keys usage counters
+        // 7. Return optimized prompt
+        return Backend.optimize(request)
+    }
+}
+
+// ─── Stage 5: ANALYZE — AnalyticsObserver ───────────────────────────────────
+// Input:  Usage data from Stage 4
+// Output: Business intelligence, churn signals, growth metrics
+// Agent:  AnalyticsObserver
+// Auto:   Usage reports, churn detection, anomaly flagging
+// Human:  Strategic interpretation, pricing changes, roadmap decisions
+
+context AnalyzeStage {
+    domain: analytics
+    risk_mode: balanced
+    token_budget: 2048
+
+    @intent(analyze)
+    @confidence(required = 0.70)
+    fn analyze_metrics() -> AnalyticsReport {
+        // Daily: Usage per tier, top keys, error rates
+        // Weekly: Growth rate, churn rate, revenue per platform
+        // Monthly: Cohort analysis, feature adoption, optimization quality
+        let health: Inferred<String> = SystemHealth.top_candidate()
+        let sentiment: Inferred<String> = CustomerSentiment.top_candidate()
+        let revenue: Inferred<String> = RevenueTrajectory.top_candidate()
+
+        return AnalyticsReport(health, sentiment, revenue)
+    }
+}
+
+// ─── Stage 6: BILL — BillingEnforcer ────────────────────────────────────────
+// Input:  Usage data from DB
+// Output: Invoices, tier enforcement, upgrade prompts
+// Agent:  BillingEnforcer + ComplianceAuditor
+// Auto:   Stripe charges, usage limit enforcement, warning emails
+// Human:  Refund decisions, pricing changes, enterprise contracts
+
+context BillStage {
+    domain: billing
+    risk_mode: conservative
+    token_budget: 1024
+
+    @intent(bill)
+    @confidence(required = 0.85)
+    fn enforce_billing(key: ApiKey) -> BillingAction {
+        let usage_pct: Float = key.tokens_optimized / key.tier_limit()
+
+        if (usage_pct >= 1.0) {
+            return BillingAction("block", "tier_limit_reached")
+        } else if (usage_pct >= 0.90) {
+            return BillingAction("warn", "90_percent_notice")
+        } else if (usage_pct >= 0.75) {
+            return BillingAction("nudge", "upgrade_suggestion")
+        } else {
+            return BillingAction("pass", "within_limits")
+        }
+    }
+}
+
+// ─── Stage 7: REINVEST — Human Decision ─────────────────────────────────────
+// Input:  Revenue, analytics, council recommendations
+// Output: Investment priorities for next improvement cycle
+// Agent:  NONE — this is exclusively human
+// Auto:   Nothing
+// Human:  Budget allocation, feature prioritization, hiring, infrastructure spend
+
+// This stage is intentionally not automated.
+// The council provides recommendations, the human decides.
+
+// ─── Stage 8: IMPROVE — Full Council ────────────────────────────────────────
+// Input:  Priorities from Stage 7 + analytics from Stage 5
+// Output: Improvement plan fed back to Stage 1
+// Agent:  All 7 agents vote via FortressOps council
+// Auto:   Council voting, plan generation
+// Human:  Final approval of improvement plan
+
+context ImproveStage {
+    domain: operations
+    risk_mode: balanced
+    token_budget: 4096
+
+    @intent(decide)
+    @confidence(required = 0.75)
+    fn plan_improvements(analytics: AnalyticsReport, budget: Budget) -> ImprovementPlan {
+        // Council evaluates:
+        // - Infrastructure bottlenecks (InfrastructureGuard)
+        // - Platform gaps (PlatformPublisher)
+        // - Revenue opportunities (BillingEnforcer)
+        // - Security posture (SecuritySentinel)
+        // - User friction points (OnboardingConcierge)
+        // - Growth signals (AnalyticsObserver)
+        // - Compliance requirements (ComplianceAuditor)
+
+        escalate(to: FortressOps, subject: analytics, tier: L2)
+        // Council votes → weighted decision → human approves → back to Stage 1
+    }
+}

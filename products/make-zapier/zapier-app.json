@@ -1,0 +1,163 @@
+{
+  "version": "1.0.0",
+  "name": "Fortress Token Optimizer",
+  "description": "Optimize prompts for token efficiency in Zapier workflows",
+  "zapier": {
+    "version": 1,
+    "platformVersion": "14.3.0"
+  },
+  "authentication": {
+    "type": "custom",
+    "fields": [
+      {
+        "computed": false,
+        "key": "api_key",
+        "required": true,
+        "label": "API Key",
+        "placeholder": "Enter your Fortress API key"
+      }
+    ],
+    "connectionLabel": "{{profile_first_name}} {{profile_last_name}}",
+    "test": {
+      "url": "https://api.fortress-optimizer.com/api/usage",
+      "method": "GET",
+      "headers": {
+        "Authorization": "Bearer {{bundle.authData.api_key}}",
+        "Content-Type": "application/json"
+      }
+    }
+  },
+  "creates": {
+    "create_optimization": {
+      "display": {
+        "label": "Optimize Prompt",
+        "description": "Optimize a prompt for token efficiency",
+        "hidden": false
+      },
+      "operation": {
+        "perform": {
+          "url": "https://api.fortress-optimizer.com/api/optimize",
+          "method": "POST",
+          "headers": {
+            "Authorization": "Bearer {{bundle.authData.api_key}}",
+            "Content-Type": "application/json"
+          },
+          "body": {
+            "prompt": "{{bundle.inputData.prompt}}",
+            "level": "{{bundle.inputData.level}}",
+            "provider": "{{bundle.inputData.provider}}"
+          }
+        }
+      },
+      "inputFields": [
+        {
+          "key": "prompt",
+          "label": "Prompt",
+          "type": "text",
+          "helpText": "The prompt text to optimize for token efficiency",
+          "required": true
+        },
+        {
+          "key": "level",
+          "label": "Optimization Level",
+          "type": "string",
+          "helpText": "How aggressively to optimize. Conservative preserves meaning closely, aggressive maximizes savings.",
+          "choices": {
+            "conservative": "Conservative",
+            "balanced": "Balanced",
+            "aggressive": "Aggressive"
+          },
+          "default": "balanced",
+          "required": false
+        },
+        {
+          "key": "provider",
+          "label": "LLM Provider",
+          "type": "string",
+          "helpText": "The LLM provider you will send the optimized prompt to",
+          "choices": {
+            "openai": "OpenAI",
+            "anthropic": "Anthropic",
+            "azure": "Azure",
+            "gemini": "Gemini",
+            "groq": "Groq",
+            "ollama": "Ollama"
+          },
+          "default": "openai",
+          "required": false
+        }
+      ],
+      "outputFields": [
+        {
+          "key": "request_id",
+          "label": "Request ID",
+          "type": "string"
+        },
+        {
+          "key": "status",
+          "label": "Status",
+          "type": "string"
+        },
+        {
+          "key": "optimization__optimized_prompt",
+          "label": "Optimized Prompt",
+          "type": "text"
+        },
+        {
+          "key": "optimization__technique",
+          "label": "Optimization Technique",
+          "type": "string"
+        },
+        {
+          "key": "tokens__original",
+          "label": "Original Token Count",
+          "type": "integer"
+        },
+        {
+          "key": "tokens__optimized",
+          "label": "Optimized Token Count",
+          "type": "integer"
+        },
+        {
+          "key": "tokens__savings",
+          "label": "Tokens Saved",
+          "type": "integer"
+        },
+        {
+          "key": "tokens__savings_percentage",
+          "label": "Savings Percentage",
+          "type": "number"
+        },
+        {
+          "key": "timestamp",
+          "label": "Timestamp",
+          "type": "string"
+        }
+      ],
+      "sample": {
+        "request_id": "req_abc123",
+        "status": "success",
+        "optimization": {
+          "optimized_prompt": "Summarize the key points of the document",
+          "technique": "semantic_compression"
+        },
+        "tokens": {
+          "original": 150,
+          "optimized": 120,
+          "savings": 30,
+          "savings_percentage": 20.0
+        },
+        "timestamp": "2026-03-08T12:00:00Z"
+      }
+    }
+  },
+  "triggers": {
+    "new_optimization": {
+      "display": {
+        "label": "New Optimization",
+        "description": "Trigger when a prompt is optimized",
+        "hidden": true
+      }
+    }
+  }
+}

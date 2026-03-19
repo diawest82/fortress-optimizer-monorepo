@@ -1,0 +1,125 @@
+{
+  "name": "fortress-cursor",
+  "displayName": "Fortress Token Optimizer for Cursor",
+  "description": "Optimize AI prompts and save tokens directly in Cursor. Reduce costs with intelligent prompt compression powered by the Fortress optimization engine.",
+  "version": "1.0.0",
+  "publisher": "fortress-optimizer",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Machine Learning",
+    "Other"
+  ],
+  "keywords": [
+    "cursor",
+    "token optimization",
+    "AI",
+    "prompt engineering",
+    "cost reduction",
+    "fortress"
+  ],
+  "icon": "images/fortress-icon.png",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/fortress-optimizer/fortress-cursor"
+  },
+  "activationEvents": [
+    "onCommand:fortress.optimizeSelection",
+    "onCommand:fortress.optimizeClipboard",
+    "onCommand:fortress.showUsage",
+    "onCommand:fortress.setApiKey",
+    "onCommand:fortress.setOptimizationLevel"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "fortress.optimizeSelection",
+        "title": "Fortress Cursor: Optimize Selection"
+      },
+      {
+        "command": "fortress.optimizeClipboard",
+        "title": "Fortress Cursor: Optimize Clipboard"
+      },
+      {
+        "command": "fortress.showUsage",
+        "title": "Fortress Cursor: Show Usage Stats"
+      },
+      {
+        "command": "fortress.setApiKey",
+        "title": "Fortress Cursor: Set API Key"
+      },
+      {
+        "command": "fortress.setOptimizationLevel",
+        "title": "Fortress Cursor: Set Optimization Level"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "fortress.optimizeSelection",
+        "key": "ctrl+shift+f",
+        "mac": "cmd+shift+f",
+        "when": "editorTextFocus && editorHasSelection"
+      },
+      {
+        "command": "fortress.optimizeClipboard",
+        "key": "ctrl+shift+alt+f",
+        "mac": "cmd+shift+alt+f"
+      }
+    ],
+    "configuration": {
+      "title": "Fortress Token Optimizer for Cursor",
+      "properties": {
+        "fortress.apiUrl": {
+          "type": "string",
+          "default": "https://api.fortress-optimizer.com",
+          "description": "Fortress API endpoint URL"
+        },
+        "fortress.optimizationLevel": {
+          "type": "string",
+          "enum": [
+            "conservative",
+            "balanced",
+            "aggressive"
+          ],
+          "default": "balanced",
+          "description": "Token optimization aggressiveness. Conservative preserves more detail; aggressive maximizes savings.",
+          "enumDescriptions": [
+            "Minimal changes, preserves nuance (5-15% savings)",
+            "Good balance of clarity and savings (15-30% savings)",
+            "Maximum compression, best for simple prompts (30-50% savings)"
+          ]
+        },
+        "fortress.defaultProvider": {
+          "type": "string",
+          "enum": [
+            "openai",
+            "anthropic",
+            "google",
+            "auto"
+          ],
+          "default": "openai",
+          "description": "Default AI provider for token counting and optimization targeting"
+        },
+        "fortress.showStatusBar": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show Fortress optimization stats in the status bar"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "lint": "eslint src --ext .ts"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.85.0",
+    "@types/node": "^20.0.0",
+    "typescript": "^5.3.3",
+    "eslint": "^8.50.0"
+  }
+}

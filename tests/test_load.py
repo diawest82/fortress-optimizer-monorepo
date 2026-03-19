@@ -31,7 +31,7 @@ def sync_client():
 
 @pytest.fixture(scope="module")
 def api_key(sync_client):
-    resp = sync_client.post("/api/keys/register", json={"name": "load-test", "tier": "pro"})
+    resp = sync_client.post("/api/keys/register", json={"name": "load-test", "tier": "free"})
     assert resp.status_code == 200
     return resp.json()["api_key"]
 

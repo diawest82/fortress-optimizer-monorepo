@@ -1,0 +1,217 @@
+// Fortress Operations Council — IMA-Lang Definition
+// Phased council: only agents with real work today are active.
+// Compile: imalc compile fortress_operations.imal --target all
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// PHASE A — Active Now (3 agents with real infrastructure to manage)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+agent InfrastructureGuard: Agent<
+    domain = infrastructure,
+    authority = 0.92,
+    decay = halflife(7d),
+    recovery = +0.5 on_success,
+    specializations = [ecs, rds, alb, ecr, codebuild, cloudwatch]
+>
+
+agent SecuritySentinel: Agent<
+    domain = security,
+    authority = 0.95,
+    decay = halflife(30d),
+    recovery = +0.5 on_success,
+    specializations = [api_keys, rate_limiting, vulnerability_scan, credential_rotation]
+>
+
+agent DeploymentAgent: Agent<
+    domain = deployment,
+    authority = 0.88,
+    decay = halflife(14d),
+    recovery = +0.4 on_success,
+    specializations = [codebuild, ecr, ecs_update, rollback, platform_publish]
+>
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// PHASE B — Activate on first paying customer
+// ═══════════════════════════════════════════════════════════════════════════════
+
+// agent BillingEnforcer: Agent<
+//     domain = billing,
+//     authority = 0.90,
+//     decay = halflife(30d),
+//     recovery = +0.3 on_success,
+//     specializations = [stripe, usage_tracking, tier_enforcement]
+// >
+
+// agent AnalyticsObserver: Agent<
+//     domain = analytics,
+//     authority = 0.85,
+//     decay = halflife(14d),
+//     recovery = +0.3 on_success,
+//     specializations = [usage_patterns, churn_signals, optimization_metrics, revenue]
+// >
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// PHASE C — Activate at scale
+// ═══════════════════════════════════════════════════════════════════════════════
+
+// agent OnboardingConcierge: Agent<
+//     domain = customer_experience,
+//     authority = 0.80,
+//     decay = halflife(14d),
+//     recovery = +0.4 on_success,
+//     specializations = [registration, documentation, sdk_guidance, support]
+// >
+
+// agent ComplianceAuditor: Agent<
+//     domain = compliance,
+//     authority = 0.88,
+//     decay = halflife(45d),
+//     recovery = +0.3 on_success,
+//     specializations = [data_privacy, terms_of_service, audit_trail, gdpr]
+// >
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// COUNCIL — Phase A: 3 agents, SecuritySentinel has veto power
+//
+// Voting rules:
+//   3/3 unanimous            → auto-proceed
+//   2/3 with Security ok     → proceed with logging
+//   2/3 with Security dissent→ BLOCK (security veto)
+//   1/3                      → block + escalate to human
+// ═══════════════════════════════════════════════════════════════════════════════
+
+council FortressOps {
+    members:         [InfrastructureGuard, SecuritySentinel, DeploymentAgent]
+    vote:            weighted_by_authority
+    threshold:       0.70
+    dissent_amplify: true
+    timeout:         30s
+} -> Decision
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// BELIEFS — Probabilistic models (only SystemHealth active in Phase A)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+belief SystemHealth {
+    healthy:       0.85
+    degraded:      0.10
+    incident:      0.04
+    catastrophic:  0.01
+
+    on evidence(check: HealthCheck) {
+        update bayesian(check)
+        normalize()
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// SEMANTIC GRAPH — What depends on what
+// ═══════════════════════════════════════════════════════════════════════════════
+
+graph FortressDependencies {
+    // Infrastructure chain
+    ECSService     depends_on DockerImage
+    DockerImage    depends_on ECRRepo
+    ECSService     depends_on RDSDatabase
+    ECSService     depends_on ALBListener
+    ALBListener    depends_on TargetGroup
+
+    // Platform chain
+    PlatformSDKs   depends_on BackendAPI
+    BackendAPI      depends_on ECSService
+
+    // Causal relationships
+    RDSDatabase      causes DataPersistence
+    ECSRestart       causes RateLimitReset
+    CodeBuildFailure causes DeploymentBlock
+
+    // Conflicts
+    AggressiveRateLimit conflicts_with UserExperience
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// MESSAGES — Phase A inter-agent signals
+// ═══════════════════════════════════════════════════════════════════════════════
+
+msg HealthAlert {
+    from:    InfrastructureGuard
+    to:      FortressOps
+    intent:  diagnose
+    subject: InfrastructureEvent
+    criteria: [response_time, error_rate, db_connectivity, memory_usage]
+    return:  Decision
+}
+
+msg DeployRequest {
+    from:    DeploymentAgent
+    to:      FortressOps
+    intent:  decide
+    subject: ReleaseCandidate
+    criteria: [test_coverage, security_scan, rollback_plan]
+    return:  Decision
+}
+
+msg SecurityIncident {
+    from:    SecuritySentinel
+    to:      FortressOps
+    intent:  mitigate
+    subject: ThreatEvent
+    criteria: [severity, blast_radius, exploitability]
+    return:  Decision
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// CONTEXTS — Operational modes
+// ═══════════════════════════════════════════════════════════════════════════════
+
+context NormalOperations {
+    domain:       operations
+    risk_mode:    balanced
+    token_budget: 2048
+
+    @intent(monitor)
+    @confidence(required = 0.70)
+    fn health_loop() -> Decision {
+        let health: Inferred<String> = SystemHealth.top_candidate()
+        let confidence: Float = SystemHealth.confidence
+
+        if (health == "healthy" && confidence > 0.85) {
+            return Decision("all_clear", health)
+        } else if (health == "degraded") {
+            escalate(to: FortressOps, subject: HealthAlert, tier: L1)
+        } else {
+            escalate(to: FortressOps, subject: HealthAlert, tier: L3)
+        }
+    }
+
+    @intent(decide)
+    @confidence(required = 0.80)
+    fn route_deploy(release: ReleaseCandidate) -> Decision {
+        let security_clear: Bool = SecuritySentinel.approve(release)
+        let tests_pass: Bool = release.test_coverage > 0.80
+
+        if (security_clear && tests_pass) {
+            return Decision("auto_deploy", release)
+        } else {
+            escalate(to: FortressOps, subject: release, tier: L2)
+        }
+    }
+}
+
+context IncidentResponse {
+    domain:       security
+    risk_mode:    conservative
+    token_budget: 4096
+
+    @intent(mitigate)
+    @confidence(required = 0.90)
+    fn handle_incident(event: ThreatEvent) -> Decision {
+        let severity: Inferred<String> = event.classify()
+
+        if (severity == "critical") {
+            escalate(to: HumanOperator, subject: event, tier: L4)
+        } else {
+            escalate(to: FortressOps, subject: event, tier: L3)
+        }
+    }
+}

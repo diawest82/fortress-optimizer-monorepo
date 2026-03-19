@@ -1,0 +1,175 @@
+{
+  "id": "fortress-make-module",
+  "name": "Fortress Token Optimizer",
+  "version": "1.0.0",
+  "baseURL": "https://api.fortress-optimizer.com",
+  "description": "Optimize prompts for token efficiency in Make.com workflows",
+  "documentation": "https://docs.fortress-optimizer.com/integrations/make",
+  "metadata": {
+    "design": {
+      "border": "#FF6B35",
+      "icon": "optimize"
+    }
+  },
+  "operations": [
+    {
+      "slug": "optimize_prompt",
+      "label": "Optimize Prompt",
+      "description": "Send a prompt to be optimized for token efficiency",
+      "method": "POST",
+      "url": "/api/optimize",
+      "headers": {
+        "Authorization": "Bearer {{api_key}}",
+        "Content-Type": "application/json"
+      },
+      "parameters": [
+        {
+          "name": "prompt",
+          "type": "text",
+          "label": "Prompt Text",
+          "required": true,
+          "help": "The text to optimize for token efficiency",
+          "multiline": true
+        },
+        {
+          "name": "level",
+          "type": "select",
+          "label": "Optimization Level",
+          "required": false,
+          "default": "balanced",
+          "options": [
+            {
+              "label": "Conservative",
+              "value": "conservative"
+            },
+            {
+              "label": "Balanced",
+              "value": "balanced"
+            },
+            {
+              "label": "Aggressive",
+              "value": "aggressive"
+            }
+          ]
+        },
+        {
+          "name": "provider",
+          "type": "select",
+          "label": "Provider",
+          "required": false,
+          "default": "openai",
+          "options": [
+            {
+              "label": "OpenAI",
+              "value": "openai"
+            },
+            {
+              "label": "Anthropic",
+              "value": "anthropic"
+            },
+            {
+              "label": "Azure",
+              "value": "azure"
+            },
+            {
+              "label": "Gemini",
+              "value": "gemini"
+            },
+            {
+              "label": "Groq",
+              "value": "groq"
+            },
+            {
+              "label": "Ollama",
+              "value": "ollama"
+            }
+          ]
+        }
+      ],
+      "response": {
+        "request_id": {
+          "label": "Request ID",
+          "type": "text"
+        },
+        "status": {
+          "label": "Status",
+          "type": "text"
+        },
+        "optimization": {
+          "optimized_prompt": {
+            "label": "Optimized Prompt",
+            "type": "text"
+          },
+          "technique": {
+            "label": "Technique Used",
+            "type": "text"
+          }
+        },
+        "tokens": {
+          "original": {
+            "label": "Original Token Count",
+            "type": "number"
+          },
+          "optimized": {
+            "label": "Optimized Token Count",
+            "type": "number"
+          },
+          "savings": {
+            "label": "Tokens Saved",
+            "type": "number"
+          },
+          "savings_percentage": {
+            "label": "Savings Percentage",
+            "type": "number"
+          }
+        },
+        "timestamp": {
+          "label": "Timestamp",
+          "type": "text"
+        }
+      }
+    },
+    {
+      "slug": "get_usage",
+      "label": "Get Usage",
+      "description": "Check token usage for your API key",
+      "method": "GET",
+      "url": "/api/usage",
+      "headers": {
+        "Authorization": "Bearer {{api_key}}"
+      },
+      "response": {
+        "tokens_used_this_month": {
+          "label": "Tokens Used",
+          "type": "number"
+        },
+        "tokens_limit": {
+          "label": "Monthly Limit",
+          "type": "number"
+        },
+        "tokens_remaining": {
+          "label": "Tokens Remaining",
+          "type": "number"
+        },
+        "percentage_used": {
+          "label": "Percentage Used",
+          "type": "number"
+        },
+        "reset_date": {
+          "label": "Reset Date",
+          "type": "text"
+        }
+      }
+    }
+  ],
+  "authentication": {
+    "type": "api_key",
+    "mapping": {
+      "api_key": "Authorization: Bearer {{api_key}}"
+    }
+  },
+  "rateLimit": {
+    "limit": 100,
+    "period": 60
+  }
+}

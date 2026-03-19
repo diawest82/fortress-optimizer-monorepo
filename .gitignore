@@ -63,3 +63,6 @@ coverage/
 .vercel
 .env*.local
 .md
+
+#passwords
+.fortress-db-url

@@ -1,0 +1,10 @@
+{
+  "fileExclusions": [
+    "node_modules",
+    ".git",
+    ".env"
+  ],
+  "contentExclusions": [],
+  "allowHooks": true,
+  "allowAutonomousPR": true
+}

@@ -1,0 +1,48 @@
+plugins {
+    id 'java'
+    id 'org.jetbrains.kotlin.jvm' version '1.9.22'
+    id 'org.jetbrains.intellij' version '1.17.2'
+}
+
+group 'com.fortressoptimizer'
+version '1.0.0'
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+}
+
+kotlin {
+    jvmToolchain(17)
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'com.google.code.gson:gson:2.10.1'
+
+    testImplementation 'junit:junit:4.13.2'
+    testImplementation 'org.mockito:mockito-core:5.11.0'
+    testImplementation 'org.mockito.kotlin:mockito-kotlin:5.2.1'
+}
+
+intellij {
+    version = '2024.1'
+    type = 'IC'   // IntelliJ Community
+    plugins = []
+    updateSinceUntilBuild = true
+}
+
+tasks {
+    patchPluginXml {
+        changeNotes.set("Initial release of Fortress Token Optimizer for JetBrains IDEs.")
+        sinceBuild.set("241")
+        untilBuild.set("243.*")
+    }
+
+    buildSearchableOptions {
+        enabled = false   // speeds up build; not needed for non-settings-heavy plugins
+    }
+}

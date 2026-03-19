@@ -117,9 +117,16 @@ class TestTierConsistency:
     """Test that tier data remains consistent."""
 
     def test_registered_tier_matches_usage_tier(self, client):
-        for tier in ["free", "pro", "team", "enterprise"]:
-            key = client.post(
+        # Self-service only allows free tier
+        key = client.post(
+            "/api/keys/register", json={"name": "tier-free", "tier": "free"}
+        ).json()["api_key"]
+        usage = client.get("/api/usage", headers={"Authorization": f"Bearer {key}"}).json()
+        assert usage["tier"] == "free"
+
+    def test_paid_tier_registration_rejected(self, client):
+        for tier in ["pro", "team", "enterprise"]:
+            resp = client.post(
                 "/api/keys/register", json={"name": f"tier-{tier}", "tier": tier}
-            ).json()["api_key"]
-            usage = client.get("/api/usage", headers={"Authorization": f"Bearer {key}"}).json()
-            assert usage["tier"] == tier
+            )
+            assert resp.status_code == 422, f"Tier {tier} should be rejected"

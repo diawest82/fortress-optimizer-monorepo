@@ -64,6 +64,16 @@ def setup_teardown():
 
 
 def register_key(name="test", tier="free"):
+    if tier != "free":
+        # Non-free tiers can't be self-registered; insert directly into DB
+        import uuid
+        raw_key = f"fk_{uuid.uuid4().hex}"
+        key_hash = _hash_key(raw_key)
+        db = TestSession()
+        db.add(models.ApiKey(key_hash=key_hash, name=name, tier=tier))
+        db.commit()
+        db.close()
+        return raw_key
     resp = client.post("/api/keys/register", json={"name": name, "tier": tier})
     assert resp.status_code == 200
     return resp.json()["api_key"]
@@ -108,8 +118,8 @@ class TestKeyRegistration:
         assert resp.json()["api_key"].startswith("fk_")
 
     def test_register_echoes_tier(self):
-        resp = client.post("/api/keys/register", json={"name": "k", "tier": "pro"})
-        assert resp.json()["tier"] == "pro"
+        resp = client.post("/api/keys/register", json={"name": "k", "tier": "free"})
+        assert resp.json()["tier"] == "free"
 
     def test_register_echoes_name(self):
         resp = client.post("/api/keys/register", json={"name": "my-key"})
@@ -123,10 +133,14 @@ class TestKeyRegistration:
     def test_register_default_tier_is_free(self):
         assert client.post("/api/keys/register", json={"name": "t"}).json()["tier"] == "free"
 
-    def test_register_all_tiers(self):
-        for tier in ["free", "pro", "team", "enterprise"]:
+    def test_register_only_free_tier(self):
+        resp = client.post("/api/keys/register", json={"name": "k-free", "tier": "free"})
+        assert resp.status_code == 200
+
+    def test_register_paid_tiers_rejected(self):
+        for tier in ["pro", "team", "enterprise"]:
             resp = client.post("/api/keys/register", json={"name": f"k-{tier}", "tier": tier})
-            assert resp.status_code == 200
+            assert resp.status_code == 422
 
     def test_register_invalid_tier(self):
         assert client.post("/api/keys/register", json={"name": "t", "tier": "bad"}).status_code == 422

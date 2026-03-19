@@ -1,0 +1,322 @@
+openapi: 3.0.1
+info:
+  title: Fortress Token Optimizer API
+  description: |
+    Optimize AI prompts to reduce token usage and costs across LLM providers.
+    Supports multiple optimization levels and provider-specific tuning.
+  version: "1.0.0"
+  contact:
+    email: support@fortress-optimizer.com
+    url: https://fortress-optimizer.com
+servers:
+  - url: https://api.fortress-optimizer.com
+
+paths:
+  /api/optimize:
+    post:
+      operationId: optimizePrompt
+      summary: Optimize a prompt for token efficiency
+      description: |
+        Accepts a raw prompt and returns an optimized version with reduced token
+        count. Choose an optimization level from minimal (safest, smallest
+        savings) to maximum (most aggressive compression). Optionally specify
+        the target LLM provider so the optimizer can apply provider-specific
+        tokenization rules.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OptimizeRequest"
+      responses:
+        "200":
+          description: Optimization completed successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OptimizeResponse"
+        "400":
+          description: Invalid request parameters
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Missing or invalid Bearer token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "429":
+          description: Rate limit exceeded
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/usage:
+    get:
+      operationId: getUsageStats
+      summary: Retrieve usage statistics for the authenticated user
+      description: |
+        Returns cumulative token savings, total requests, and per-day breakdown
+        for the current billing period.
+      responses:
+        "200":
+          description: Usage statistics
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UsageResponse"
+        "401":
+          description: Missing or invalid Bearer token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/pricing:
+    get:
+      operationId: getPricingTiers
+      summary: List available pricing tiers
+      description: |
+        Returns all pricing tiers with their request limits, features, and
+        monthly cost. No authentication required.
+      responses:
+        "200":
+          description: Pricing tier information
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PricingResponse"
+
+  /api/keys/register:
+    post:
+      operationId: registerApiKey
+      summary: Register for a new API key
+      description: |
+        Self-service endpoint to create a new API key. Provide an email address
+        and optional organization name. Returns the new API key and tier info.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterRequest"
+      responses:
+        "201":
+          description: API key created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RegisterResponse"
+        "400":
+          description: Invalid registration data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Email already registered
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /health:
+    get:
+      operationId: healthCheck
+      summary: Check service health
+      description: |
+        Returns the current health status of the Fortress Token Optimizer API,
+        including uptime and version information. No authentication required.
+      responses:
+        "200":
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthResponse"
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      description: API key obtained via /api/keys/register or the dashboard
+
+  schemas:
+    OptimizeRequest:
+      type: object
+      required:
+        - prompt
+      properties:
+        prompt:
+          type: string
+          description: The raw prompt text to optimize
+          example: "Please provide a detailed and comprehensive explanation of how photosynthesis works in plants"
+        level:
+          type: string
+          enum:
+            - minimal
+            - balanced
+            - aggressive
+            - maximum
+          default: balanced
+          description: How aggressively to compress the prompt
+        provider:
+          type: string
+          enum:
+            - openai
+            - anthropic
+            - cohere
+          description: Target LLM provider for provider-specific tokenization tuning
+
+    OptimizeResponse:
+      type: object
+      properties:
+        request_id:
+          type: string
+          format: uuid
+          description: Unique identifier for this optimization request
+        status:
+          type: string
+          enum:
+            - success
+            - partial
+            - error
+        optimization:
+          type: object
+          properties:
+            optimized_prompt:
+              type: string
+              description: The token-optimized version of the prompt
+            technique:
+              type: string
+              description: The primary optimization technique applied
+              example: "semantic_compression"
+        tokens:
+          type: object
+          properties:
+            original:
+              type: integer
+              description: Token count of the original prompt
+            optimized:
+              type: integer
+              description: Token count of the optimized prompt
+            savings:
+              type: integer
+              description: Number of tokens saved
+            savings_percentage:
+              type: number
+              format: float
+              description: Percentage of tokens saved
+              example: 34.5
+
+    UsageResponse:
+      type: object
+      properties:
+        total_requests:
+          type: integer
+          description: Total optimization requests in the current billing period
+        total_tokens_saved:
+          type: integer
+          description: Cumulative tokens saved
+        total_cost_saved_usd:
+          type: number
+          format: float
+          description: Estimated cost savings in USD
+        current_tier:
+          type: string
+          description: The user's current pricing tier
+        period_start:
+          type: string
+          format: date
+        period_end:
+          type: string
+          format: date
+        daily_breakdown:
+          type: array
+          items:
+            type: object
+            properties:
+              date:
+                type: string
+                format: date
+              requests:
+                type: integer
+              tokens_saved:
+                type: integer
+
+    PricingResponse:
+      type: object
+      properties:
+        tiers:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+                example: "Pro"
+              monthly_price_usd:
+                type: number
+                format: float
+              requests_per_month:
+                type: integer
+              features:
+                type: array
+                items:
+                  type: string
+
+    RegisterRequest:
+      type: object
+      required:
+        - email
+      properties:
+        email:
+          type: string
+          format: email
+          description: Email address for the new account
+        organization:
+          type: string
+          description: Optional organization name
+
+    RegisterResponse:
+      type: object
+      properties:
+        api_key:
+          type: string
+          description: The newly created API key
+        tier:
+          type: string
+          description: The assigned pricing tier
+        message:
+          type: string
+
+    HealthResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          enum:
+            - healthy
+            - degraded
+            - down
+        version:
+          type: string
+        uptime_seconds:
+          type: integer
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Machine-readable error code
+        message:
+          type: string
+          description: Human-readable error description
+
+security:
+  - BearerAuth: []

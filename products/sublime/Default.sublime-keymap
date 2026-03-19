@@ -1,0 +1,21 @@
+[
+    {
+        "keys": ["ctrl+shift+o"],
+        "command": "fortress_optimize",
+        "context": [
+            {
+                "key": "selection_empty",
+                "operator": "equal",
+                "operand": false
+            }
+        ]
+    },
+    {
+        "keys": ["ctrl+shift+u"],
+        "command": "fortress_usage"
+    },
+    {
+        "keys": ["ctrl+shift+l"],
+        "command": "fortress_optimize_line"
+    }
+]

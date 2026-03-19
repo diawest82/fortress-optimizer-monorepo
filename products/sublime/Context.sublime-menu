@@ -1,0 +1,28 @@
+[
+    {
+        "caption": "Fortress Optimizer",
+        "children": [
+            {
+                "caption": "Optimize Selection",
+                "command": "fortress_optimize"
+            },
+            {
+                "caption": "Optimize Line",
+                "command": "fortress_optimize_line"
+            },
+            { "caption": "-" },
+            {
+                "caption": "Token Usage",
+                "command": "fortress_usage"
+            },
+            { "caption": "-" },
+            {
+                "caption": "Settings",
+                "command": "open_file",
+                "args": {
+                    "file": "${packages}/User/Fortress.sublime-settings"
+                }
+            }
+        ]
+    }
+]

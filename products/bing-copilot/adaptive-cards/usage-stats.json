@@ -1,0 +1,231 @@
+{
+  "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+  "type": "AdaptiveCard",
+  "version": "1.5",
+  "body": [
+    {
+      "type": "ColumnSet",
+      "columns": [
+        {
+          "type": "Column",
+          "width": "auto",
+          "items": [
+            {
+              "type": "Image",
+              "url": "https://api.fortress-optimizer.com/.well-known/logo.png",
+              "size": "Small",
+              "style": "Person"
+            }
+          ]
+        },
+        {
+          "type": "Column",
+          "width": "stretch",
+          "items": [
+            {
+              "type": "TextBlock",
+              "text": "Fortress Token Optimizer",
+              "weight": "Bolder",
+              "size": "Medium"
+            },
+            {
+              "type": "TextBlock",
+              "text": "Usage Statistics",
+              "spacing": "None",
+              "isSubtle": true,
+              "size": "Small"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "ColumnSet",
+      "columns": [
+        {
+          "type": "Column",
+          "width": "stretch",
+          "items": [
+            {
+              "type": "TextBlock",
+              "text": "Requests",
+              "horizontalAlignment": "Center",
+              "isSubtle": true,
+              "size": "Small"
+            },
+            {
+              "type": "TextBlock",
+              "text": "${total_requests}",
+              "horizontalAlignment": "Center",
+              "weight": "Bolder",
+              "size": "ExtraLarge"
+            }
+          ]
+        },
+        {
+          "type": "Column",
+          "width": "stretch",
+          "items": [
+            {
+              "type": "TextBlock",
+              "text": "Tokens Saved",
+              "horizontalAlignment": "Center",
+              "isSubtle": true,
+              "size": "Small"
+            },
+            {
+              "type": "TextBlock",
+              "text": "${total_tokens_saved}",
+              "horizontalAlignment": "Center",
+              "weight": "Bolder",
+              "size": "ExtraLarge",
+              "color": "Good"
+            }
+          ]
+        },
+        {
+          "type": "Column",
+          "width": "stretch",
+          "items": [
+            {
+              "type": "TextBlock",
+              "text": "Cost Saved",
+              "horizontalAlignment": "Center",
+              "isSubtle": true,
+              "size": "Small"
+            },
+            {
+              "type": "TextBlock",
+              "text": "$${total_cost_saved_usd}",
+              "horizontalAlignment": "Center",
+              "weight": "Bolder",
+              "size": "ExtraLarge",
+              "color": "Good"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "FactSet",
+      "facts": [
+        {
+          "title": "Current Tier",
+          "value": "${current_tier}"
+        },
+        {
+          "title": "Billing Period",
+          "value": "${period_start} to ${period_end}"
+        }
+      ],
+      "spacing": "Medium"
+    },
+    {
+      "type": "TextBlock",
+      "text": "Daily Breakdown",
+      "weight": "Bolder",
+      "size": "Small",
+      "spacing": "Large"
+    },
+    {
+      "type": "Container",
+      "style": "emphasis",
+      "items": [
+        {
+          "type": "ColumnSet",
+          "columns": [
+            {
+              "type": "Column",
+              "width": "stretch",
+              "items": [
+                {
+                  "type": "TextBlock",
+                  "text": "Date",
+                  "weight": "Bolder",
+                  "size": "Small"
+                }
+              ]
+            },
+            {
+              "type": "Column",
+              "width": "auto",
+              "items": [
+                {
+                  "type": "TextBlock",
+                  "text": "Requests",
+                  "weight": "Bolder",
+                  "size": "Small"
+                }
+              ]
+            },
+            {
+              "type": "Column",
+              "width": "auto",
+              "items": [
+                {
+                  "type": "TextBlock",
+                  "text": "Tokens Saved",
+                  "weight": "Bolder",
+                  "size": "Small"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "$data": "${daily_breakdown}",
+          "type": "ColumnSet",
+          "columns": [
+            {
+              "type": "Column",
+              "width": "stretch",
+              "items": [
+                {
+                  "type": "TextBlock",
+                  "text": "${date}",
+                  "size": "Small"
+                }
+              ]
+            },
+            {
+              "type": "Column",
+              "width": "auto",
+              "items": [
+                {
+                  "type": "TextBlock",
+                  "text": "${requests}",
+                  "size": "Small",
+                  "horizontalAlignment": "Right"
+                }
+              ]
+            },
+            {
+              "type": "Column",
+              "width": "auto",
+              "items": [
+                {
+                  "type": "TextBlock",
+                  "text": "${tokens_saved}",
+                  "size": "Small",
+                  "horizontalAlignment": "Right"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "type": "Action.OpenUrl",
+      "title": "Full Dashboard",
+      "url": "https://fortress-optimizer.com/dashboard"
+    },
+    {
+      "type": "Action.OpenUrl",
+      "title": "Upgrade Plan",
+      "url": "https://fortress-optimizer.com/pricing"
+    }
+  ]
+}

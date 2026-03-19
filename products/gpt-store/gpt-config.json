@@ -1,0 +1,31 @@
+{
+  "schema_version": "1.0",
+  "namespace": "fortress",
+  "display_name": "Fortress Token Optimizer",
+  "description": "Optimize your LLM prompts to save tokens and reduce costs. Paste any prompt and get an optimized version with clear before/after token savings. Supports GPT-4, Claude, and Gemini.",
+  "instructions_file": "system-prompt.md",
+  "actions_schema_file": "openapi-actions.json",
+  "auth": {
+    "type": "api_key",
+    "auth_type": "bearer",
+    "verification_tokens": {},
+    "custom_auth_header": "Authorization",
+    "description": "Enter your Fortress API key (starts with fk_). Get a free key at https://fortress-optimizer.com or ask this GPT to register one for you."
+  },
+  "logo_url": "https://fortress-optimizer.com/logo.png",
+  "contact_email": "support@fortress-optimizer.com",
+  "legal_info_url": "https://fortress-optimizer.com/legal",
+  "privacy_policy_url": "https://fortress-optimizer.com/privacy",
+  "categories": ["productivity", "developer-tools"],
+  "capabilities": {
+    "web_browsing": false,
+    "dall_e": false,
+    "code_interpreter": false
+  },
+  "conversation_starters": [
+    "Optimize this prompt for me",
+    "What are the pricing tiers?",
+    "Show my usage stats",
+    "What providers do you support?"
+  ]
+}

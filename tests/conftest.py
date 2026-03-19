@@ -99,10 +99,18 @@ def api_key(client):
 
 @pytest.fixture
 def pro_key(client):
-    """Register and return a pro-tier API key."""
-    resp = client.post("/api/keys/register", json={"name": "pro-key", "tier": "pro"})
-    assert resp.status_code == 200
-    return resp.json()["api_key"]
+    """Create a pro-tier API key directly in DB (bypasses self-service free-only restriction)."""
+    import uuid, hashlib
+    from main import API_KEY_SECRET
+    from models import ApiKey
+
+    raw_key = f"fk_{uuid.uuid4().hex}"
+    key_hash = hashlib.sha256(f"{API_KEY_SECRET}:{raw_key}".encode()).hexdigest()
+    db = _TestSession()
+    db.add(ApiKey(key_hash=key_hash, name="pro-key", tier="pro"))
+    db.commit()
+    db.close()
+    return raw_key
 
 
 @pytest.fixture

@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<idea-plugin>
+  <id>com.fortressoptimizer.intellij</id>
+  <name>Fortress Token Optimizer</name>
+  <vendor email="support@fortress-optimizer.com" url="https://fortress-optimizer.com">
+    Fortress
+  </vendor>
+
+  <description><![CDATA[
+    Optimize your prompts for token efficiency directly in your JetBrains IDE.
+
+    Features:
+    - Real-time token optimization
+    - Multiple optimization levels (minimal, balanced, aggressive, maximum)
+    - Token usage tracking with status bar widget
+    - Editor context-menu integration
+    - Keyboard shortcut support (Ctrl+Shift+O)
+    - Configurable API endpoint and provider
+  ]]></description>
+
+  <depends>com.intellij.modules.platform</depends>
+
+  <!-- ── Actions ──────────────────────────────────────────────── -->
+  <actions>
+    <group id="FortressGroup" text="Fortress" description="Fortress Token Optimizer actions">
+      <add-to-group group-id="ToolsMenu" anchor="last"/>
+    </group>
+
+    <action id="FortressOptimize"
+            class="com.fortressoptimizer.actions.OptimizeAction"
+            text="Optimize with Fortress"
+            description="Optimize selected text for token efficiency"
+            icon="AllIcons.Actions.Lightning">
+      <add-to-group group-id="EditorPopupMenu" anchor="last"/>
+      <add-to-group group-id="FortressGroup"/>
+      <keyboard-shortcut keymap="$default" first-keystroke="ctrl shift O"/>
+    </action>
+
+    <action id="FortressUsage"
+            class="com.fortressoptimizer.actions.ShowUsageAction"
+            text="Show Fortress Usage"
+            description="Show token usage statistics">
+      <add-to-group group-id="FortressGroup"/>
+    </action>
+  </actions>
+
+  <!-- ── Extensions ───────────────────────────────────────────── -->
+  <extensions defaultExtensionNs="com.intellij">
+    <!-- Persistent application service for settings storage -->
+    <applicationService
+      serviceImplementation="com.fortressoptimizer.settings.FortressSettingsState"/>
+
+    <!-- Settings UI under Preferences > Tools -->
+    <applicationConfigurable
+      parentId="tools"
+      id="com.fortressoptimizer.FortressSettings"
+      displayName="Fortress Token Optimizer"
+      instance="com.fortressoptimizer.settings.FortressSettingsConfigurable"/>
+
+    <!-- Status bar widget -->
+    <statusBarWidgetFactory
+      id="com.fortressoptimizer.StatusWidget"
+      implementation="com.fortressoptimizer.ui.FortressStatusWidgetFactory"
+      order="after encodingWidget"/>
+
+    <!-- Notification group -->
+    <notificationGroup id="Fortress Notifications"
+                        displayType="BALLOON"
+                        toolWindowId="Fortress"/>
+  </extensions>
+</idea-plugin>

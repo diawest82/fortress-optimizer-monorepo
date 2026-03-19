@@ -1,0 +1,18 @@
+{
+  "schema_version": "v1",
+  "name_for_human": "Fortress Token Optimizer",
+  "name_for_model": "fortress_optimizer",
+  "description_for_human": "Optimize your AI prompts to reduce token usage by up to 40%. Save costs across OpenAI, Anthropic, and other LLM providers while preserving output quality.",
+  "description_for_model": "Plugin for optimizing AI prompts to reduce token consumption and costs. Use this plugin when the user wants to: (1) optimize or compress a prompt for efficiency, (2) reduce token usage or API costs, (3) check their optimization usage statistics, (4) view pricing tiers, (5) register for an API key, or (6) check service health. The optimize endpoint accepts a prompt string, an optimization level (minimal, balanced, aggressive, or maximum), and an optional provider hint (openai, anthropic, cohere). It returns the optimized prompt, the technique used, and token savings metrics.",
+  "auth": {
+    "type": "user_http",
+    "authorization_type": "bearer"
+  },
+  "api": {
+    "type": "openapi",
+    "url": "https://api.fortress-optimizer.com/.well-known/openapi.yaml"
+  },
+  "logo_url": "https://api.fortress-optimizer.com/.well-known/logo.png",
+  "contact_email": "support@fortress-optimizer.com",
+  "legal_info_url": "https://fortress-optimizer.com/legal"
+}

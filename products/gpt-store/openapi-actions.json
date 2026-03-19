@@ -1,0 +1,371 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Fortress Token Optimizer API",
+    "description": "API for optimizing LLM prompts to reduce token usage and cost. Used by the Fortress Token Optimizer GPT to analyze, compress, and report on prompt efficiency.",
+    "version": "1.0.0",
+    "contact": {
+      "name": "Fortress Optimizer Support",
+      "email": "support@fortress-optimizer.com",
+      "url": "https://fortress-optimizer.com"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://api.fortress-optimizer.com",
+      "description": "Production API"
+    }
+  ],
+  "paths": {
+    "/api/optimize": {
+      "post": {
+        "operationId": "optimizePrompt",
+        "summary": "Optimize a prompt for token efficiency",
+        "description": "Accepts a raw prompt and returns an optimized version with token savings metrics. Use this whenever a user wants to optimize a prompt. Default to level 'balanced' and provider 'openai' unless the user specifies otherwise.",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["prompt"],
+                "properties": {
+                  "prompt": {
+                    "type": "string",
+                    "description": "The raw prompt text to optimize"
+                  },
+                  "level": {
+                    "type": "string",
+                    "enum": ["conservative", "balanced", "aggressive"],
+                    "default": "balanced",
+                    "description": "Optimization level. 'conservative' makes minimal changes (~5% savings), 'balanced' is the default (~15% savings), 'aggressive' maximizes compression (~30% savings)."
+                  },
+                  "provider": {
+                    "type": "string",
+                    "enum": ["openai", "anthropic", "google"],
+                    "default": "openai",
+                    "description": "Target LLM provider for tokenizer-specific optimization"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Optimization completed successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "request_id": {
+                      "type": "string",
+                      "description": "Unique identifier for this optimization request"
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": ["success", "error"]
+                    },
+                    "optimization": {
+                      "type": "object",
+                      "properties": {
+                        "optimized_prompt": {
+                          "type": "string",
+                          "description": "The optimized prompt text"
+                        },
+                        "technique": {
+                          "type": "string",
+                          "description": "Description of the optimization techniques applied"
+                        }
+                      }
+                    },
+                    "tokens": {
+                      "type": "object",
+                      "properties": {
+                        "original": {
+                          "type": "integer",
+                          "description": "Token count of the original prompt"
+                        },
+                        "optimized": {
+                          "type": "integer",
+                          "description": "Token count of the optimized prompt"
+                        },
+                        "savings": {
+                          "type": "integer",
+                          "description": "Number of tokens saved"
+                        },
+                        "savings_percentage": {
+                          "type": "number",
+                          "description": "Percentage of tokens saved"
+                        }
+                      }
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid API key"
+          },
+          "429": {
+            "description": "Rate limit exceeded for current tier"
+          }
+        }
+      }
+    },
+    "/api/usage": {
+      "get": {
+        "operationId": "getUsageStats",
+        "summary": "Get the user's API usage statistics",
+        "description": "Returns usage stats for the authenticated user including total requests, tokens processed, and tokens saved. Call this when a user asks about their usage, quota, or optimization history.",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Usage statistics",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "total_requests": {
+                      "type": "integer"
+                    },
+                    "total_tokens_processed": {
+                      "type": "integer"
+                    },
+                    "total_tokens_saved": {
+                      "type": "integer"
+                    },
+                    "current_tier": {
+                      "type": "string"
+                    },
+                    "requests_remaining": {
+                      "type": "integer"
+                    },
+                    "period_start": {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    "period_end": {
+                      "type": "string",
+                      "format": "date-time"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid API key"
+          }
+        }
+      }
+    },
+    "/api/providers": {
+      "get": {
+        "operationId": "listProviders",
+        "summary": "List available LLM providers",
+        "description": "Returns the list of supported LLM providers and their tokenizer details. Call this when a user asks which providers or models are supported.",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of providers",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "providers": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string"
+                          },
+                          "name": {
+                            "type": "string"
+                          },
+                          "models": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid API key"
+          }
+        }
+      }
+    },
+    "/api/pricing": {
+      "get": {
+        "operationId": "getPricing",
+        "summary": "Get pricing tier information",
+        "description": "Returns available pricing tiers, their limits, and costs. No authentication required. Call this when a user asks about pricing, plans, costs, or wants to upgrade.",
+        "responses": {
+          "200": {
+            "description": "Pricing tiers",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "tiers": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "name": {
+                            "type": "string"
+                          },
+                          "price_monthly": {
+                            "type": "number"
+                          },
+                          "requests_per_month": {
+                            "type": "integer"
+                          },
+                          "features": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/health": {
+      "get": {
+        "operationId": "healthCheck",
+        "summary": "Check API health status",
+        "description": "Returns API health and uptime status. No authentication required. Call this if a user reports errors or you want to verify the API is available before making other calls.",
+        "responses": {
+          "200": {
+            "description": "API is healthy",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": ["healthy", "degraded"]
+                    },
+                    "version": {
+                      "type": "string"
+                    },
+                    "uptime": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/keys/register": {
+      "post": {
+        "operationId": "registerApiKey",
+        "summary": "Register a new API key",
+        "description": "Creates a new API key for the user. No authentication required. Call this when a user wants to sign up, get started, or needs an API key. The returned key starts with 'fk_'.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["name"],
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "description": "A display name for the API key (e.g., the user's name or project name)"
+                  },
+                  "tier": {
+                    "type": "string",
+                    "enum": ["free", "pro", "enterprise"],
+                    "default": "free",
+                    "description": "The pricing tier. Defaults to 'free'."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "API key created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "api_key": {
+                      "type": "string",
+                      "description": "The generated API key (starts with fk_)"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "tier": {
+                      "type": "string"
+                    },
+                    "created_at": {
+                      "type": "string",
+                      "format": "date-time"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "BearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "description": "API key obtained from /api/keys/register or from fortress-optimizer.com. Pass as 'Authorization: Bearer fk_...'"
+      }
+    }
+  }
+}

@@ -1,0 +1,98 @@
+{
+  "name": "fortress-optimizer-enhanced",
+  "displayName": "Fortress Token Optimizer Enhanced",
+  "description": "Advanced token optimization with team features, analytics, and enterprise support",
+  "version": "2.0.0",
+  "publisher": "Diawest82",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Other",
+    "Education"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "fortress.optimize",
+        "title": "Fortress: Optimize Selection"
+      },
+      {
+        "command": "fortress.batchOptimize",
+        "title": "Fortress: Batch Optimize Files"
+      },
+      {
+        "command": "fortress.showAnalytics",
+        "title": "Fortress: Show Analytics Dashboard"
+      },
+      {
+        "command": "fortress.createTemplate",
+        "title": "Fortress: Create Optimization Template"
+      },
+      {
+        "command": "fortress.checkHealth",
+        "title": "Fortress: Check Server Health"
+      }
+    ],
+    "views": {
+      "explorer": [
+        {
+          "id": "fortressAnalytics",
+          "name": "Fortress Analytics",
+          "when": "config.fortress.enableAnalytics"
+        },
+        {
+          "id": "fortressTeam",
+          "name": "Fortress Team",
+          "when": "config.fortress.enableTeamFeatures"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Fortress Token Optimizer",
+      "properties": {
+        "fortress.apiUrl": {
+          "type": "string",
+          "default": "https://api.fortress-optimizer.com",
+          "description": "Fortress API endpoint URL"
+        },
+        "fortress.apiKey": {
+          "type": "string",
+          "description": "Fortress API key (get from fortress-optimizer.com)"
+        },
+        "fortress.optimizationLevel": {
+          "type": "string",
+          "enum": ["conservative", "balanced", "aggressive"],
+          "default": "balanced",
+          "description": "Token optimization level"
+        },
+        "fortress.enableAnalytics": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable analytics dashboard"
+        },
+        "fortress.enableTeamFeatures": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable team collaboration features"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "lint": "eslint src"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.85.0",
+    "@types/node": "^20.0.0",
+    "typescript": "^5.3.3",
+    "eslint": "^8.50.0"
+  }
+}

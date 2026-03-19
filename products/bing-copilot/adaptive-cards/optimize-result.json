@@ -1,0 +1,144 @@
+{
+  "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+  "type": "AdaptiveCard",
+  "version": "1.5",
+  "body": [
+    {
+      "type": "ColumnSet",
+      "columns": [
+        {
+          "type": "Column",
+          "width": "auto",
+          "items": [
+            {
+              "type": "Image",
+              "url": "https://api.fortress-optimizer.com/.well-known/logo.png",
+              "size": "Small",
+              "style": "Person"
+            }
+          ]
+        },
+        {
+          "type": "Column",
+          "width": "stretch",
+          "items": [
+            {
+              "type": "TextBlock",
+              "text": "Fortress Token Optimizer",
+              "weight": "Bolder",
+              "size": "Medium"
+            },
+            {
+              "type": "TextBlock",
+              "text": "Optimization Result",
+              "spacing": "None",
+              "isSubtle": true,
+              "size": "Small"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "FactSet",
+      "facts": [
+        {
+          "title": "Technique",
+          "value": "${optimization.technique}"
+        },
+        {
+          "title": "Original Tokens",
+          "value": "${tokens.original}"
+        },
+        {
+          "title": "Optimized Tokens",
+          "value": "${tokens.optimized}"
+        },
+        {
+          "title": "Tokens Saved",
+          "value": "${tokens.savings}"
+        }
+      ]
+    },
+    {
+      "type": "ColumnSet",
+      "columns": [
+        {
+          "type": "Column",
+          "width": "stretch",
+          "items": [
+            {
+              "type": "TextBlock",
+              "text": "Savings",
+              "horizontalAlignment": "Center",
+              "isSubtle": true,
+              "size": "Small"
+            },
+            {
+              "type": "TextBlock",
+              "text": "${tokens.savings_percentage}%",
+              "horizontalAlignment": "Center",
+              "weight": "Bolder",
+              "size": "ExtraLarge",
+              "color": "Good"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "Container",
+      "style": "emphasis",
+      "items": [
+        {
+          "type": "TextBlock",
+          "text": "Original Prompt",
+          "weight": "Bolder",
+          "size": "Small"
+        },
+        {
+          "type": "TextBlock",
+          "text": "${original_prompt}",
+          "wrap": true,
+          "maxLines": 4,
+          "size": "Small"
+        }
+      ],
+      "spacing": "Medium"
+    },
+    {
+      "type": "Container",
+      "style": "good",
+      "items": [
+        {
+          "type": "TextBlock",
+          "text": "Optimized Prompt",
+          "weight": "Bolder",
+          "size": "Small"
+        },
+        {
+          "type": "TextBlock",
+          "text": "${optimization.optimized_prompt}",
+          "wrap": true,
+          "size": "Small"
+        }
+      ],
+      "spacing": "Medium"
+    }
+  ],
+  "actions": [
+    {
+      "type": "Action.OpenUrl",
+      "title": "View in Dashboard",
+      "url": "https://fortress-optimizer.com/dashboard?request=${request_id}"
+    },
+    {
+      "type": "Action.Submit",
+      "title": "Copy Optimized Prompt",
+      "data": {
+        "action": "copy",
+        "text": "${optimization.optimized_prompt}"
+      }
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+	"folders": [
+		{
+			"path": "../../VSC Extensions"
+		},
+		{
+			"path": ".."
+		}
+	],
+	"settings": {
+		"chat.tools.terminal.autoApprove": {
+			"aws": true
+		},
+		"terminal.integrated.defaultLocation": "panel"
+	}
+}

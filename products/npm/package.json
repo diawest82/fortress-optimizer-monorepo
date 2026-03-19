@@ -1,0 +1,47 @@
+{
+  "name": "@fortress-optimizer/core",
+  "version": "1.0.0",
+  "description": "Fortress Token Optimizer - npm package for token optimization",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "jest",
+    "lint": "eslint src/",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "tokens",
+    "optimization",
+    "llm",
+    "openai",
+    "anthropic",
+    "prompt-engineering"
+  ],
+  "author": "Diawest82",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Diawest82/fortress-optimizer-monorepo"
+  },
+  "homepage": "https://fortress-optimizer.com",
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "dependencies": {
+    "axios": "^1.6.0",
+    "dotenv": "^16.3.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "typescript": "^5.3.3",
+    "jest": "^29.7.0",
+    "@types/jest": "^29.5.8",
+    "ts-jest": "^29.1.1",
+    "eslint": "^8.55.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
