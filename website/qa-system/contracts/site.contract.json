@@ -19,8 +19,8 @@
 
     { "id": "home-cta-signup", "source": "/", "selector": "a[href='/auth/signup']", "expectedDestination": "/auth/signup", "pageMarker": "input[name='email']", "priority": "critical", "category": "cta", "authRequired": false },
     { "id": "home-cta-install", "source": "/", "selector": "a:has-text('View Install Guides')", "expectedDestination": "/install", "pageMarker": "body", "priority": "critical", "category": "cta", "authRequired": false },
-    { "id": "home-cta-dashboard", "source": "/", "selector": "a:has-text('View Dashboard')", "expectedDestination": "/dashboard", "pageMarker": "body", "priority": "high", "category": "cta", "authRequired": false },
-    { "id": "home-cta-install-2", "source": "/", "selector": "a:has-text('Install Now')", "expectedDestination": "/install", "pageMarker": "body", "priority": "high", "category": "cta", "authRequired": false },
+    { "id": "home-cta-free", "source": "/", "selector": "a:has-text('Start Free')", "expectedDestination": "/auth/signup", "pageMarker": "input[name='email']", "priority": "critical", "category": "cta", "authRequired": false },
+    { "id": "home-cta-install-2", "source": "/", "selector": "a:has-text('View Install Guides'):last-of-type", "expectedDestination": "/install", "pageMarker": "body", "priority": "high", "category": "cta", "authRequired": false },
 
     { "id": "pricing-free", "source": "/pricing", "selector": "button:has-text('Get Early Access')", "expectedDestination": "/auth/signup", "pageMarker": "input[name='email']", "priority": "critical", "category": "cta", "authRequired": false, "clickType": "router" },
     { "id": "pricing-pro-subscribe", "source": "/pricing", "selector": "button:has-text('Subscribe now')", "expectedDestination": "/auth/login", "pageMarker": "input[name='email']", "priority": "critical", "category": "cta", "authRequired": false, "clickType": "router" },
