@@ -8,6 +8,10 @@ import { NextRequest } from 'next/server';
 
 const JWT_SECRET = process.env.JWT_SECRET || process.env.NEXTAUTH_SECRET || 'CHANGE-THIS-IN-PRODUCTION';
 
+if (JWT_SECRET === 'CHANGE-THIS-IN-PRODUCTION' && process.env.NODE_ENV === 'production') {
+  console.error('CRITICAL: JWT_SECRET is not set in production. Authentication is insecure.');
+}
+
 export interface JWTPayload {
   id: string;
   email: string;
@@ -26,16 +30,6 @@ export function verifyAuthToken(req: NextRequest): JWTPayload | null {
   if (authHeader?.startsWith('Bearer ')) {
     const token = authHeader.substring(7);
     return verifyToken(token);
-  }
-
-  // Check x-user-context header (for internal API calls)
-  const userContext = req.headers.get('x-user-context');
-  if (userContext) {
-    try {
-      return JSON.parse(Buffer.from(userContext, 'base64').toString()) as JWTPayload;
-    } catch {
-      return null;
-    }
   }
 
   // Check cookie
@@ -66,4 +60,22 @@ export function verifyToken(token: string): JWTPayload | null {
 export function getUserIdFromRequest(req: NextRequest): string | null {
   const payload = verifyAuthToken(req);
   return payload?.id || null;
+}
+
+/**
+ * Validate CSRF token (double-submit cookie pattern).
+ * Compares X-CSRF-Token header against fortress_csrf_token cookie.
+ */
+export function validateCsrf(req: NextRequest): boolean {
+  const cookieToken = req.cookies.get('fortress_csrf_token')?.value;
+  const headerToken = req.headers.get('x-csrf-token');
+
+  if (!cookieToken || !headerToken) return false;
+  if (cookieToken.length !== headerToken.length) return false;
+
+  let mismatch = 0;
+  for (let i = 0; i < cookieToken.length; i++) {
+    mismatch |= cookieToken.charCodeAt(i) ^ headerToken.charCodeAt(i);
+  }
+  return mismatch === 0;
 }

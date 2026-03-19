@@ -4,14 +4,17 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { getUserIdFromRequest } from '@/lib/jwt-auth';
+import { getUserIdFromRequest, validateCsrf } from '@/lib/jwt-auth';
 import { prisma } from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
 
-
-
 export async function POST(req: NextRequest) {
   try {
+    // CSRF validation for state-changing request
+    if (!validateCsrf(req)) {
+      return NextResponse.json({ error: 'Invalid CSRF token' }, { status: 403 });
+    }
+
     const userId = getUserIdFromRequest(req);
     if (!userId) {
       return NextResponse.json(

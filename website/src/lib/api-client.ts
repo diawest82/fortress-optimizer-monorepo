@@ -22,17 +22,16 @@ export class ApiClient {
   }
 
   private loadCredentials() {
+    // Auth tokens are now in httpOnly cookies only — not stored in localStorage
+    // API keys are still in localStorage for SDK usage (not auth tokens)
     if (typeof window !== 'undefined') {
-      this.token = localStorage.getItem('auth_token');
       this.apiKey = localStorage.getItem('api_key');
     }
   }
 
-  setToken(token: string) {
-    this.token = token;
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('auth_token', token);
-    }
+  setToken(_token: string) {
+    // No-op: auth tokens are now cookie-only (set by login API response)
+    // This method kept for backward compatibility but does not store locally
   }
 
   setApiKey(key: string) {
