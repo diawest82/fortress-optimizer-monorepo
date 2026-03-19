@@ -57,8 +57,8 @@ export interface UsageResponse {
   tokens_optimized: number;
   tokens_saved: number;
   requests: number;
-  tokens_limit: string;
-  tokens_remaining: string;
+  tokens_limit: number | string;
+  tokens_remaining: number | string;
   rate_limit: {
     requests_this_minute: number;
     requests_this_day: number;

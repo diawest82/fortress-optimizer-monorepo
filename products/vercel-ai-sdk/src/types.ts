@@ -85,12 +85,20 @@ export interface OptimizeResponse {
   timestamp?: string;
 }
 
-/** Response from GET /api/usage */
+/** Response from GET /api/usage — matches backend API contract */
 export interface UsageResponse {
-  tokens_used_this_month: number;
-  tokens_limit: number;
-  tokens_remaining: number;
-  percentage_used: number;
+  tier: string;
+  tokens_optimized: number;
+  tokens_saved: number;
+  requests: number;
+  tokens_limit: number | string;
+  tokens_remaining: number | string;
+  rate_limit: {
+    requests_this_minute: number;
+    requests_this_day: number;
+    rpm_limit: number;
+    rpd_limit: number;
+  };
   reset_date: string;
 }
 
