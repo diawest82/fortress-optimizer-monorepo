@@ -17,6 +17,9 @@ export class FortressClient {
   private readonly config: ResolvedFortressConfig;
 
   constructor(config: ResolvedFortressConfig) {
+    if (!config.baseUrl.startsWith('https://') && !config.baseUrl.startsWith('http://localhost')) {
+      throw new Error('Fortress API requires HTTPS.');
+    }
     this.config = config;
   }
 
@@ -34,6 +37,22 @@ export class FortressClient {
         provider: this.config.provider,
       }),
     });
+
+    // Validate response integrity — defend against prompt injection
+    const optimized = response.optimization?.optimized_prompt;
+    if (optimized) {
+      if (optimized.length > prompt.length * 2) {
+        throw new Error('Response validation failed: optimized prompt suspiciously longer than original');
+      }
+      const patterns = ['ignore all previous', 'ignore the above', 'you are now', 'new instructions:'];
+      const lower = optimized.toLowerCase();
+      const promptLower = prompt.toLowerCase();
+      for (const p of patterns) {
+        if (lower.includes(p) && !promptLower.includes(p)) {
+          throw new Error('Response validation failed: suspicious content in optimized prompt');
+        }
+      }
+    }
 
     return response;
   }
@@ -78,7 +97,6 @@ export class FortressClient {
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${this.config.apiKey}`,
-          'X-API-Key': this.config.apiKey,
           'X-Client': '@fortress-optimizer/vercel-ai',
           'X-Client-Version': '0.1.0',
         },

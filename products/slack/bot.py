@@ -23,14 +23,6 @@ FORTRESS_API_KEY = os.environ.get("FORTRESS_API_KEY", "")
 FORTRESS_URL = os.environ.get("FORTRESS_URL", "https://api.fortress-optimizer.com")
 
 fortress_shared_client = FortressClient(api_key=FORTRESS_API_KEY, base_url=FORTRESS_URL)
-# Keep raw httpx client for non-optimize calls (usage, health)
-fortress_client = httpx.Client(
-    base_url=FORTRESS_URL,
-    headers={
-        "Authorization": f"Bearer {FORTRESS_API_KEY}",
-        "X-Client-Version": "1.0.0",
-    },
-)
 
 logger = logging.getLogger(__name__)
 
@@ -118,9 +110,7 @@ def handle_optimize_command(message, say):
 def handle_usage_command(message, say):
     """Get token usage statistics"""
     try:
-        response = fortress_client.get("/api/usage", timeout=5.0)
-        response.raise_for_status()
-        usage = response.json()
+        usage = fortress_shared_client.get_usage()
 
         tier = usage.get("tier", "free")
         tokens_optimized = usage.get("tokens_optimized", 0)

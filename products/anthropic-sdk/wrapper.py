@@ -122,7 +122,8 @@ class FortressAnthropicClient:
 
     def close(self):
         """Close HTTP client"""
-        self.http_client.close()
+        if hasattr(self, '_fortress'):
+            self._fortress.close()
 
     def __enter__(self):
         return self

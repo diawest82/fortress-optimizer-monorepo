@@ -73,6 +73,8 @@ class FortressClient:
         self.base_url = (base_url or os.environ.get("FORTRESS_BASE_URL", "")).rstrip(
             "/"
         ) or DEFAULT_BASE_URL
+        if not self.base_url.startswith("https://") and not self.base_url.startswith("http://localhost"):
+            raise ValueError("Fortress API requires HTTPS. Use https:// URLs only.")
         self.timeout = timeout
         self.provider = provider
         self.level = level
@@ -86,7 +88,6 @@ class FortressClient:
     def _build_headers(self) -> dict[str, str]:
         return {
             "Authorization": f"Bearer {self.api_key}",
-            "X-API-Key": self.api_key,
             "Content-Type": "application/json",
             "User-Agent": "fortress-langchain/0.1.0",
         }
@@ -124,7 +125,17 @@ class FortressClient:
         try:
             resp = self._client.post("/api/optimize", json=body)
             resp.raise_for_status()
-            return self._parse_response(resp.json())
+            result = self._parse_response(resp.json())
+            # Validate response integrity
+            if result.optimized_prompt:
+                if len(result.optimized_prompt) > len(prompt) * 2:
+                    return self._fallback(prompt)
+                injection_patterns = ["ignore all previous", "ignore the above", "you are now", "new instructions:"]
+                lower = result.optimized_prompt.lower()
+                for pat in injection_patterns:
+                    if pat in lower and pat not in prompt.lower():
+                        return self._fallback(prompt)
+            return result
         except Exception:
             logger.warning(
                 "Fortress optimization failed; falling back to original prompt.",
@@ -181,6 +192,17 @@ class FortressClient:
     # ------------------------------------------------------------------
     # Internal
     # ------------------------------------------------------------------
+
+    @staticmethod
+    @staticmethod
+    def _fallback(prompt: str) -> OptimizationResult:
+        """Return original prompt as a failed optimization (injection detected)."""
+        return OptimizationResult(
+            optimized_prompt=prompt,
+            technique="none",
+            tokens=TokenStats(original=0, optimized=0, savings=0, savings_percentage=0.0),
+            success=False,
+        )
 
     @staticmethod
     def _parse_response(data: dict[str, Any]) -> OptimizationResult:

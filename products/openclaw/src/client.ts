@@ -17,12 +17,15 @@ export class FortressClient {
   private readonly config: ResolvedFortressConfig;
 
   constructor(config: ResolvedFortressConfig) {
+    if (!config.baseUrl.startsWith('https://') && !config.baseUrl.startsWith('http://localhost')) {
+      throw new Error('Fortress API requires HTTPS.');
+    }
     this.config = config;
   }
 
   async optimize(prompt: string): Promise<OptimizeResponse> {
     const url = `${this.config.baseUrl}/api/optimize`;
-    return this.request<OptimizeResponse>(url, {
+    const response = await this.request<OptimizeResponse>(url, {
       method: 'POST',
       body: JSON.stringify({
         prompt,
@@ -30,6 +33,23 @@ export class FortressClient {
         provider: this.config.provider,
       }),
     });
+
+    // Validate response integrity
+    const optimized = response.optimization?.optimized_prompt;
+    if (optimized) {
+      if (optimized.length > prompt.length * 2) {
+        throw new Error('Response validation failed: optimized prompt suspiciously longer');
+      }
+      const patterns = ['ignore all previous', 'ignore the above', 'you are now', 'new instructions:'];
+      const lower = optimized.toLowerCase();
+      for (const p of patterns) {
+        if (lower.includes(p) && !prompt.toLowerCase().includes(p)) {
+          throw new Error('Response validation failed: suspicious content');
+        }
+      }
+    }
+
+    return response;
   }
 
   async getUsage(): Promise<UsageResponse> {
@@ -66,7 +86,6 @@ export class FortressClient {
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${this.config.apiKey}`,
-          'X-API-Key': this.config.apiKey,
           'X-Client': '@fortress-optimizer/openclaw-skill',
           'X-Client-Version': '0.1.0',
         },

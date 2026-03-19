@@ -147,9 +147,9 @@ end
 -- Show usage statistics
 function M.show_usage()
   local cmd = string.format(
-    'curl -s -X GET "%s/api/usage" -H "Authorization: Bearer %s"',
-    M.config.api_url,
-    M.config.api_key
+    'curl -s -X GET %s -H %s',
+    vim.fn.shellescape(M.config.api_url .. "/api/usage"),
+    vim.fn.shellescape("Authorization: Bearer " .. M.config.api_key)
   )
   
   vim.fn.jobstart(cmd, {
