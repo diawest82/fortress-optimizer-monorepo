@@ -21,7 +21,7 @@ const routes = loadPagesContract().routes.filter(r => !r.authRequired);
 test.describe('SEO Agent: Essential Meta Tags', () => {
   for (const route of routes) {
     test(`[meta] ${route.path} has title + description`, async ({ page }) => {
-      await page.goto(`${BASE}${route.path}`);
+      await page.goto(`${BASE}${route.path}`, { timeout: 15000, waitUntil: 'domcontentloaded' });
 
       // Title must exist and not be empty
       const title = await page.title();

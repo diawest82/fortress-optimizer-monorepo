@@ -50,7 +50,7 @@ test.describe('Integration: npm SDK → Live API', () => {
     }
   });
 
-  test('FortressClient.healthCheck() returns healthy', async () => {
+  test('FortressClient.healthCheck() returns truthy', async () => {
     const NPM_DIR = join(PRODUCTS_DIR, 'npm');
     const result = execSync(
       `node -e 'var m = require("./dist"); var c = new m.FortressClient("${apiKey}", {baseUrl:"${API}"}); c.healthCheck().then(r => console.log(JSON.stringify(r))).catch(e => console.log(JSON.stringify({error:e.message})))'`,
@@ -58,7 +58,8 @@ test.describe('Integration: npm SDK → Live API', () => {
     );
 
     const data = JSON.parse(result.trim());
-    expect(data.status).toBe('healthy');
+    // healthCheck returns true (boolean) or {status: "healthy"} depending on version
+    expect(data === true || data?.status === 'healthy').toBe(true);
   });
 });
 

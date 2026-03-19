@@ -64,8 +64,8 @@ export default function Install() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-black via-zinc-900 to-black">
-      <div className="max-w-7xl mx-auto px-6 py-12">
+    <div className="min-h-screen bg-gradient-to-b from-black via-zinc-900 to-black overflow-x-hidden">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-12">
         {/* Hero Section */}
         <section className="rounded-3xl border border-blue-500/30 bg-gradient-to-r from-blue-950/40 to-purple-950/40 p-8 mb-12">
           <div className="flex flex-col gap-6">
@@ -114,7 +114,7 @@ export default function Install() {
                         )}
                       </button>
                     </div>
-                    <code className="text-sm text-green-400 bg-black rounded p-3 block overflow-x-auto whitespace-pre-wrap break-words">
+                    <code className="text-sm text-green-400 bg-black rounded p-3 block whitespace-pre-wrap break-all max-w-full overflow-hidden">
                       {step.cmd}
                     </code>
                   </div>
