@@ -74,3 +74,64 @@ export function generateRouteTests(filter?: {
 
   return routes;
 }
+
+// ─── Flow Contract Types ─────────────────────────────────────────────────
+
+export interface FlowStep {
+  action: 'navigate' | 'click' | 'fill' | 'submit' | 'assert' | 'auth' | 'wait' | 'interact';
+  url?: string;
+  selector?: string;
+  expectedUrl?: string;
+  waitForNavigation?: boolean;
+  value?: string | number;
+  waitForResponse?: string;
+  type?: 'url' | 'visible' | 'text' | 'not-visible' | 'url-not';
+  method?: 'signup-api' | 'login-ui' | 'inject-token';
+  email?: string;
+  password?: string;
+  ms?: number;
+  forSelector?: string;
+  forUrl?: string;
+  interactType?: 'toggle' | 'slide' | 'select';
+  description?: string;
+}
+
+export interface FlowEntry {
+  id: string;
+  name: string;
+  priority: 'critical' | 'high' | 'low';
+  authRequired: boolean;
+  category: string;
+  steps: FlowStep[];
+}
+
+interface FlowsContract {
+  $schema: string;
+  flows: FlowEntry[];
+}
+
+export function loadFlowsContract(): FlowsContract {
+  const raw = readFileSync(join(CONTRACTS_DIR, 'flows.contract.json'), 'utf-8');
+  return JSON.parse(raw);
+}
+
+export function generateFlowTests(filter?: {
+  priority?: string;
+  authRequired?: boolean;
+  category?: string;
+}): FlowEntry[] {
+  const contract = loadFlowsContract();
+  let flows = contract.flows;
+
+  if (filter?.priority) {
+    flows = flows.filter(f => f.priority === filter.priority);
+  }
+  if (filter?.authRequired !== undefined) {
+    flows = flows.filter(f => f.authRequired === filter.authRequired);
+  }
+  if (filter?.category) {
+    flows = flows.filter(f => f.category === filter.category);
+  }
+
+  return flows;
+}

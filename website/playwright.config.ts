@@ -105,6 +105,12 @@ export default defineConfig({
       timeout: 60000,
     },
     {
+      name: 'qa-flow-crawler',
+      testDir: './qa-system/specs',
+      testMatch: '13-flow-crawler.spec.ts',
+      timeout: 120000,
+    },
+    {
       name: 'qa-system',
       testDir: './qa-system/specs',
       testMatch: '*.spec.ts',

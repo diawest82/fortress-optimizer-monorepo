@@ -1,0 +1,225 @@
+{
+  "$schema": "flows-contract-v1",
+  "flows": [
+    {
+      "id": "individual-free-signup",
+      "name": "Homepage → Signup → Dashboard",
+      "priority": "critical",
+      "authRequired": false,
+      "category": "signup",
+      "steps": [
+        { "action": "navigate", "url": "/", "description": "Land on homepage" },
+        { "action": "click", "selector": "a[href='/auth/signup']", "expectedUrl": "/auth/signup", "description": "Click signup CTA" },
+        { "action": "assert", "type": "visible", "selector": "input[name='email']", "description": "Signup form visible" },
+        { "action": "assert", "type": "visible", "selector": "input[name='firstName']", "description": "Name field visible" }
+      ]
+    },
+    {
+      "id": "individual-pro-signup-unauth",
+      "name": "Pricing Pro → Signup (NOT Login)",
+      "priority": "critical",
+      "authRequired": false,
+      "category": "signup",
+      "steps": [
+        { "action": "navigate", "url": "/pricing", "description": "Land on pricing" },
+        { "action": "wait", "forSelector": "button:has-text('Subscribe now')", "description": "Wait for hydration" },
+        { "action": "click", "selector": "button:has-text('Subscribe now')", "expectedUrl": "/auth/signup", "description": "Click Pro subscribe" },
+        { "action": "assert", "type": "url", "value": "/auth/signup", "description": "Goes to signup, NOT login" },
+        { "action": "assert", "type": "url-not", "value": "/auth/login", "description": "Confirm NOT login page" },
+        { "action": "assert", "type": "url", "value": "callbackUrl", "description": "Has callback to pricing" },
+        { "action": "assert", "type": "visible", "selector": "input[name='email']", "description": "Signup form present" }
+      ]
+    },
+    {
+      "id": "team-signup-unauth",
+      "name": "Pricing Teams → Team Signup (with seats)",
+      "priority": "critical",
+      "authRequired": false,
+      "category": "signup",
+      "steps": [
+        { "action": "navigate", "url": "/pricing", "description": "Land on pricing" },
+        { "action": "wait", "forSelector": "button:has-text('Subscribe —')", "description": "Wait for teams button" },
+        { "action": "click", "selector": "button:has-text('Subscribe —')", "expectedUrl": "/auth/signup/team", "description": "Click Teams subscribe" },
+        { "action": "assert", "type": "url", "value": "/auth/signup/team", "description": "Goes to team signup" },
+        { "action": "assert", "type": "url", "value": "seats=", "description": "Seats param passed" },
+        { "action": "assert", "type": "url", "value": "callbackUrl", "description": "Has callback to pricing" },
+        { "action": "assert", "type": "visible", "selector": "input[name='teamName']", "description": "Team name field present" },
+        { "action": "assert", "type": "visible", "selector": "input[name='email']", "description": "Email field present" }
+      ]
+    },
+    {
+      "id": "free-to-pro-upgrade",
+      "name": "Account → Upgrade → Pricing → Subscribe (no login redirect)",
+      "priority": "critical",
+      "authRequired": true,
+      "category": "upgrade",
+      "steps": [
+        { "action": "auth", "method": "signup-api", "description": "Create test account" },
+        { "action": "auth", "method": "login-ui", "description": "Login via UI" },
+        { "action": "navigate", "url": "/account", "description": "Go to account" },
+        { "action": "wait", "forSelector": "a[href='/pricing']", "description": "Wait for upgrade link" },
+        { "action": "click", "selector": "a[href='/pricing']", "expectedUrl": "/pricing", "description": "Click Upgrade Plan" },
+        { "action": "wait", "forSelector": "button:has-text('Subscribe now')", "description": "Wait for hydration" },
+        { "action": "click", "selector": "button:has-text('Subscribe now')", "description": "Click Subscribe (authenticated)" },
+        { "action": "wait", "ms": 5000, "description": "Wait for Stripe or API response" },
+        { "action": "assert", "type": "url-not", "value": "/auth/login", "description": "NOT redirected to login" },
+        { "action": "assert", "type": "url-not", "value": "/auth/signup", "description": "NOT redirected to signup" }
+      ]
+    },
+    {
+      "id": "compare-to-signup",
+      "name": "Compare CTA → Signup Form",
+      "priority": "high",
+      "authRequired": false,
+      "category": "signup",
+      "steps": [
+        { "action": "navigate", "url": "/compare", "description": "Land on compare page" },
+        { "action": "click", "selector": "a[href='/auth/signup']", "expectedUrl": "/auth/signup", "description": "Click Start Saving Today" },
+        { "action": "assert", "type": "visible", "selector": "input[name='email']", "description": "Signup form visible" }
+      ]
+    },
+    {
+      "id": "install-to-account-auth-gated",
+      "name": "Install API Keys → Redirected to Login",
+      "priority": "high",
+      "authRequired": false,
+      "category": "auth",
+      "steps": [
+        { "action": "navigate", "url": "/install", "description": "Land on install page" },
+        { "action": "click", "selector": "a[href='/account']", "expectedUrl": "/auth/login", "description": "Click Manage API Keys" },
+        { "action": "assert", "type": "url", "value": "/auth/login", "description": "Redirected to login (auth-gated)" },
+        { "action": "assert", "type": "visible", "selector": "input[name='email']", "description": "Login form visible" }
+      ]
+    },
+    {
+      "id": "tools-to-signup",
+      "name": "Tools CTA → Signup Form",
+      "priority": "high",
+      "authRequired": false,
+      "category": "signup",
+      "steps": [
+        { "action": "navigate", "url": "/tools", "description": "Land on tools page" },
+        { "action": "click", "selector": "a[href='/auth/signup']", "expectedUrl": "/auth/signup", "description": "Click Get Started Free" },
+        { "action": "assert", "type": "visible", "selector": "input[name='email']", "description": "Signup form visible" }
+      ]
+    },
+    {
+      "id": "login-with-callback",
+      "name": "Login with callbackUrl → Redirects Correctly",
+      "priority": "critical",
+      "authRequired": true,
+      "category": "auth",
+      "steps": [
+        { "action": "auth", "method": "signup-api", "description": "Create test account" },
+        { "action": "navigate", "url": "/auth/login?callbackUrl=/pricing", "description": "Login page with callback" },
+        { "action": "wait", "forSelector": "input[name='email']", "description": "Wait for form" },
+        { "action": "fill", "selector": "input[name='email']", "value": "{{TEST_EMAIL}}", "description": "Fill email" },
+        { "action": "fill", "selector": "input[name='password']", "value": "{{TEST_PASSWORD}}", "description": "Fill password" },
+        { "action": "submit", "waitForResponse": "/api/auth/login", "description": "Submit login" },
+        { "action": "wait", "ms": 5000, "description": "Wait for redirect" },
+        { "action": "assert", "type": "url", "value": "/pricing", "description": "Redirected to pricing (callback)" }
+      ]
+    },
+    {
+      "id": "forgot-password-flow",
+      "name": "Login → Forgot → Submit → Confirmation → Back to Login",
+      "priority": "high",
+      "authRequired": false,
+      "category": "auth",
+      "steps": [
+        { "action": "navigate", "url": "/auth/login", "description": "Land on login" },
+        { "action": "click", "selector": "a[href='/forgot-password']", "expectedUrl": "/forgot-password", "description": "Click Forgot password" },
+        { "action": "assert", "type": "visible", "selector": "input[type='email']", "description": "Email field visible" },
+        { "action": "fill", "selector": "input[type='email']", "value": "forgot-{{UNIQUE}}@test.fortress-optimizer.com", "description": "Fill email" },
+        { "action": "submit", "waitForResponse": "/api/password/request-reset", "description": "Submit reset request" },
+        { "action": "wait", "ms": 3000, "description": "Wait for response" },
+        { "action": "assert", "type": "text", "value": "check your email|sent|reset link", "description": "Confirmation shown" },
+        { "action": "click", "selector": "a[href='/auth/login']", "expectedUrl": "/auth/login", "description": "Back to login" },
+        { "action": "assert", "type": "visible", "selector": "input[name='email']", "description": "Login form visible" }
+      ]
+    },
+    {
+      "id": "team-signup-cross-links",
+      "name": "Team Signup → Individual Signup → Login (cross-links work)",
+      "priority": "high",
+      "authRequired": false,
+      "category": "auth",
+      "steps": [
+        { "action": "navigate", "url": "/auth/signup/team", "description": "Land on team signup" },
+        { "action": "assert", "type": "visible", "selector": "input[name='teamName']", "description": "Team name field visible" },
+        { "action": "click", "selector": "a[href='/auth/signup']", "expectedUrl": "/auth/signup", "description": "Click individual signup link" },
+        { "action": "assert", "type": "visible", "selector": "input[name='firstName']", "description": "Individual form visible" },
+        { "action": "assert", "type": "not-visible", "selector": "input[name='teamName']", "description": "No team name field" },
+        { "action": "click", "selector": "a[href='/auth/login']", "expectedUrl": "/auth/login", "description": "Click login link" },
+        { "action": "assert", "type": "visible", "selector": "input[name='email']", "description": "Login form visible" },
+        { "action": "assert", "type": "visible", "selector": "input[name='password']", "description": "Password field visible" }
+      ]
+    },
+    {
+      "id": "onboarding-wizard",
+      "name": "Account → API Keys → Install → Docs",
+      "priority": "high",
+      "authRequired": true,
+      "category": "navigation",
+      "steps": [
+        { "action": "auth", "method": "signup-api", "description": "Create test account" },
+        { "action": "auth", "method": "login-ui", "description": "Login via UI" },
+        { "action": "navigate", "url": "/account", "description": "Go to account" },
+        { "action": "wait", "forSelector": "button:has-text('API Keys'), a:has-text('API Keys')", "description": "Wait for tabs" },
+        { "action": "click", "selector": "button:has-text('API Keys'), a:has-text('API Keys')", "description": "Click API Keys tab" },
+        { "action": "wait", "ms": 2000, "description": "Wait for tab content" },
+        { "action": "navigate", "url": "/install", "description": "Go to install page" },
+        { "action": "assert", "type": "text", "value": "npm|VS Code|Copilot|Slack", "description": "Install guides visible" },
+        { "action": "click", "selector": "a[href='/docs/installation/npm']", "expectedUrl": "/docs/installation/npm", "description": "Click npm docs link" },
+        { "action": "assert", "type": "text", "value": "npm|install|package", "description": "Docs content loaded" }
+      ]
+    },
+    {
+      "id": "pricing-annual-toggle",
+      "name": "Toggle Annual → Prices Update → Toggle Back",
+      "priority": "high",
+      "authRequired": false,
+      "category": "pricing",
+      "steps": [
+        { "action": "navigate", "url": "/pricing", "description": "Land on pricing" },
+        { "action": "wait", "ms": 3000, "description": "Wait for hydration" },
+        { "action": "assert", "type": "text", "value": "\\$15", "description": "Monthly Pro price shown" },
+        { "action": "interact", "interactType": "toggle", "selector": "button:has-text('Annual'), button[aria-label*='annual' i]", "description": "Toggle to annual" },
+        { "action": "wait", "ms": 1000, "description": "Wait for price update" },
+        { "action": "assert", "type": "text", "value": "\\$12", "description": "Annual Pro price shown" },
+        { "action": "interact", "interactType": "toggle", "selector": "button:has-text('Monthly'), button[aria-label*='annual' i]", "description": "Toggle back to monthly" },
+        { "action": "wait", "ms": 1000, "description": "Wait for price update" },
+        { "action": "assert", "type": "text", "value": "\\$15", "description": "Monthly price restored" }
+      ]
+    },
+    {
+      "id": "pricing-team-calculator",
+      "name": "Quick-Select 50 Seats → Price Updates → Button Shows Seats",
+      "priority": "high",
+      "authRequired": false,
+      "category": "pricing",
+      "steps": [
+        { "action": "navigate", "url": "/pricing", "description": "Land on pricing" },
+        { "action": "wait", "ms": 3000, "description": "Wait for hydration" },
+        { "action": "click", "selector": "button:has-text('50 seats')", "description": "Click 50 seats quick-select" },
+        { "action": "wait", "ms": 1000, "description": "Wait for calculator update" },
+        { "action": "assert", "type": "text", "value": "50 seats", "description": "50 seats shown" },
+        { "action": "assert", "type": "visible", "selector": "button:has-text('Subscribe — 50 seats')", "description": "Subscribe button shows 50 seats" }
+      ]
+    },
+    {
+      "id": "footer-navigation-loop",
+      "name": "Footer: Docs → Support → Privacy → Terms",
+      "priority": "high",
+      "authRequired": false,
+      "category": "navigation",
+      "steps": [
+        { "action": "navigate", "url": "/", "description": "Land on homepage" },
+        { "action": "click", "selector": "[data-testid='footer-docs']", "expectedUrl": "/docs", "description": "Footer → Docs" },
+        { "action": "click", "selector": "[data-testid='footer-support']", "expectedUrl": "/support", "description": "Footer → Support" },
+        { "action": "click", "selector": "[data-testid='footer-privacy']", "expectedUrl": "/legal/privacy", "description": "Footer → Privacy" },
+        { "action": "click", "selector": "[data-testid='footer-terms']", "expectedUrl": "/legal/terms", "description": "Footer → Terms" }
+      ]
+    }
+  ]
+}

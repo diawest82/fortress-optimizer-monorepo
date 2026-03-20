@@ -78,8 +78,12 @@ export default function PricingClient() {
     const hasAuth = typeof window !== 'undefined' && !!localStorage.getItem('auth_token');
 
     if (!hasAuth) {
-      // Hard redirect to login
-      window.location.assign(`/auth/login?callbackUrl=${encodeURIComponent('/pricing')}`);
+      // Send to appropriate signup page based on tier
+      if (tier === "teams") {
+        window.location.assign(`/auth/signup/team?seats=${teamSeats}&callbackUrl=${encodeURIComponent('/pricing')}`);
+      } else {
+        window.location.assign(`/auth/signup?plan=${tier}&callbackUrl=${encodeURIComponent('/pricing')}`);
+      }
       return;
     }
 
