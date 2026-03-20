@@ -1,5 +1,6 @@
 import ContactForm from '@/components/contact-form';
 import SupportChatbot from '@/components/support-chatbot';
+import SiteFooter from '@/components/site-footer';
 import { Mail, BookOpen, MessageSquare, Clock, MessageCircle } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
@@ -136,6 +137,7 @@ export default function Support() {
         </p>
       </section>
     </div>
+    <SiteFooter />
     </>
   );
 }
