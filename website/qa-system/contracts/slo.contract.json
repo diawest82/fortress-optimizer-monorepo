@@ -1,0 +1,13 @@
+{
+  "$schema": "slo-contract-v1",
+  "endpoints": [
+    { "url": "/health", "method": "GET", "p95": 200, "p99": 500, "backend": true, "label": "Backend health" },
+    { "url": "/api/health", "method": "GET", "p95": 300, "p99": 500, "label": "Website health" },
+    { "url": "/api/pricing", "method": "GET", "p95": 300, "p99": 500, "label": "Pricing API" },
+    { "url": "/api/optimize", "method": "POST", "p95": 1500, "p99": 2000, "label": "Optimization", "requiresAuth": true },
+    { "url": "/api/auth/login", "method": "POST", "p95": 500, "p99": 1000, "label": "Login" },
+    { "url": "/api/auth/signup", "method": "POST", "p95": 500, "p99": 1000, "label": "Signup" },
+    { "url": "/", "method": "GET", "p95": 500, "p99": 1000, "label": "Homepage TTFB", "page": true },
+    { "url": "/pricing", "method": "GET", "p95": 500, "p99": 1000, "label": "Pricing TTFB", "page": true }
+  ]
+}

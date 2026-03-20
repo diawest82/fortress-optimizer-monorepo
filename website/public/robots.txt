@@ -1,0 +1,11 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /api
+Disallow: /auth
+Disallow: /dashboard
+Disallow: /account
+Disallow: /test-checkout
+Disallow: /stripe-test
+
+Sitemap: https://www.fortress-optimizer.com/sitemap.xml
