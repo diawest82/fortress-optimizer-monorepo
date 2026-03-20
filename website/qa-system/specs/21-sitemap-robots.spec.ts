@@ -69,8 +69,10 @@ test.describe('Sitemap & Robots: SEO Crawlability', () => {
       const publicRoutes = contract.routes.filter(r => !r.authRequired);
 
       for (const route of publicRoutes) {
-        // Skip routes that shouldn't be in sitemap
-        if (route.path.includes('/admin') || route.path.includes('/reset-password')) continue;
+        // Skip routes that shouldn't be in sitemap (auth, admin, utility pages)
+        if (route.path.includes('/admin') || route.path.includes('/reset-password') ||
+            route.path.includes('/auth/') || route.path.includes('/forgot-password') ||
+            route.path.includes('/logo-showcase')) continue;
         const fullUrl = `${BASE.replace('https://www.', 'https://www.')}${route.path}`;
         // Check if sitemap has this route (with or without www)
         const inSitemap = sitemap.includes(route.path);

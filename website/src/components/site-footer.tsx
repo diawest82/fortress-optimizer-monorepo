@@ -16,11 +16,14 @@ export default function SiteFooter() {
           <span>Low Latency</span>
         </div>
       </div>
-      <div className="mx-auto flex w-full max-w-6xl flex-wrap items-center gap-4 px-6 pb-10 text-xs text-slate-500">
+      <div className="mx-auto flex w-full max-w-6xl flex-wrap items-center gap-4 px-6 pb-4 text-xs text-slate-500">
         <Link href="/docs" className="hover:text-slate-300 transition" data-testid="footer-docs">Documentation</Link>
         <Link href="/support" className="hover:text-slate-300 transition" data-testid="footer-support">Support</Link>
         <Link href="/legal/privacy" className="hover:text-slate-300 transition" data-testid="footer-privacy">Privacy Policy</Link>
         <Link href="/legal/terms" className="hover:text-slate-300 transition" data-testid="footer-terms">Terms of Service</Link>
+      </div>
+      <div className="mx-auto w-full max-w-6xl px-6 pb-10 text-xs text-slate-600">
+        &copy; 2026 Fortress Token Optimizer. All rights reserved.
       </div>
     </footer>
   );
