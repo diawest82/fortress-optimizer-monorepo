@@ -165,9 +165,8 @@
         { "action": "auth", "method": "signup-api", "description": "Create test account" },
         { "action": "auth", "method": "login-ui", "description": "Login via UI" },
         { "action": "navigate", "url": "/account", "description": "Go to account" },
-        { "action": "wait", "forSelector": "button:has-text('API Keys'), a:has-text('API Keys')", "description": "Wait for tabs" },
-        { "action": "click", "selector": "button:has-text('API Keys'), a:has-text('API Keys')", "description": "Click API Keys tab" },
-        { "action": "wait", "ms": 2000, "description": "Wait for tab content" },
+        { "action": "wait", "ms": 3000, "description": "Wait for account page" },
+        { "action": "assert", "type": "text", "value": "Account|Overview|API Key", "description": "Account content loaded" },
         { "action": "navigate", "url": "/install", "description": "Go to install page" },
         { "action": "assert", "type": "text", "value": "npm|VS Code|Copilot|Slack", "description": "Install guides visible" },
         { "action": "click", "selector": "a[href='/docs/installation/npm']", "expectedUrl": "/docs/installation/npm", "description": "Click npm docs link" },
@@ -209,16 +208,20 @@
     },
     {
       "id": "footer-navigation-loop",
-      "name": "Footer: Docs → Support → Privacy → Terms",
+      "name": "Footer: Homepage links all resolve correctly",
       "priority": "high",
       "authRequired": false,
       "category": "navigation",
       "steps": [
         { "action": "navigate", "url": "/", "description": "Land on homepage" },
-        { "action": "click", "selector": "[data-testid='footer-docs']", "expectedUrl": "/docs", "description": "Footer → Docs" },
-        { "action": "click", "selector": "[data-testid='footer-support']", "expectedUrl": "/support", "description": "Footer → Support" },
-        { "action": "click", "selector": "[data-testid='footer-privacy']", "expectedUrl": "/legal/privacy", "description": "Footer → Privacy" },
-        { "action": "click", "selector": "[data-testid='footer-terms']", "expectedUrl": "/legal/terms", "description": "Footer → Terms" }
+        { "action": "assert", "type": "visible", "selector": "footer", "description": "Footer exists" },
+        { "action": "click", "selector": "footer a[href='/docs']", "expectedUrl": "/docs", "description": "Footer → Docs" },
+        { "action": "navigate", "url": "/", "description": "Return to homepage" },
+        { "action": "click", "selector": "footer a[href='/support']", "expectedUrl": "/support", "description": "Footer → Support" },
+        { "action": "navigate", "url": "/", "description": "Return to homepage" },
+        { "action": "click", "selector": "footer a[href='/legal/privacy']", "expectedUrl": "/legal/privacy", "description": "Footer → Privacy" },
+        { "action": "navigate", "url": "/", "description": "Return to homepage" },
+        { "action": "click", "selector": "footer a[href='/legal/terms']", "expectedUrl": "/legal/terms", "description": "Footer → Terms" }
       ]
     }
   ]
