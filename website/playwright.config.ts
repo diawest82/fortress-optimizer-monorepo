@@ -214,6 +214,12 @@ export default defineConfig({
       timeout: 60000,
     },
     {
+      name: 'qa-post-action',
+      testDir: './qa-system/specs',
+      testMatch: '31-post-action-destinations.spec.ts',
+      timeout: 90000,
+    },
+    {
       name: 'qa-system',
       testDir: './qa-system/specs',
       testMatch: '*.spec.ts',
