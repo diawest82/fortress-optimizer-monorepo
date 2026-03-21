@@ -23,22 +23,35 @@ class RedisRateLimiter:
         self.rpm = requests_per_minute
         self.rpd = requests_per_day
         self._redis = None
+        self._redis_url = redis_url
+        self._redis_retry_after = 0  # timestamp when to retry Redis connection
+        self._redis_retry_interval = 30  # seconds between reconnection attempts
 
         if redis_url:
-            try:
-                import redis
-                self._redis = redis.from_url(redis_url, socket_connect_timeout=2)
-                self._redis.ping()
-                logger.info("Redis rate limiter connected")
-            except Exception as e:
-                logger.warning(f"Redis unavailable, using in-memory fallback: {e}")
-                self._redis = None
+            self._connect_redis()
 
         # In-memory fallback
         self._minute_buckets: Dict[str, list] = defaultdict(list)
         self._day_buckets: Dict[str, list] = defaultdict(list)
 
+    def _connect_redis(self):
+        """Attempt to connect to Redis. Sets self._redis on success."""
+        try:
+            import redis
+            self._redis = redis.from_url(self._redis_url, socket_connect_timeout=2)
+            self._redis.ping()
+            logger.info("Redis rate limiter connected")
+            self._redis_retry_after = 0
+        except Exception as e:
+            logger.warning(f"Redis unavailable, using in-memory fallback: {e}")
+            self._redis = None
+            self._redis_retry_after = time.time() + self._redis_retry_interval
+
     def is_allowed(self, key_hash: str) -> bool:
+        # Try reconnecting to Redis if we lost connection
+        if not self._redis and self._redis_url and time.time() > self._redis_retry_after:
+            logger.info("Attempting Redis reconnection...")
+            self._connect_redis()
         if self._redis:
             return self._is_allowed_redis(key_hash)
         return self._is_allowed_memory(key_hash)
@@ -102,8 +115,9 @@ class RedisRateLimiter:
             pipe.execute()
             return True
         except Exception as e:
-            logger.warning(f"Redis error, falling back to memory: {e}")
+            logger.warning(f"Redis error, falling back to memory (will retry in {self._redis_retry_interval}s): {e}")
             self._redis = None
+            self._redis_retry_after = time.time() + self._redis_retry_interval
             return self._is_allowed_memory(key_hash)
 
     # --- In-memory fallback ---

@@ -23,14 +23,15 @@ const commonQuestions = [
 
 const botResponses: { [key: string]: string } = {
   install: 'You can install Fortress Optimizer via npm, GitHub Copilot, VS Code, Slack, or Claude Desktop. Visit our installation guides page for step-by-step instructions for each platform.',
-  pricing: 'We offer three plans: Starter ($29/mo), Growth ($99/mo), and Enterprise (custom). All plans include real-time token optimization across supported platforms.',
+  pricing: 'We offer Free (50K tokens/mo), Pro ($15/mo unlimited), and Teams ($60+/mo) plans. Visit the pricing page for details.',
   save: 'Our customers see an average of 20% token reduction, with some seeing up to 25% depending on their use case. Check your dashboard for personalized metrics.',
-  trial: 'Yes! You can try Fortress Optimizer free for 14 days with full access to all features. No credit card required.',
-  platforms: 'We support npm packages, GitHub Copilot, VS Code extensions, Slack integrations, and Claude Desktop. More platforms coming soon!',
+  trial: 'Yes! Our Free tier gives you 50K tokens/month with no credit card required. Start at fortress-optimizer.com/auth/signup.',
+  platforms: 'We support 12+ platforms: npm, GitHub Copilot, VS Code, Slack, Claude Desktop, Neovim, Sublime, JetBrains, Cursor, and more!',
   password: 'Click the "Forgot password" link on the login page. We\'ll send you a reset link via email within minutes.',
-  response: 'Our live chat support responds in under 5 minutes during business hours. Email support responds within 24 hours.',
-  upgrade: 'You can upgrade your plan anytime from your account settings. Changes take effect immediately with prorated billing.',
-  default: 'Great question! Our support team would love to help you with that. Please contact us at support@fortress-optimizer.dev or fill out the contact form below.',
+  response: 'Email support responds within 24 hours. Teams plan customers get priority support (4-8 hour response time).',
+  upgrade: 'You can upgrade your plan anytime from your account settings or the pricing page. Changes take effect immediately.',
+  contact: 'You can reach our support team at support@fortress-optimizer.com, or create a support ticket from your account page under the Support tab.',
+  default: 'I\'m not sure about that one! You can create a support ticket from your account page (Support tab), or email us at support@fortress-optimizer.com. A team member will get back to you within 24 hours.',
 };
 
 export default function SupportChatbot() {
@@ -56,28 +57,40 @@ export default function SupportChatbot() {
   const getBotResponse = (userMessage: string): string => {
     const lowerMessage = userMessage.toLowerCase();
 
+    // Contact/help — check FIRST to avoid "support" matching platforms
+    if (lowerMessage.includes('contact') || lowerMessage.includes('help') ||
+        lowerMessage.includes('talk to') || lowerMessage.includes('human') ||
+        lowerMessage.includes('email') || lowerMessage.includes('ticket') ||
+        (lowerMessage.includes('support') && !lowerMessage.includes('platform'))) {
+      return botResponses.contact;
+    }
     if (lowerMessage.includes('install') || lowerMessage.includes('setup')) {
       return botResponses.install;
     }
-    if (lowerMessage.includes('price') || lowerMessage.includes('cost') || lowerMessage.includes('paid')) {
+    if (lowerMessage.includes('password') || lowerMessage.includes('forgot')) {
+      return botResponses.password;
+    }
+    if (lowerMessage.includes('price') || lowerMessage.includes('pricing') || lowerMessage.includes('paid') ||
+        lowerMessage.includes('how much')) {
       return botResponses.pricing;
     }
-    if (lowerMessage.includes('save') || lowerMessage.includes('reduction') || lowerMessage.includes('cost')) {
+    if (lowerMessage.includes('sav') || lowerMessage.includes('reduction') || lowerMessage.includes('optimize') ||
+        lowerMessage.includes('token')) {
       return botResponses.save;
     }
     if (lowerMessage.includes('trial') || lowerMessage.includes('free')) {
       return botResponses.trial;
     }
-    if (lowerMessage.includes('platform') || lowerMessage.includes('support')) {
+    if (lowerMessage.includes('platform') || lowerMessage.includes('integration') ||
+        lowerMessage.includes('channel')) {
       return botResponses.platforms;
     }
-    if (lowerMessage.includes('password') || lowerMessage.includes('reset')) {
-      return botResponses.password;
-    }
-    if (lowerMessage.includes('response') || lowerMessage.includes('fast') || lowerMessage.includes('time')) {
+    if (lowerMessage.includes('response time') || lowerMessage.includes('how fast') ||
+        lowerMessage.includes('sla') || lowerMessage.includes('how long')) {
       return botResponses.response;
     }
-    if (lowerMessage.includes('upgrade') || lowerMessage.includes('plan')) {
+    if (lowerMessage.includes('upgrade') || lowerMessage.includes('change plan') ||
+        lowerMessage.includes('switch plan')) {
       return botResponses.upgrade;
     }
 
@@ -241,7 +254,7 @@ export default function SupportChatbot() {
           <div className="px-4 py-3 bg-slate-950 border-t border-slate-700 rounded-b-2xl text-center">
             <p className="text-xs text-slate-400 flex items-center justify-center gap-2">
               <AlertCircle className="w-3 h-3" />
-              For urgent issues: support@fortress-optimizer.dev
+              For urgent issues: support@fortress-optimizer.com
             </p>
           </div>
         </div>

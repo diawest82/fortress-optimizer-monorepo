@@ -43,6 +43,14 @@ export async function middleware(request: NextRequest) {
   );
 
   if (isProtected && !isAuthenticated) {
+    // Log auth failure for observability
+    console.log(JSON.stringify({
+      event: "auth_rejected",
+      path: pathname,
+      ip: request.headers.get("x-forwarded-for") || "unknown",
+      reason: customCookie ? "invalid_token" : "no_token",
+      timestamp: new Date().toISOString(),
+    }));
     const url = request.nextUrl.clone();
     url.pathname = "/auth/login";
     url.searchParams.set("callbackUrl", pathname);

@@ -13,6 +13,19 @@ import { analyzeEmail } from '@/lib/email-processing';
  */
 export async function POST(request: NextRequest) {
   try {
+    // Authenticate webhook — require secret token
+    const webhookSecret = process.env.EMAIL_WEBHOOK_SECRET;
+    const authHeader = request.headers.get('authorization') || request.headers.get('x-webhook-secret');
+
+    if (!webhookSecret) {
+      console.error('EMAIL_WEBHOOK_SECRET not configured — rejecting all webhook requests');
+      return NextResponse.json({ error: 'Webhook not configured' }, { status: 503 });
+    }
+
+    if (!authHeader || (authHeader !== `Bearer ${webhookSecret}` && authHeader !== webhookSecret)) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const body = await request.json();
     const { from, to, subject, text, html } = body;
 
