@@ -79,3 +79,28 @@ export function validateCsrf(req: NextRequest): boolean {
   }
   return mismatch === 0;
 }
+
+/**
+ * Verify auth + CSRF for state-changing requests (POST/PUT/DELETE).
+ * Returns the authenticated user payload or null.
+ * If CSRF validation fails, returns null (treat as unauthorized).
+ */
+export function verifyMutatingRequest(req: NextRequest): JWTPayload | null {
+  const payload = verifyAuthToken(req);
+  if (!payload) return null;
+
+  // CSRF check for browser-originated mutating requests
+  // Skip for API key auth (non-browser clients don't have CSRF cookies)
+  const hasCsrfCookie = !!req.cookies.get('fortress_csrf_token')?.value;
+  if (hasCsrfCookie && !validateCsrf(req)) {
+    console.log(JSON.stringify({
+      event: 'csrf_validation_failed',
+      userId: payload.id,
+      path: req.nextUrl.pathname,
+      timestamp: new Date().toISOString(),
+    }));
+    return null;
+  }
+
+  return payload;
+}

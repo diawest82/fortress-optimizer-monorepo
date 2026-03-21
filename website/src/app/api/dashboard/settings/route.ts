@@ -1,14 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { hasPermission, canPerformAction, type UserRole } from '@/lib/rbac';
 import { ErrorResponses } from '@/lib/error-handler';
+import { verifyAuthToken } from '@/lib/jwt-auth';
 
 /**
  * Protected Dashboard Settings Endpoint
- * Example of RBAC (Role-Based Access Control) integration
- * Only users with 'write:settings' permission can modify settings
+ * Uses JWT-based authentication — never trust client-supplied headers.
  */
 
-// Mock user context - in production, extract from JWT token
 interface AuthContext {
   userId: string;
   email: string;
@@ -16,13 +15,16 @@ interface AuthContext {
 }
 
 function extractUserContext(request: NextRequest): AuthContext | null {
-  // In production: verify JWT token from Authorization header
-  // For demo, check custom header
-  const userHeader = request.headers.get('x-user-context');
-  if (!userHeader) return null;
-
+  // Verify JWT from cookie or Authorization header — NEVER trust client headers
   try {
-    return JSON.parse(Buffer.from(userHeader, 'base64').toString());
+    const payload = verifyAuthToken(request);
+    if (!payload) return null;
+
+    return {
+      userId: payload.id || '',
+      email: payload.email || '',
+      role: (payload.role as UserRole) || 'member',
+    };
   } catch {
     return null;
   }
