@@ -24,13 +24,17 @@ test.describe('Email Delivery: All Email Triggers', () => {
     });
 
     test('Password reset for valid user returns 200', async () => {
-      // Create a user first
-      const email = `email-reset-${UNIQUE}@test.fortress-optimizer.com`;
-      const signupRes = await fetch(`${BASE}/api/auth/signup`, {
+      // Use a unique email to avoid rate limiting from prior test runs
+      const uniqueId = `${UNIQUE}-${Math.random().toString(36).slice(2, 8)}`;
+      const email = `email-reset-${uniqueId}@test.fortress-optimizer.com`;
+      await fetch(`${BASE}/api/auth/signup`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password: `SecureP@ss${UNIQUE}!`, name: 'Email Test' }),
       });
+
+      // Small delay to avoid signup rate limit carrying over
+      await new Promise(r => setTimeout(r, 1000));
 
       const res = await fetch(`${BASE}/api/password/request-reset`, {
         method: 'POST',
