@@ -208,6 +208,12 @@ export default defineConfig({
       timeout: 60000,
     },
     {
+      name: 'qa-council-fixes',
+      testDir: './qa-system/specs',
+      testMatch: '30-council-fixes.spec.ts',
+      timeout: 60000,
+    },
+    {
       name: 'qa-system',
       testDir: './qa-system/specs',
       testMatch: '*.spec.ts',
