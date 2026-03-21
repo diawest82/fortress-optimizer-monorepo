@@ -34,8 +34,38 @@ from models import ApiKey, OptimizationLog
 from cleanup import run_cleanup
 from extension_routes import router as extension_router
 
-# Configure logging
-logging.basicConfig(level=logging.INFO)
+# Configure structured JSON logging
+class JSONFormatter(logging.Formatter):
+    def format(self, record):
+        import json as _json
+        log_entry = {
+            "timestamp": self.formatTime(record),
+            "level": record.levelname,
+            "logger": record.name,
+            "message": record.getMessage(),
+        }
+        if hasattr(record, 'request_id'):
+            log_entry["request_id"] = record.request_id
+        if hasattr(record, 'duration_ms'):
+            log_entry["duration_ms"] = record.duration_ms
+        if hasattr(record, 'method'):
+            log_entry["method"] = record.method
+        if hasattr(record, 'path'):
+            log_entry["path"] = record.path
+        if hasattr(record, 'status_code'):
+            log_entry["status_code"] = record.status_code
+        if record.exc_info and record.exc_info[1]:
+            log_entry["exception"] = str(record.exc_info[1])
+            log_entry["traceback"] = self.formatException(record.exc_info)
+        # Include any extra fields
+        for key in ('event', 'key_hash', 'tier', 'tokens', 'ip'):
+            if hasattr(record, key):
+                log_entry[key] = getattr(record, key)
+        return _json.dumps(log_entry)
+
+_handler = logging.StreamHandler()
+_handler.setFormatter(JSONFormatter())
+logging.basicConfig(level=logging.INFO, handlers=[_handler])
 logger = logging.getLogger(__name__)
 
 # ============================================================================
@@ -249,6 +279,11 @@ async def verify_api_key(
 
     # Check rate limit (still in-memory — ephemeral by design)
     if not rate_limiter.is_allowed(key_hash):
+        logger.warning("Rate limit exceeded", extra={
+            'event': 'rate_limit_exceeded',
+            'key_hash': key_hash[:12],
+            'ip': 'redacted',
+        })
         raise HTTPException(
             status_code=429,
             detail="Rate limit exceeded. Max 100 requests/minute, 10000/day.",
@@ -273,8 +308,30 @@ async def health_check(db: Session = Depends(get_db)):
     except Exception:
         db_status = "disconnected"
 
-    status = "healthy" if db_status == "connected" else "degraded"
-    status_code = 200 if db_status == "connected" else 503
+    # Check Redis connectivity
+    redis_status = "not_configured"
+    redis_url = os.getenv("REDIS_URL")
+    if redis_url:
+        try:
+            import redis as _redis
+            r = _redis.from_url(redis_url, socket_connect_timeout=1)
+            r.ping()
+            redis_status = "connected"
+        except Exception:
+            redis_status = "disconnected"
+
+    # Check Sentry
+    sentry_status = "not_configured"
+    try:
+        import sentry_sdk
+        if sentry_sdk.is_initialized():
+            sentry_status = "active"
+    except Exception:
+        pass
+
+    is_healthy = db_status == "connected"
+    status = "healthy" if is_healthy else "degraded"
+    status_code = 200 if is_healthy else 503
 
     response_data = HealthResponse(
         status=status,
@@ -283,17 +340,18 @@ async def health_check(db: Session = Depends(get_db)):
         database=db_status,
     )
 
+    health_content = {
+        "status": response_data.status,
+        "timestamp": response_data.timestamp.isoformat(),
+        "version": response_data.version,
+        "database": response_data.database,
+        "redis": redis_status,
+        "sentry": sentry_status,
+    }
+
     if status_code != 200:
-        return JSONResponse(
-            status_code=status_code,
-            content={
-                "status": response_data.status,
-                "timestamp": response_data.timestamp.isoformat(),
-                "version": response_data.version,
-                "database": response_data.database,
-            },
-        )
-    return response_data
+        return JSONResponse(status_code=status_code, content=health_content)
+    return JSONResponse(status_code=200, content=health_content)
 
 
 @app.get("/api/providers", response_model=ProvidersResponse)
@@ -618,11 +676,13 @@ async def admin_cleanup(
 
 @app.exception_handler(HTTPException)
 async def http_exception_handler(request: Request, exc: HTTPException):
+    request_id = getattr(request.state, 'request_id', 'unknown')
     return JSONResponse(
         status_code=exc.status_code,
         content={
             "status": "error",
             "error": exc.detail,
+            "request_id": request_id,
             "timestamp": datetime.utcnow().isoformat(),
         },
     )
@@ -630,12 +690,24 @@ async def http_exception_handler(request: Request, exc: HTTPException):
 
 @app.exception_handler(Exception)
 async def general_exception_handler(request: Request, exc: Exception):
-    logger.error(f"Unhandled exception: {str(exc)}")
+    import traceback
+    request_id = getattr(request.state, 'request_id', 'unknown')
+    logger.error(
+        f"Unhandled exception on {request.method} {request.url.path}",
+        exc_info=True,
+        extra={
+            'request_id': request_id,
+            'method': request.method,
+            'path': str(request.url.path),
+            'event': 'unhandled_exception',
+        }
+    )
     return JSONResponse(
         status_code=500,
         content={
             "status": "error",
             "error": "Internal server error",
+            "request_id": request_id,
             "timestamp": datetime.utcnow().isoformat(),
         },
     )
@@ -728,6 +800,24 @@ async def startup_event():
 @app.on_event("shutdown")
 async def shutdown_event():
     logger.info("Shutting down Fortress Token Optimizer API")
+
+    # Flush Sentry events before shutdown
+    try:
+        import sentry_sdk
+        sentry_sdk.flush(timeout=5)
+        logger.info("Sentry events flushed")
+    except Exception:
+        pass
+
+    # Close database connection pool
+    try:
+        from database import engine
+        engine.dispose()
+        logger.info("Database connections closed")
+    except Exception:
+        pass
+
+    logger.info("Shutdown complete")
 
 
 if __name__ == "__main__":
