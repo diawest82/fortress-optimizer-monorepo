@@ -20,12 +20,12 @@ const PRICING_TIERS: Record<string, PricingTier> = {
   individual: {
     id: 'individual',
     name: 'Individual',
-    price: 9.99,
+    price: 15,
     interval: 'month',
     checkoutDescription: 'Perfect for developers and small projects. Optimize tokens across all platforms with full analytics and API access.',
     features: [
-      '500K tokens/month',
-      'All 5 integration channels',
+      'Unlimited tokens',
+      'All 12 integration platforms',
       'Real-time optimization',
       'Advanced analytics dashboard',
       'Email support',

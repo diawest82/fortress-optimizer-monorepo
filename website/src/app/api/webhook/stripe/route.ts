@@ -146,7 +146,8 @@ export async function POST(req: NextRequest) {
             const tierPrices: Record<string, string> = {
               starter: '$15/month',
               individual: '$15/month',
-              teams: '$99/month',
+              pro: '$15/month',
+              teams: '$60+/month',
               enterprise: 'Custom',
             };
             await sendUpgradeConfirmationEmail(user.email, tier, tierPrices[tier] || 'Custom');

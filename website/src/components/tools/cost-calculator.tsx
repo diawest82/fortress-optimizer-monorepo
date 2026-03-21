@@ -15,8 +15,8 @@ const providers: Record<string, ProviderCost> = {
 
 const fortressPlans = {
   free: 0,       // 50K tokens/month
-  starter: 9.99, // 500K tokens/month - individual developers
-  teams: 99,     // Unlimited - teams and organizations
+  pro: 15,       // Unlimited tokens - individual developers
+  teams: 60,     // Unlimited - teams (starting at 5 seats)
   enterprise: null // Custom pricing - large organizations
 };
 
@@ -36,8 +36,8 @@ export function CostCalculator() {
   // Determine Fortress plan cost and token limits
   const planConfig: Record<string, { cost: number | null; tokens: number | null; label: string }> = {
     free: { cost: 0, tokens: 50000, label: 'Free - 50K tokens/month' },
-    starter: { cost: 9.99, tokens: null, label: 'Sign Up - $9.99/month (Unlimited)' },
-    teams: { cost: 99, tokens: null, label: 'Teams - $99/month (Unlimited)' },
+    pro: { cost: 15, tokens: null, label: 'Pro - $15/month (Unlimited)' },
+    teams: { cost: 60, tokens: null, label: 'Teams - $60+/month (Unlimited, 5+ seats)' },
     enterprise: { cost: null, tokens: null, label: 'Enterprise (Custom pricing)' }
   };
 
@@ -94,8 +94,8 @@ export function CostCalculator() {
             className="w-full bg-zinc-800 text-white rounded-lg px-4 py-2 border border-zinc-700 focus:border-blue-500 focus:outline-none"
           >
             <option value="free">Free - 50K tokens/month</option>
-            <option value="starter">Sign Up - $9.99/month (Unlimited)</option>
-            <option value="teams">Teams - $99/month (Unlimited)</option>
+            <option value="pro">Pro - $15/month (Unlimited)</option>
+            <option value="teams">Teams - $60+/month (5+ seats)</option>
             <option value="enterprise">Enterprise (Custom pricing)</option>
           </select>
         </div>

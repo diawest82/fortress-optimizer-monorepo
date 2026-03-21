@@ -140,10 +140,10 @@ Once installed:
 
 ## Pricing
 
-- **Free**: 50K tokens/month
-- **Individual**: $9.99/mo - 5,000 API calls
-- **Teams**: $99/mo - 10 seats, 50,000 API calls  
-- **Enterprise**: $299/mo - 11-50 seats
+- **Free**: 50K tokens/month, 5 core platforms
+- **Pro**: $15/mo - Unlimited tokens, all 12 platforms
+- **Teams**: Starting at $60/mo - Unlimited tokens, team management
+- **Enterprise**: Coming soon - Custom pricing, 500+ seats
 
 ## Next Steps
 
@@ -559,7 +559,7 @@ Fortress vs other token optimization solutions.
 |---------|----------|--------|
 | Time per prompt | <1 second | 5-10 minutes |
 | Consistency | 100% | Varies |
-| Cost | $9.99/mo | Your time |
+| Cost | From $15/mo | Your time |
 | Scale | Unlimited | Limited |
 | Learning | AI-powered | Manual |
 
@@ -604,13 +604,13 @@ Building your own:
 
 ✅ **Fortress:**
 - Ready-to-use
-- $9.99-299/mo
+- From $15/mo (Pro) to custom (Enterprise)
 - No infrastructure
 - Instant savings
 
 **Cost comparison:**
 - In-house: ~$1000+/month ongoing
-- Fortress: $9.99-299/month
+- Fortress: $15-500+/month
 
 **Winner:** Fortress for SMBs
 

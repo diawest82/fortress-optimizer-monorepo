@@ -1,17 +1,31 @@
 'use client';
 
-import { useState } from 'react';
-import { Mail, MessageSquare, AlertCircle, CheckCircle, Clock, Zap } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Mail, MessageSquare, AlertCircle, CheckCircle, Clock, Zap, ArrowLeft, Send } from 'lucide-react';
+
+interface TicketResponse {
+  id: string;
+  message: string;
+  authorEmail: string;
+  createdAt: string;
+}
 
 interface Ticket {
   id: string;
   ticketNumber: string;
   subject: string;
+  description?: string;
   status: 'open' | 'in-progress' | 'waiting' | 'resolved' | 'closed';
   priority: 'low' | 'normal' | 'high' | 'urgent';
+  category?: string;
   createdAt: string;
   lastUpdated: string;
   responses: number;
+}
+
+interface TicketDetail extends Ticket {
+  description: string;
+  responses_list: TicketResponse[];
 }
 
 interface SupportSystemProps {
@@ -26,6 +40,55 @@ export default function SupportSystem({
   onCreateTicket = () => {},
 }: SupportSystemProps) {
   const [showCreateForm, setShowCreateForm] = useState(false);
+  const [selectedTicket, setSelectedTicket] = useState<TicketDetail | null>(null);
+  const [loadingTicket, setLoadingTicket] = useState(false);
+  const [replyText, setReplyText] = useState('');
+  const [sendingReply, setSendingReply] = useState(false);
+
+  const openTicket = async (ticketId: string) => {
+    setLoadingTicket(true);
+    try {
+      const res = await fetch(`/api/support/tickets/${ticketId}`);
+      if (res.ok) {
+        const data = await res.json();
+        setSelectedTicket({
+          ...data.ticket,
+          responses: data.ticket.responses?.length || 0,
+          responses_list: data.ticket.responses || [],
+          lastUpdated: data.ticket.updatedAt || data.ticket.createdAt,
+        });
+      }
+    } catch (err) {
+      console.error('Failed to load ticket:', err);
+    } finally {
+      setLoadingTicket(false);
+    }
+  };
+
+  const sendReply = async () => {
+    if (!selectedTicket || !replyText.trim()) return;
+    setSendingReply(true);
+    try {
+      const res = await fetch(`/api/support/tickets/${selectedTicket.id}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: replyText }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setSelectedTicket(prev => prev ? {
+          ...prev,
+          responses: prev.responses + 1,
+          responses_list: [...prev.responses_list, { ...data.response, authorEmail: 'You' }],
+        } : null);
+        setReplyText('');
+      }
+    } catch (err) {
+      console.error('Failed to send reply:', err);
+    } finally {
+      setSendingReply(false);
+    }
+  };
   const [formData, setFormData] = useState({
     subject: '',
     category: 'technical',
@@ -187,9 +250,65 @@ export default function SupportSystem({
           </div>
         ) : (
           <div className="space-y-3">
-            {tickets.map((ticket) => (
+            {selectedTicket ? (
+              <div className="space-y-4">
+                <button
+                  onClick={() => setSelectedTicket(null)}
+                  className="flex items-center gap-2 text-sm text-slate-400 hover:text-white transition"
+                >
+                  <ArrowLeft className="w-4 h-4" /> Back to tickets
+                </button>
+                <div className="p-4 bg-slate-800/50 rounded-lg border border-slate-700">
+                  <div className="flex items-center justify-between mb-3">
+                    <div>
+                      <h4 className="font-semibold text-white">{selectedTicket.subject}</h4>
+                      <p className="text-xs text-slate-400">{selectedTicket.ticketNumber} &middot; {selectedTicket.category} &middot; {new Date(selectedTicket.createdAt).toLocaleDateString()}</p>
+                    </div>
+                    <span className={`px-2 py-1 rounded text-xs font-semibold border ${getPriorityColor(selectedTicket.priority)}`}>
+                      {selectedTicket.priority}
+                    </span>
+                  </div>
+                  <p className="text-sm text-slate-300 whitespace-pre-wrap">{selectedTicket.description}</p>
+                </div>
+
+                {selectedTicket.responses_list.length > 0 && (
+                  <div className="space-y-3">
+                    <h5 className="text-sm font-semibold text-slate-300">Responses</h5>
+                    {selectedTicket.responses_list.map((r) => (
+                      <div key={r.id} className="p-3 bg-slate-900/50 rounded-lg border border-slate-700/30">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-xs font-medium text-emerald-400">{r.authorEmail}</span>
+                          <span className="text-xs text-slate-500">{new Date(r.createdAt).toLocaleString()}</span>
+                        </div>
+                        <p className="text-sm text-slate-300 whitespace-pre-wrap">{r.message}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={replyText}
+                    onChange={(e) => setReplyText(e.target.value)}
+                    placeholder="Write a reply..."
+                    className="flex-1 px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-sm text-white placeholder-slate-500 focus:border-emerald-500 focus:outline-none"
+                    onKeyDown={(e) => e.key === 'Enter' && sendReply()}
+                  />
+                  <button
+                    onClick={sendReply}
+                    disabled={sendingReply || !replyText.trim()}
+                    className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 disabled:bg-slate-700 text-white text-sm rounded-lg transition flex items-center gap-2"
+                  >
+                    <Send className="w-4 h-4" />
+                    {sendingReply ? 'Sending...' : 'Reply'}
+                  </button>
+                </div>
+              </div>
+            ) : tickets.map((ticket) => (
               <div
                 key={ticket.id}
+                onClick={() => openTicket(ticket.id)}
                 className="flex items-center justify-between p-4 bg-slate-800/30 rounded-lg border border-slate-700/50 hover:border-slate-600 transition cursor-pointer"
               >
                 <div className="flex-1">

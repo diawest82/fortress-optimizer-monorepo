@@ -225,6 +225,8 @@ class HealthResponse(BaseModel):
     timestamp: datetime
     version: str
     database: str
+    redis: str = "not_configured"
+    sentry: str = "not_configured"
 
 
 class ProvidersResponse(BaseModel):
@@ -690,7 +692,6 @@ async def http_exception_handler(request: Request, exc: HTTPException):
 
 @app.exception_handler(Exception)
 async def general_exception_handler(request: Request, exc: Exception):
-    import traceback
     request_id = getattr(request.state, 'request_id', 'unknown')
     logger.error(
         f"Unhandled exception on {request.method} {request.url.path}",

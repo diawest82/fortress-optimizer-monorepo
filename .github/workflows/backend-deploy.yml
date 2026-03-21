@@ -81,6 +81,17 @@ jobs:
           docker push ${{ env.ECR_REPO }}:production
           docker push ${{ env.ECR_REPO }}:${{ github.sha }}
 
+      - name: Save current task definition for rollback
+        id: save-current
+        run: |
+          CURRENT_TASK_DEF=$(aws ecs describe-services \
+            --cluster ${{ env.ECS_CLUSTER }} \
+            --services ${{ env.ECS_SERVICE }} \
+            --region ${{ env.AWS_REGION }} \
+            --query 'services[0].taskDefinition' --output text)
+          echo "task_def=$CURRENT_TASK_DEF" >> "$GITHUB_OUTPUT"
+          echo "Saved current task definition: $CURRENT_TASK_DEF"
+
       - name: Deploy to ECS
         run: |
           aws ecs update-service \
@@ -90,9 +101,35 @@ jobs:
             --region ${{ env.AWS_REGION }}
 
       - name: Wait for deployment
+        id: wait-deploy
         run: |
           aws ecs wait services-stable \
             --cluster ${{ env.ECS_CLUSTER }} \
             --services ${{ env.ECS_SERVICE }} \
             --region ${{ env.AWS_REGION }}
           echo "Deployment complete"
+
+      - name: Post-deploy health check
+        run: |
+          sleep 10
+          HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://api.fortress-optimizer.com/health || echo "000")
+          if [ "$HTTP_STATUS" != "200" ]; then
+            echo "Health check failed with status $HTTP_STATUS"
+            exit 1
+          fi
+          echo "Health check passed"
+
+      - name: Auto-rollback on failure
+        if: failure() && steps.save-current.outputs.task_def != ''
+        run: |
+          echo "Deployment failed — rolling back to ${{ steps.save-current.outputs.task_def }}"
+          aws ecs update-service \
+            --cluster ${{ env.ECS_CLUSTER }} \
+            --service ${{ env.ECS_SERVICE }} \
+            --task-definition ${{ steps.save-current.outputs.task_def }} \
+            --region ${{ env.AWS_REGION }}
+          aws ecs wait services-stable \
+            --cluster ${{ env.ECS_CLUSTER }} \
+            --services ${{ env.ECS_SERVICE }} \
+            --region ${{ env.AWS_REGION }}
+          echo "Rollback complete"
