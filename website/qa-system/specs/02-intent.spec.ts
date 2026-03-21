@@ -55,34 +55,26 @@ test.describe('Intent Agent: Pricing CTAs', () => {
     await expect(page.locator('input[name="email"]')).toBeVisible({ timeout: 5000 });
   });
 
-  test('4. Pro "Subscribe now" (not logged in) redirects to login or shows auth prompt', async ({ page }) => {
+  test('4. Pro "Subscribe now" (not logged in) redirects to signup with plan param', async ({ page }) => {
     await page.goto(`${BASE}/pricing`);
-    // Wait for full hydration — useSession + React event handlers
+    // Wait for full hydration — React event handlers
     await page.waitForTimeout(5000);
 
     const proBtn = page.locator('button:has-text("Subscribe now")').first();
     await proBtn.scrollIntoViewIfNeeded();
     await proBtn.click();
 
-    // Wait for navigation (router.push is async client-side)
+    // Wait for navigation
     await page.waitForTimeout(5000);
 
-    // Should either redirect to /auth/login OR show a login prompt
-    // Must NOT stay on pricing with no feedback, and must NOT go to /auth/signin
     const url = page.url();
-    const wentToLogin = url.includes('/auth/login');
-    const wentToSignin = url.includes('/auth/signin'); // broken route
-    const stayedOnPricing = url.includes('/pricing');
+    // Should go to /auth/signup (not /auth/login, not /auth/signin)
+    const wentToSignup = url.includes('/auth/signup');
+    const wentToSignin = url.includes('/auth/signin');
 
     expect(wentToSignin, `Must not go to /auth/signin (doesn't exist)`).toBe(false);
-
-    // Either redirected to login or stayed on pricing (if session is loading)
-    if (stayedOnPricing) {
-      // Acceptable if there's feedback — button shows "Processing..." or an alert
-      console.log('[Intent] Pro subscribe stayed on pricing — session may still be loading');
-    } else {
-      expect(wentToLogin, `Should go to /auth/login but went to ${url}`).toBe(true);
-    }
+    expect(wentToSignup, `Should go to /auth/signup but went to ${url}`).toBe(true);
+    expect(url, 'Should include callbackUrl to return to pricing').toContain('callbackUrl');
   });
 
   test('5. Teams "Subscribe — N seats" (not logged in) redirects to login or shows auth prompt', async ({ page }) => {
