@@ -360,6 +360,25 @@ export default defineConfig({
       testMatch: '54-browser-resilience.spec.ts',
       timeout: 60000,
     },
+    // ─── Zero Gaps (specs 55-57) ───────────────────────────────
+    {
+      name: 'qa-stripe-real',
+      testDir: './qa-system/specs',
+      testMatch: '55-stripe-real-checkout.spec.ts',
+      timeout: 60000,
+    },
+    {
+      name: 'qa-resend-email',
+      testDir: './qa-system/specs',
+      testMatch: '56-resend-email-delivery.spec.ts',
+      timeout: 60000,
+    },
+    {
+      name: 'qa-edge-final',
+      testDir: './qa-system/specs',
+      testMatch: '57-edge-cases-final.spec.ts',
+      timeout: 60000,
+    },
     {
       name: 'qa-system',
       testDir: './qa-system/specs',
