@@ -262,6 +262,61 @@ export default defineConfig({
       testMatch: '39-sdk-live-integration.spec.ts',
       timeout: 60000,
     },
+    // ─── 99% Coverage Suite (specs 40-48) ─────────────────────
+    {
+      name: 'qa-a11y-deep',
+      testDir: './qa-system/specs',
+      testMatch: '40-accessibility-deep.spec.ts',
+      timeout: 60000,
+    },
+    {
+      name: 'qa-analytics',
+      testDir: './qa-system/specs',
+      testMatch: '41-analytics-completeness.spec.ts',
+      timeout: 60000,
+    },
+    {
+      name: 'qa-perf-ext',
+      testDir: './qa-system/specs',
+      testMatch: '42-performance-extended.spec.ts',
+      timeout: 300000,
+    },
+    {
+      name: 'qa-stripe-e2e',
+      testDir: './qa-system/specs',
+      testMatch: '43-stripe-checkout-e2e.spec.ts',
+      timeout: 60000,
+    },
+    {
+      name: 'qa-email-inbox',
+      testDir: './qa-system/specs',
+      testMatch: '44-email-inbox-verification.spec.ts',
+      timeout: 30000,
+    },
+    {
+      name: 'qa-security-scan',
+      testDir: './qa-system/specs',
+      testMatch: '45-security-scan.spec.ts',
+      timeout: 30000,
+    },
+    {
+      name: 'qa-oauth',
+      testDir: './qa-system/specs',
+      testMatch: '46-oauth-flow.spec.ts',
+      timeout: 30000,
+    },
+    {
+      name: 'qa-observability',
+      testDir: './qa-system/specs',
+      testMatch: '47-observability-verification.spec.ts',
+      timeout: 30000,
+    },
+    {
+      name: 'qa-sdk-publish',
+      testDir: './qa-system/specs',
+      testMatch: '48-sdk-publish.spec.ts',
+      timeout: 30000,
+    },
     {
       name: 'qa-business-fixes',
       testDir: './qa-system/specs',
