@@ -318,6 +318,12 @@ export default defineConfig({
       timeout: 30000,
     },
     {
+      name: 'qa-optimization-accuracy',
+      testDir: './qa-system/specs',
+      testMatch: '49-optimization-accuracy.spec.ts',
+      timeout: 60000,
+    },
+    {
       name: 'qa-business-fixes',
       testDir: './qa-system/specs',
       testMatch: '32-business-council-fixes.spec.ts',
