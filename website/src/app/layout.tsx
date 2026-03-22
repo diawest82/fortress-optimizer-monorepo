@@ -7,13 +7,13 @@ import CookieConsentBanner from "@/components/cookie-consent";
 import { AnalyticsProvider } from "@/components/analytics-provider";
 
 export const metadata: Metadata = {
-  title: "Fortress Token Optimizer - Coming Soon | Cut Token Costs by 20%",
-  description: "Fortress optimizes AI prompts across npm, Copilot, VS Code, Slack & Claude Desktop. Save 20% on token costs, reduce latency by 68ms. Early access beta launching February 2026.",
+  title: "Fortress Token Optimizer | Cut Your AI API Costs by 20%",
+  description: "Fortress optimizes AI prompts across npm, Copilot, VS Code, Slack & Claude Desktop. Save 20% on token costs, reduce latency by 68ms. Start free — no credit card required.",
   keywords: "token optimization, AI prompt compression, cost reduction, token efficiency, LLM optimization",
   metadataBase: new URL("https://fortress-optimizer.com"),
   openGraph: {
     title: "Fortress Token Optimizer - Cut Token Costs by 20%",
-    description: "Automatically optimize your AI prompts and save on token costs. Join early access beta launching February 2026.",
+    description: "Automatically optimize your AI prompts and save on token costs. Start free — no credit card required.",
     type: "website",
     locale: "en_US",
     images: [
@@ -28,7 +28,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "Fortress Token Optimizer - 20% Token Savings",
-    description: "Join the early access beta launching February 2026",
+    description: "Cut your AI API costs by 20% without changing your code. Start free.",
   },
   robots: {
     index: true,
@@ -64,11 +64,7 @@ export default function RootLayout({
                 priceCurrency: "USD",
                 description: "Free tier with 50k tokens/month",
               },
-              aggregateRating: {
-                "@type": "AggregateRating",
-                ratingValue: "4.9",
-                ratingCount: "248",
-              },
+              // aggregateRating removed — will add when real reviews exist
               screenshot: "/og-image.png",
             }),
           }}

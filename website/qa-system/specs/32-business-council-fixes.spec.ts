@@ -99,6 +99,31 @@ test.describe('Business Fix: Pricing Consistency', () => {
     expect(webhook).toContain("'$60+/month'");
     expect(webhook).not.toContain("'$99/month'");
   });
+
+  test('[PRICE-9] Stripe checkout component has $60 Teams (not $99)', async () => {
+    const checkout = readFileSync(join(WEBSITE_DIR, 'src/components/stripe-checkout.tsx'), 'utf-8');
+    // Teams price in checkout component
+    expect(checkout).not.toMatch(/teams[\s\S]*price:\s*99/);
+    expect(checkout).toMatch(/teams[\s\S]*price:\s*60/);
+  });
+
+  test('[PRICE-10] Page title does not say "Coming Soon"', async () => {
+    const layout = readFileSync(join(WEBSITE_DIR, 'src/app/layout.tsx'), 'utf-8');
+    // Title should NOT contain "Coming Soon" for a launched product
+    expect(layout).not.toMatch(/title:.*Coming Soon/);
+  });
+
+  test('[PRICE-11] Meta descriptions do not reference "February 2026" or "beta launching"', async () => {
+    const layout = readFileSync(join(WEBSITE_DIR, 'src/app/layout.tsx'), 'utf-8');
+    expect(layout).not.toContain('February 2026');
+    expect(layout).not.toContain('beta launching');
+  });
+
+  test('[PRICE-12] No fabricated ratings in structured data', async () => {
+    const layout = readFileSync(join(WEBSITE_DIR, 'src/app/layout.tsx'), 'utf-8');
+    // Should NOT have fake aggregateRating until real reviews exist
+    expect(layout).not.toContain('"ratingCount": "248"');
+  });
 });
 
 // ═══════════════════════════════════════════════════════════════════════════

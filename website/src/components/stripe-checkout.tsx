@@ -35,7 +35,7 @@ const PRICING_TIERS: Record<string, PricingTier> = {
   teams: {
     id: 'teams',
     name: 'Teams',
-    price: 99,
+    price: 60,
     interval: 'month',
     checkoutDescription: 'The smart choice for growing teams. Unlimited optimization, team collaboration, and priority support. Save thousands on token costs.',
     features: [
