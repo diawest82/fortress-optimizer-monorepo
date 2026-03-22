@@ -71,7 +71,8 @@ export async function createCheckoutSession(
   tier: string,
   email: string,
   successUrl: string,
-  cancelUrl: string
+  cancelUrl: string,
+  billingInterval: string = 'month'
 ) {
   const tierConfig = PRICING_TIERS[tier as keyof typeof PRICING_TIERS];
   if (!tierConfig) {
@@ -82,23 +83,30 @@ export async function createCheckoutSession(
     throw new Error(`Product ID not configured for tier: ${tier}`);
   }
 
-  // Get or create a price for this tier
+  // Determine price based on interval (annual = 20% discount)
+  const interval = billingInterval === 'year' ? 'year' : 'month';
+  const unitAmount = interval === 'year'
+    ? Math.round(tierConfig.price * 12 * 0.8 * 100) // Annual: 12 months × 80% (20% discount) in cents
+    : tierConfig.price * 100; // Monthly in cents
+
+  // Get or create a price for this tier + interval
   const prices = await stripe.prices.list({
     product: tierConfig.stripeProductId,
     active: true,
   });
 
-  let priceId = prices.data[0]?.id;
+  // Find matching price for the selected interval
+  let priceId = prices.data.find(p =>
+    p.recurring?.interval === interval && p.unit_amount === unitAmount
+  )?.id;
 
-  // If no price exists, create one
+  // If no matching price exists, create one
   if (!priceId) {
     const price = await stripe.prices.create({
       product: tierConfig.stripeProductId,
-      unit_amount: tierConfig.price * 100, // Convert to cents
+      unit_amount: unitAmount,
       currency: tierConfig.currency,
-      recurring: {
-        interval: tierConfig.interval,
-      },
+      recurring: { interval: interval as 'month' | 'year' },
     });
     priceId = price.id;
   }

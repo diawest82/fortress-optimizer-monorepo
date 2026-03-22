@@ -86,7 +86,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { tier, successUrl, cancelUrl } = await req.json();
+    const { tier, successUrl, cancelUrl, interval } = await req.json();
+    const billingInterval = interval === 'year' ? 'year' : 'month';
 
     if (!tier || !successUrl || !cancelUrl) {
       return NextResponse.json(
@@ -126,13 +127,14 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    // Create checkout session
+    // Create checkout session with billing interval
     const session = await createCheckoutSession(
       userId,
       tier,
       user.email,
       successUrl,
-      cancelUrl
+      cancelUrl,
+      billingInterval
     );
 
     return NextResponse.json({ sessionId: session.id, url: session.url });

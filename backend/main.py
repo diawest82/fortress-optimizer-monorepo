@@ -437,6 +437,21 @@ async def optimize(
             f"({result.savings_percentage:.1f}%) via {result.technique_used}"
         )
 
+        # Check if approaching free tier limit (80% warning)
+        usage_warning = None
+        if db_key and not tier_config.get("unlimited"):
+            usage_pct = (db_key.monthly_tokens_used / tier_config["tokens_per_month"]) * 100
+            if usage_pct >= 80:
+                remaining = tier_config["tokens_per_month"] - db_key.monthly_tokens_used
+                usage_warning = {
+                    "level": "warning" if usage_pct < 100 else "limit",
+                    "message": f"You've used {usage_pct:.0f}% of your {tier_config['tokens_per_month']:,} monthly tokens. Upgrade to Pro ($15/mo) for unlimited.",
+                    "used": db_key.monthly_tokens_used,
+                    "limit": tier_config["tokens_per_month"],
+                    "remaining": max(0, remaining),
+                    "upgrade_url": "/pricing",
+                }
+
         response_data = OptimizeResponse(
             request_id=request_id,
             status="success",
@@ -456,8 +471,11 @@ async def optimize(
 
         # Add rate limit headers
         rl_headers = rate_limiter.get_headers(key_hash)
+        response_content = jsonable_encoder(response_data)
+        if usage_warning:
+            response_content["usage_warning"] = usage_warning
         return JSONResponse(
-            content=jsonable_encoder(response_data),
+            content=response_content,
             headers=rl_headers,
         )
 

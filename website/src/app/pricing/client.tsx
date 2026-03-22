@@ -103,6 +103,7 @@ export default function PricingClient() {
         body: JSON.stringify({
           tier: tier,
           seats: tier === "teams" ? teamSeats : 1,
+          interval: annual ? "year" : "month",
           successUrl: `${window.location.origin}/dashboard?upgrade=success`,
           cancelUrl: `${window.location.origin}/pricing?upgrade=cancelled`,
         }),
@@ -246,12 +247,12 @@ export default function PricingClient() {
             <div className="mb-8">
               <p className="text-4xl font-bold text-white">Custom</p>
             </div>
-            <button
-              disabled
-              className="w-full py-3 px-6 rounded-xl font-semibold transition-all duration-200 mb-8 border border-slate-700 text-slate-500 cursor-not-allowed opacity-60"
+            <a
+              href="mailto:sales@fortress-optimizer.com?subject=Enterprise%20Plan%20Inquiry&body=Hi%2C%20I'm%20interested%20in%20the%20Enterprise%20plan%20for%20my%20organization.%0A%0ACompany%3A%20%0ATeam%20size%3A%20%0AUse%20case%3A%20"
+              className="block w-full py-3 px-6 rounded-xl font-semibold transition-all duration-200 mb-8 border border-purple-500/50 text-purple-300 hover:bg-purple-500/10 text-center"
             >
-              Coming Soon
-            </button>
+              Contact Sales
+            </a>
             <div className="space-y-4">
               {[
                 "Everything in Teams, plus:",
