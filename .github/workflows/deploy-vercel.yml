@@ -68,9 +68,34 @@ jobs:
         env:
           TEST_BASE_URL: https://www.fortress-optimizer.com
 
+      - name: Run critical security tests
+        working-directory: ${{ env.WORKING_DIRECTORY }}
+        run: npx playwright test --project=qa-session --project=qa-fuzz --retries=1
+        env:
+          TEST_BASE_URL: https://www.fortress-optimizer.com
+
+      - name: Run billing verification
+        working-directory: ${{ env.WORKING_DIRECTORY }}
+        run: npx playwright test --project=qa-stripe-live --retries=1
+        env:
+          TEST_BASE_URL: https://www.fortress-optimizer.com
+
+      - name: Run optimization accuracy
+        working-directory: ${{ env.WORKING_DIRECTORY }}
+        run: npx playwright test --project=qa-optimization-accuracy --retries=1
+        env:
+          TEST_BASE_URL: https://www.fortress-optimizer.com
+          TEST_API_URL: https://api.fortress-optimizer.com
+
+      - name: Run auth flow verification
+        working-directory: ${{ env.WORKING_DIRECTORY }}
+        run: npx playwright test --project=qa-rbac --retries=1
+        env:
+          TEST_BASE_URL: https://www.fortress-optimizer.com
+
       - name: Test deployment
         run: |
-          echo "✓ Website deployed and smoke tests passed"
+          echo "✓ Website deployed and all critical tests passed"
           echo "Check https://fortress-optimizer.com"
       
       - name: Notify success

@@ -335,11 +335,36 @@ export default defineConfig({
       testMatch: '32-business-council-fixes.spec.ts',
       timeout: 60000,
     },
+    // ─── Final 15 Gap Closure (specs 51-54) ─────────────────
+    {
+      name: 'qa-live-behavior',
+      testDir: './qa-system/specs',
+      testMatch: '51-live-behavior-verification.spec.ts',
+      timeout: 120000,
+    },
+    {
+      name: 'qa-missing-scenarios',
+      testDir: './qa-system/specs',
+      testMatch: '52-missing-scenarios.spec.ts',
+      timeout: 120000,
+    },
+    {
+      name: 'qa-cookie-security',
+      testDir: './qa-system/specs',
+      testMatch: '53-cookie-security.spec.ts',
+      timeout: 60000,
+    },
+    {
+      name: 'qa-browser-resilience',
+      testDir: './qa-system/specs',
+      testMatch: '54-browser-resilience.spec.ts',
+      timeout: 60000,
+    },
     {
       name: 'qa-system',
       testDir: './qa-system/specs',
       testMatch: '*.spec.ts',
-      timeout: 30000,
+      timeout: 120000,
     },
     // ─── Product QA Agents ───────────────────────────────────────
     {

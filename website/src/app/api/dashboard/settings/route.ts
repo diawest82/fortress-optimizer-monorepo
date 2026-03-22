@@ -23,7 +23,7 @@ function extractUserContext(request: NextRequest): AuthContext | null {
     return {
       userId: payload.id || '',
       email: payload.email || '',
-      role: (payload.role as UserRole) || 'member',
+      role: ((payload as any).role as UserRole) || 'member',
     };
   } catch {
     return null;
