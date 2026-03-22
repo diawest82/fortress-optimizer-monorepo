@@ -3,7 +3,7 @@
 // Production requires DATABASE_URL and PRISMA_DATABASE_URL set via Vercel env vars
 if (process.env.NODE_ENV === 'production') {
   if (!process.env.DATABASE_URL) {
-    console.error('CRITICAL: DATABASE_URL not set in production environment');
+    throw new Error('FATAL: DATABASE_URL not set in production environment');
   }
 }
 

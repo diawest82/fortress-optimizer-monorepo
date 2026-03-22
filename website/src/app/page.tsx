@@ -26,7 +26,7 @@ export default function Home() {
                 href="/auth/signup"
                 className="rounded-full bg-blue-600 hover:bg-blue-500 px-8 py-3 text-sm font-semibold text-white transition"
               >
-                🎉 Join Early Access
+                Get Started Free
               </Link>
               <Link
                 href="/install"
