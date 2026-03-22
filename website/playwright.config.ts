@@ -219,6 +219,49 @@ export default defineConfig({
       testMatch: '31-post-action-destinations.spec.ts',
       timeout: 90000,
     },
+    // ─── Gap Closure Suite (specs 33-39) ──────────────────────
+    {
+      name: 'qa-stripe-live',
+      testDir: './qa-system/specs',
+      testMatch: '33-stripe-live-test.spec.ts',
+      timeout: 60000,
+    },
+    {
+      name: 'qa-support-workflow',
+      testDir: './qa-system/specs',
+      testMatch: '34-support-workflow.spec.ts',
+      timeout: 60000,
+    },
+    {
+      name: 'qa-ops-health',
+      testDir: './qa-system/specs',
+      testMatch: '35-operations-health.spec.ts',
+      timeout: 30000,
+    },
+    {
+      name: 'qa-enterprise',
+      testDir: './qa-system/specs',
+      testMatch: '36-enterprise-readiness.spec.ts',
+      timeout: 30000,
+    },
+    {
+      name: 'qa-sustained-load',
+      testDir: './qa-system/specs',
+      testMatch: '37-sustained-load.spec.ts',
+      timeout: 300000,
+    },
+    {
+      name: 'qa-attack-chains',
+      testDir: './qa-system/specs',
+      testMatch: '38-attack-chains.spec.ts',
+      timeout: 60000,
+    },
+    {
+      name: 'qa-sdk-live',
+      testDir: './qa-system/specs',
+      testMatch: '39-sdk-live-integration.spec.ts',
+      timeout: 60000,
+    },
     {
       name: 'qa-business-fixes',
       testDir: './qa-system/specs',
