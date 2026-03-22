@@ -145,6 +145,104 @@ if _redis_url:
 else:
     rate_limiter = RateLimiter(requests_per_minute=100, requests_per_day=10000)
 
+
+# ============================================================================
+# Key Sharing Detection (Layer 1 — Detection Only)
+# ============================================================================
+
+class KeySharingDetector:
+    """Tracks unique IPs and User-Agents per API key to detect sharing.
+    In-memory for speed — not persistent across restarts (detection, not enforcement).
+    """
+
+    def __init__(self):
+        # key_hash -> {ips: set, user_agents: set, countries: set, last_reset: timestamp}
+        self._tracking: Dict[str, dict] = {}
+        self._anomaly_thresholds = {
+            "ips_warning": 5,       # 5+ unique IPs in 24h → log warning
+            "ips_suspicious": 15,   # 15+ unique IPs → log suspicious
+            "user_agents_warning": 4,  # 4+ unique user agents → log warning
+        }
+
+    def track_request(self, key_hash: str, ip: str, user_agent: str) -> dict | None:
+        """Track a request and return anomaly info if detected."""
+        now = time.time()
+
+        if key_hash not in self._tracking:
+            self._tracking[key_hash] = {
+                "ips": set(),
+                "user_agents": set(),
+                "first_seen": now,
+                "last_reset": now,
+                "request_count": 0,
+            }
+
+        entry = self._tracking[key_hash]
+
+        # Reset daily
+        if now - entry["last_reset"] > 86400:
+            entry["ips"] = set()
+            entry["user_agents"] = set()
+            entry["last_reset"] = now
+            entry["request_count"] = 0
+
+        entry["ips"].add(ip)
+        entry["user_agents"].add(user_agent[:100])  # truncate UA
+        entry["request_count"] += 1
+
+        # Check for anomalies
+        unique_ips = len(entry["ips"])
+        unique_uas = len(entry["user_agents"])
+
+        if unique_ips >= self._anomaly_thresholds["ips_suspicious"]:
+            return {
+                "level": "suspicious",
+                "reason": "high_ip_diversity",
+                "unique_ips": unique_ips,
+                "unique_user_agents": unique_uas,
+                "requests_today": entry["request_count"],
+            }
+        elif unique_ips >= self._anomaly_thresholds["ips_warning"]:
+            return {
+                "level": "warning",
+                "reason": "moderate_ip_diversity",
+                "unique_ips": unique_ips,
+                "unique_user_agents": unique_uas,
+                "requests_today": entry["request_count"],
+            }
+        elif unique_uas >= self._anomaly_thresholds["user_agents_warning"]:
+            return {
+                "level": "warning",
+                "reason": "user_agent_diversity",
+                "unique_ips": unique_ips,
+                "unique_user_agents": unique_uas,
+                "requests_today": entry["request_count"],
+            }
+
+        return None
+
+    def get_stats(self, key_hash: str) -> dict:
+        """Get sharing detection stats for a key."""
+        entry = self._tracking.get(key_hash)
+        if not entry:
+            return {"unique_ips": 0, "unique_user_agents": 0, "requests_today": 0}
+        return {
+            "unique_ips": len(entry["ips"]),
+            "unique_user_agents": len(entry["user_agents"]),
+            "requests_today": entry["request_count"],
+        }
+
+    def cleanup_stale(self):
+        """Remove entries older than 48 hours."""
+        now = time.time()
+        stale = [k for k, v in self._tracking.items() if now - v["last_reset"] > 172800]
+        for k in stale:
+            del self._tracking[k]
+
+
+key_sharing_detector = KeySharingDetector()
+
+
 # ============================================================================
 # Initialize FastAPI app
 # ============================================================================
@@ -241,6 +339,9 @@ class RegisterKeyRequest(BaseModel):
 
     name: str = Field(..., min_length=1, max_length=100)
     tier: Literal["free"] = "free"  # Only free tier via self-service; paid tiers require Stripe
+    key_type: Literal["standard", "team_seat", "read_only"] = "standard"
+    team_id: str | None = None  # Required for team_seat keys
+    member_email: str | None = None  # Required for team_seat keys
 
 
 # ============================================================================
@@ -379,8 +480,29 @@ async def optimize(
     Never exposes algorithm details to the client.
     """
     try:
-        # Enforce free tier token limit (with monthly reset)
+        # Block read-only keys from optimization (Layer 4)
+        if api_key.startswith("fkr_"):
+            raise HTTPException(
+                status_code=403,
+                detail="Read-only keys cannot perform optimizations. Use a standard key.",
+            )
+
+        # Track IP for key sharing detection (Layer 1 — detection only)
         key_hash = _hash_key(api_key)
+        client_ip = req.headers.get("x-forwarded-for", req.client.host if req.client else "unknown").split(",")[0].strip()
+        client_ua = req.headers.get("user-agent", "unknown")
+        sharing_anomaly = key_sharing_detector.track_request(key_hash, client_ip, client_ua)
+        if sharing_anomaly:
+            logger.warning("Key sharing anomaly detected", extra={
+                'event': 'key_sharing_anomaly',
+                'key_hash': key_hash[:12],
+                'level': sharing_anomaly['level'],
+                'reason': sharing_anomaly['reason'],
+                'unique_ips': sharing_anomaly['unique_ips'],
+                'unique_user_agents': sharing_anomaly['unique_user_agents'],
+            })
+
+        # Enforce free tier token limit (with monthly reset)
         db_key = db.query(ApiKey).filter(ApiKey.key_hash == key_hash).first()
         if db_key:
             # Reset monthly counter if a new month has started
@@ -506,6 +628,8 @@ async def get_usage(
     token_limit = tier_config["tokens_per_month"]
     is_unlimited = tier_config.get("unlimited", False)
 
+    sharing_stats = key_sharing_detector.get_stats(key_hash)
+
     return {
         "tier": tier,
         "tokens_optimized": db_key.tokens_optimized,
@@ -515,6 +639,11 @@ async def get_usage(
         "tokens_remaining": "unlimited" if is_unlimited else max(0, token_limit - db_key.tokens_optimized),
         "rate_limit": rate_info,
         "reset_date": (datetime.utcnow().replace(day=1) + timedelta(days=32)).replace(day=1).isoformat(),
+        "security": {
+            "unique_ips_today": sharing_stats["unique_ips"],
+            "unique_clients_today": sharing_stats["unique_user_agents"],
+            "requests_today": sharing_stats["requests_today"],
+        },
     }
 
 
@@ -601,18 +730,25 @@ async def register_api_key(
         )
     _registration_tracker[client_ip].append(now)
 
-    new_key = f"fk_{uuid.uuid4().hex}"
+    # Key prefix indicates type: fk_ = standard, fkt_ = team seat, fkr_ = read-only
+    prefix_map = {"standard": "fk_", "team_seat": "fkt_", "read_only": "fkr_"}
+    prefix = prefix_map.get(request.key_type, "fk_")
+    new_key = f"{prefix}{uuid.uuid4().hex}"
     key_hash = _hash_key(new_key)
+
+    key_name = request.name
+    if request.key_type == "team_seat" and request.member_email:
+        key_name = f"{request.name} ({request.member_email})"
 
     db_key = ApiKey(
         key_hash=key_hash,
-        name=request.name,
+        name=key_name,
         tier=request.tier,
     )
     db.add(db_key)
     db.commit()
 
-    logger.info(f"New API key registered: {new_key[:12]}... (name={request.name}, tier={request.tier})")
+    logger.info(f"New API key registered: {new_key[:12]}... (name={key_name}, tier={request.tier}, type={request.key_type})")
 
     return {
         "api_key": new_key,

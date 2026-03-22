@@ -318,6 +318,12 @@ export default defineConfig({
       timeout: 30000,
     },
     {
+      name: 'qa-key-sharing',
+      testDir: './qa-system/specs',
+      testMatch: '50-key-sharing-detection.spec.ts',
+      timeout: 60000,
+    },
+    {
       name: 'qa-optimization-accuracy',
       testDir: './qa-system/specs',
       testMatch: '49-optimization-accuracy.spec.ts',
