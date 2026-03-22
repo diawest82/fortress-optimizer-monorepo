@@ -381,10 +381,10 @@ export default function PricingClient() {
                   <div className="space-y-3">
                     {[
                       { range: "1-5 seats", rate: "$12.00/seat", total: "$60 base" },
-                      { range: "6-25 seats", rate: "$8.00/seat", total: "+$8 each" },
-                      { range: "26-100 seats", rate: "$6.00/seat", total: "+$6 each" },
-                      { range: "101-249 seats", rate: "$5.00/seat", total: "+$5 each" },
-                      { range: "250-500 seats", rate: "$4.00/seat", total: "+$4 each" },
+                      { range: "6-25 seats", rate: "$10.00/seat", total: "+$10 each" },
+                      { range: "26-100 seats", rate: "$8.00/seat", total: "+$8 each" },
+                      { range: "101-249 seats", rate: "$7.00/seat", total: "+$7 each" },
+                      { range: "250-500 seats", rate: "$6.00/seat", total: "+$6 each" },
                     ].map((row) => (
                       <div key={row.range} className="flex justify-between text-sm">
                         <span className="text-slate-400">{row.range}</span>
@@ -493,7 +493,7 @@ export default function PricingClient() {
           {[
             {
               q: "How does team pricing work?",
-              a: "Team pricing uses a sliding scale — the more seats you add, the less you pay per seat. It starts at $12/seat for the first 5, drops to $10/seat for 6-25, $8/seat for 26-100, $7/seat for 101-249, and $6/seat for 250-500. Use the calculator above to see your exact price.",
+              a: "Team pricing uses a sliding scale — the more seats you add, the less you pay per seat. It starts at $12/seat for the first 5 (base $60), then $10/seat for 6-25, $8/seat for 26-100, $7/seat for 101-249, and $6/seat for 250-500. Use the calculator above to see your exact price.",
             },
             {
               q: "Can I add or remove seats anytime?",

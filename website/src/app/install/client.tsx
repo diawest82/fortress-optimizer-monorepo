@@ -21,8 +21,8 @@ export default function Install() {
       docsUrl: '/docs/installation/npm',
       steps: [
         { cmd: 'npm install @fortress-optimizer/core', desc: 'Install the package' },
-        { cmd: "import { FortressOptimizer } from '@fortress-optimizer/core';\n\nconst optimizer = new FortressOptimizer({\n  apiKey: process.env.FORTRESS_API_KEY\n});", desc: 'Initialize' },
-        { cmd: "const result = await optimizer.optimize({\n  text: 'Your prompt here',\n  model: 'gpt-4'\n});\n\nconsole.log(result.optimized); // Optimized text\nconsole.log(result.savings);  // Token savings", desc: 'Use it' },
+        { cmd: "import { FortressClient } from '@fortress-optimizer/core';\n\nconst client = new FortressClient({\n  apiKey: process.env.FORTRESS_API_KEY\n});", desc: 'Initialize' },
+        { cmd: "const result = await client.optimize({\n  prompt: 'Your prompt here',\n  provider: 'openai'\n});\n\nconsole.log(result.optimized_prompt);\nconsole.log(result.tokens_saved);", desc: 'Use it' },
       ],
     },
     {

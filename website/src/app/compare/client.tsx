@@ -519,7 +519,7 @@ export default function ComparePage() {
             <div className={styles.reasonIcon}>💰</div>
             <h3>No Upfront Cost</h3>
             <p>
-              Only pay for what you save. Start free with up to 10K tokens/month. Scale 
+              Only pay for what you save. Start free with up to 50K tokens/month. Scale
               as you grow.
             </p>
           </div>
@@ -614,7 +614,7 @@ export default function ComparePage() {
           </div>
 
           <p className={styles.ctaSmall}>
-            ✓ 10K free tokens/month ✓ No credit card required ✓ Cancel anytime
+            ✓ 50K free tokens/month ✓ No credit card required ✓ Cancel anytime
           </p>
         </div>
       </section>

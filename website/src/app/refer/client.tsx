@@ -144,7 +144,7 @@ function ReferralDashboard() {
   };
 
   const shareOn = (platform: string) => {
-    const text = `I'm saving 18% on my LLM costs with Fortress Token Optimizer. Try it free: ${referralLink}`;
+    const text = `I'm saving 20% on my LLM costs with Fortress Token Optimizer. Try it free: ${referralLink}`;
 
     if (platform === 'twitter') {
       window.open(
@@ -164,7 +164,7 @@ function ReferralDashboard() {
     }
   };
 
-  if (status === 'loading' || loading) {
+  if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-black via-zinc-900 to-black flex items-center justify-center">
         <div className="text-center">
@@ -173,10 +173,6 @@ function ReferralDashboard() {
         </div>
       </div>
     );
-  }
-
-  if (status === 'unauthenticated') {
-    return <ReferralLandingPage />;
   }
 
   return (

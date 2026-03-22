@@ -1,12 +1,14 @@
 'use client';
 
 import { useState, Suspense } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAuthContext } from '@/context/AuthContext';
 
 function SignUpContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const callbackUrl = searchParams.get('callbackUrl');
   const { signup, error: authError } = useAuthContext();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -85,8 +87,8 @@ function SignUpContent() {
     try {
       const result = await signup(formData.email, formData.password, `${formData.firstName} ${formData.lastName}`);
       if (result) {
-        // Signup successful, redirect to dashboard
-        router.push('/dashboard');
+        // Signup successful — redirect to callbackUrl if present, otherwise dashboard
+        router.push(callbackUrl || '/dashboard');
       }
       // If result is null, signup failed — error shown via authError state
     } catch (error) {

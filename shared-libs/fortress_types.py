@@ -84,7 +84,8 @@ PROVIDERS = [
 
 PRICING_TIERS = {
     "free": {"tokens_per_month": 50000, "price_monthly": 0},
-    "pro": {"tokens_per_month": -1, "price_monthly": 9.99, "unlimited": True},
-    "team": {"tokens_per_month": -1, "price_monthly": 99.00, "unlimited": True},
+    "pro": {"tokens_per_month": -1, "price_monthly": 15.00, "unlimited": True},
+    "individual": {"tokens_per_month": -1, "price_monthly": 15.00, "unlimited": True},  # alias for pro
+    "team": {"tokens_per_month": -1, "price_monthly": 60.00, "unlimited": True, "base_seats": 5},
     "enterprise": {"tokens_per_month": -1, "price_monthly": "custom", "unlimited": True},
 }
