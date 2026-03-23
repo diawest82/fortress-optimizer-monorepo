@@ -38,15 +38,34 @@ export async function GET(
       return NextResponse.json({ error: 'Not a member of this team' }, { status: 403 });
     }
 
+    // Enrich with per-member usage stats
+    const membersWithUsage = await Promise.all(
+      team.members.map(async (m) => {
+        const usage = await prisma.tokenCountUsage.aggregate({
+          where: { userId: m.id },
+          _sum: { originalTokens: true, optimizedTokens: true },
+          _count: true,
+        }).catch(() => ({ _sum: { originalTokens: 0, optimizedTokens: 0 }, _count: 0 }));
+
+        const original = usage._sum.originalTokens || 0;
+        const optimized = usage._sum.optimizedTokens || 0;
+
+        return {
+          id: m.id,
+          email: m.email,
+          name: m.name,
+          role: m.id === team.ownerId ? 'owner' : 'member',
+          joinedAt: m.createdAt?.toISOString() || new Date().toISOString(),
+          tokensProcessed: original,
+          tokensSaved: original - optimized,
+          optimizationCount: usage._count,
+        };
+      })
+    );
+
     return NextResponse.json({
       success: true,
-      members: team.members.map(m => ({
-        id: m.id,
-        email: m.email,
-        name: m.name,
-        role: m.id === team.ownerId ? 'owner' : 'member',
-        joinedAt: m.createdAt?.toISOString() || new Date().toISOString(),
-      })),
+      members: membersWithUsage,
     });
   } catch (error) {
     console.error('GET /api/teams/:teamId/members error:', error);
@@ -139,6 +158,32 @@ export async function POST(
         },
       },
     });
+
+    // Auto-provision API key for new team member (if they don't have one)
+    const existingKey = await prisma.event.findFirst({
+      where: { userId: invitedUser.id, eventName: 'api_key_created' },
+    }).catch(() => null);
+
+    if (!existingKey) {
+      // Create a team-scoped API key for the member
+      const crypto = await import('crypto');
+      const rawKey = `fk_${crypto.randomUUID().replace(/-/g, '')}`;
+      const keyHash = crypto.createHash('sha256').update(rawKey).digest('hex');
+
+      await prisma.event.create({
+        data: {
+          userId: invitedUser.id,
+          email: invitedUser.email,
+          eventName: 'api_key_created',
+          eventData: {
+            keyPrefix: rawKey.slice(0, 8),
+            teamId,
+            teamName: team.name,
+            autoProvisioned: true,
+          },
+        },
+      }).catch(() => null); // Non-blocking — key provisioning shouldn't fail the invite
+    }
 
     // Send invitation email
     try {
