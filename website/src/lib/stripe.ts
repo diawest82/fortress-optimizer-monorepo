@@ -11,11 +11,13 @@ export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
   apiVersion: '2026-01-28.clover',
 });
 
-// Pricing tier configuration
+import { PRICING } from '@/lib/pricing-config';
+
+// Pricing tier configuration (prices from PRICING single source of truth)
 export const PRICING_TIERS = {
   individual: {
     name: 'Pro',
-    price: 15,
+    price: PRICING.pro.monthly,
     currency: 'usd',
     interval: 'month' as const,
     features: [
@@ -31,7 +33,7 @@ export const PRICING_TIERS = {
   },
   teams: {
     name: 'Teams',
-    price: 60,
+    price: PRICING.teams.baseMonthly,
     currency: 'usd',
     interval: 'month' as const,
     features: [

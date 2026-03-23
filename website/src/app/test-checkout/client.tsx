@@ -84,8 +84,8 @@ export default function TestCheckout() {
               className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               disabled={loading}
             >
-              <option value="individual">Individual ($9.99/month)</option>
-              <option value="teams">Teams ($99/month)</option>
+              <option value="individual">Pro ($15/month)</option>
+              <option value="teams">Teams ($60+/month)</option>
               <option value="enterprise">Enterprise (Custom)</option>
             </select>
           </div>

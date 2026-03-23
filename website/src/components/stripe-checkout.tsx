@@ -6,6 +6,7 @@
 'use client';
 
 import { useState } from 'react';
+import { PRICING } from '@/lib/pricing-config';
 
 interface PricingTier {
   id: string;
@@ -20,7 +21,7 @@ const PRICING_TIERS: Record<string, PricingTier> = {
   individual: {
     id: 'individual',
     name: 'Individual',
-    price: 15,
+    price: PRICING.pro.monthly,
     interval: 'month',
     checkoutDescription: 'Perfect for developers and small projects. Optimize tokens across all platforms with full analytics and API access.',
     features: [
@@ -35,7 +36,7 @@ const PRICING_TIERS: Record<string, PricingTier> = {
   teams: {
     id: 'teams',
     name: 'Teams',
-    price: 60,
+    price: PRICING.teams.baseMonthly,
     interval: 'month',
     checkoutDescription: 'The smart choice for growing teams. Unlimited optimization, team collaboration, and priority support. Save thousands on token costs.',
     features: [

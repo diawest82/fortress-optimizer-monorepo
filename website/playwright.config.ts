@@ -380,6 +380,12 @@ export default defineConfig({
       timeout: 60000,
     },
     {
+      name: 'qa-pricing-source',
+      testDir: './qa-system/specs',
+      testMatch: '58-pricing-single-source.spec.ts',
+      timeout: 30000,
+    },
+    {
       name: 'qa-system',
       testDir: './qa-system/specs',
       testMatch: '*.spec.ts',

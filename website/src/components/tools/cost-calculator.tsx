@@ -13,11 +13,13 @@ const providers: Record<string, ProviderCost> = {
   gemini: { name: 'Gemini', costPer1k: 0.000075 }
 };
 
+import { PRICING, MARKETING } from '@/lib/pricing-config';
+
 const fortressPlans = {
-  free: 0,       // 50K tokens/month
-  pro: 15,       // Unlimited tokens - individual developers
-  teams: 60,     // Unlimited - teams (starting at 5 seats)
-  enterprise: null // Custom pricing - large organizations
+  free: PRICING.free.monthly,
+  pro: PRICING.pro.monthly,
+  teams: PRICING.teams.baseMonthly,
+  enterprise: null // Custom pricing
 };
 
 export function CostCalculator() {
@@ -30,7 +32,7 @@ export function CostCalculator() {
   const monthlyTokens = inputs.tokensPerDay * 30;
   const providerData = providers[inputs.provider as keyof typeof providers];
   const currentCost = monthlyTokens * providerData.costPer1k;
-  const optimizedCost = currentCost * 0.80;
+  const optimizedCost = currentCost * MARKETING.savingsMultiplier;
   const savingsAmount = currentCost - optimizedCost;
 
   // Determine Fortress plan cost and token limits
