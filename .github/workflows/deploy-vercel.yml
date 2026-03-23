@@ -39,20 +39,17 @@ jobs:
       - name: Install Vercel CLI
         run: npm install -g vercel@latest
       
-      - name: Deploy to Vercel
+      - name: Pull Vercel environment
         working-directory: ${{ env.WORKING_DIRECTORY }}
-        run: |
-          vercel deploy --prod \
-            --token=${{ secrets.VERCEL_TOKEN }} \
-            --yes
-        env:
-          STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          STRIPE_WEBHOOK_SECRET: ${{ secrets.STRIPE_WEBHOOK_SECRET }}
-          NEXT_PUBLIC_API_URL: https://api.fortress-optimizer.com
-          NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY }}
-          JWT_SECRET: ${{ secrets.JWT_SECRET }}
-          NEXTAUTH_SECRET: ${{ secrets.JWT_SECRET }}
+        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: Build with Vercel
+        working-directory: ${{ env.WORKING_DIRECTORY }}
+        run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: Deploy prebuilt to Vercel
+        working-directory: ${{ env.WORKING_DIRECTORY }}
+        run: vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
       
       - name: Install Playwright browsers
         working-directory: ${{ env.WORKING_DIRECTORY }}
