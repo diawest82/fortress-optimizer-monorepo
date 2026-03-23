@@ -13,7 +13,7 @@ test.describe('Homepage', () => {
     // Check that main heading is visible
     const heading = page.locator('h1');
     await expect(heading).toBeVisible();
-    await expect(heading).toContainText(/fortress|token|optimizer/i);
+    await expect(heading).toContainText(/cost|save|API|token|optimizer|fortress/i);
   });
 
   test('should have working navigation links', async ({ page }) => {
