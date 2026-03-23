@@ -46,6 +46,10 @@ jobs:
       - name: Build with Vercel
         working-directory: ${{ env.WORKING_DIRECTORY }}
         run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
+        env:
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          NEXTAUTH_SECRET: ${{ secrets.JWT_SECRET }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
 
       - name: Deploy prebuilt to Vercel
         working-directory: ${{ env.WORKING_DIRECTORY }}
