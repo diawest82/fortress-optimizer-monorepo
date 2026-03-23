@@ -3,7 +3,12 @@ import { checkSignupRateLimit } from "@/lib/rate-limit";
 import { logSignupEvent, logSuspiciousActivity } from "@/lib/audit-log";
 import { validatePassword } from "@/lib/password-validation";
 import { ErrorResponses } from "@/lib/error-handler";
+import { setAuthTokenCookie, setCsrfTokenCookie } from "@/lib/secure-cookies";
 import { NextRequest, NextResponse } from "next/server";
+import jwt from "jsonwebtoken";
+import crypto from "crypto";
+
+const JWT_SECRET = process.env.JWT_SECRET || process.env.NEXTAUTH_SECRET || "CHANGE-THIS-IN-PRODUCTION";
 
 export async function POST(req: NextRequest) {
   try {
@@ -63,11 +68,31 @@ export async function POST(req: NextRequest) {
 
     // Create user
     const user = await createUser(email, password, name);
-    
+
     // Log successful signup
     await logSignupEvent(email, clientIp, userAgent);
 
-    return NextResponse.json(user, { status: 201 });
+    // Generate JWT (same as login — user should be authenticated immediately)
+    const token = jwt.sign(
+      { id: user.id, email: user.email, name: user.name || name },
+      JWT_SECRET,
+      { expiresIn: '24h' }
+    );
+
+    // Generate CSRF token
+    const csrfToken = crypto.randomUUID();
+
+    // Build response with cookies
+    const response = NextResponse.json(
+      { user: { id: user.id, email: user.email, name: user.name || name } },
+      { status: 201 }
+    );
+
+    // Set auth cookie (httpOnly) + indicator cookie (readable by JS) + CSRF
+    setAuthTokenCookie(response, token);
+    setCsrfTokenCookie(response, csrfToken);
+
+    return response;
   } catch (error) {
     const message = error instanceof Error ? error.message : "Signup failed";
     return NextResponse.json({ error: message }, { status: 400 });

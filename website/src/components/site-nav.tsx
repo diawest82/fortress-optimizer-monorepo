@@ -47,11 +47,16 @@ export function SiteNav() {
     return () => document.removeEventListener('keydown', handleEscape);
   }, [mobileMenuOpen]);
 
-  const handleSignOut = () => {
-    // Clear cookies by setting expired date
-    document.cookie = 'fortress_auth_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+  const handleSignOut = async () => {
+    // Call server-side logout to clear httpOnly cookies (JS can't clear them)
+    try {
+      await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
+    } catch {
+      // If server logout fails, still clear client state
+    }
+    // Clear client-readable cookies + localStorage
     document.cookie = 'fortress_logged_in=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
-    // Also clear any localStorage remnants
+    document.cookie = 'fortress_csrf_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
     localStorage.removeItem('auth_token');
     localStorage.removeItem('api_key');
     setIsAuthenticated(false);

@@ -38,11 +38,8 @@ export default function Dashboard() {
     const fetchDashboard = async () => {
       setStatsLoading(true);
       try {
-        const token = document.cookie.split('; ').find(c => c.startsWith('fortress_auth_token='))?.split('=')[1];
-        const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-        if (token) headers['Authorization'] = `Bearer ${token}`;
-
-        const res = await fetch(`/api/dashboard/stats?range=${timeRange}`, { headers, credentials: 'include' });
+        // Auth is via httpOnly cookie — credentials: 'include' sends it automatically
+        const res = await fetch(`/api/dashboard/stats?range=${timeRange}`, { credentials: 'include' });
         if (res.ok) {
           const data = await res.json();
           setStats(data);

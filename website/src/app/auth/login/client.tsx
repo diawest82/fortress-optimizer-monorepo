@@ -62,7 +62,11 @@ function LoginContent() {
       const result = await login(formData.email, formData.password);
       if (result) {
         // Login successful, redirect to dashboard (or callback URL)
-        const callbackUrl = searchParams.get('callbackUrl') || '/dashboard';
+        let callbackUrl = searchParams.get('callbackUrl') || '/dashboard';
+        // Prevent open redirect — only allow relative paths
+        if (!callbackUrl.startsWith('/') || callbackUrl.startsWith('//') || callbackUrl.includes('://')) {
+          callbackUrl = '/dashboard';
+        }
         router.push(callbackUrl);
       }
       // If result is null, login failed — error shown via authError state

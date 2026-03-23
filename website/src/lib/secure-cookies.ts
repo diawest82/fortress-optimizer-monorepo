@@ -21,7 +21,7 @@ export interface CookieOptions {
  */
 export function setSecureCookie(response: NextResponse, options: CookieOptions): void {
   const cookieOptions: Partial<CookieOptions> = {
-    httpOnly: true, // Prevent access from JavaScript
+    httpOnly: options.httpOnly !== undefined ? options.httpOnly : true, // Respect caller's choice
     secure: process.env.NODE_ENV === 'production', // HTTPS only in production
     sameSite: 'Strict', // CSRF protection
     path: options.path || '/',
@@ -133,13 +133,13 @@ export function setRefreshTokenCookie(response: NextResponse, token: string): vo
 }
 
 /**
- * Set CSRF token cookie (1 hour expiry)
+ * Set CSRF token cookie (24 hour expiry — matches auth token lifetime)
  */
 export function setCsrfTokenCookie(response: NextResponse, token: string): void {
   setSecureCookie(response, {
     name: 'fortress_csrf_token',
     value: token,
-    maxAge: 60 * 60, // 1 hour
+    maxAge: 24 * 60 * 60, // 24 hours — same as auth token
     httpOnly: false, // CSRF token needs to be accessible to JavaScript for forms
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'Strict',

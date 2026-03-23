@@ -88,7 +88,11 @@ function SignUpContent() {
       const result = await signup(formData.email, formData.password, `${formData.firstName} ${formData.lastName}`);
       if (result) {
         // Signup successful — redirect to callbackUrl if present, otherwise dashboard
-        router.push(callbackUrl || '/dashboard');
+        let redirectUrl = callbackUrl || '/dashboard';
+        if (!redirectUrl.startsWith('/') || redirectUrl.startsWith('//') || redirectUrl.includes('://')) {
+          redirectUrl = '/dashboard';
+        }
+        router.push(redirectUrl);
       }
       // If result is null, signup failed — error shown via authError state
     } catch (error) {

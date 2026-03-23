@@ -132,11 +132,16 @@ export async function POST(
 
     if (!invitedUser) {
       // User doesn't exist yet - create invitation
+      // Generate a random password hash — user must use password reset to set their own
+      const bcrypt = await import('bcryptjs');
+      const tempPassword = crypto.randomUUID() + crypto.randomUUID(); // Unguessable
+      const hashedPassword = await bcrypt.hash(tempPassword, 12);
+
       invitedUser = await prisma.user.create({
         data: {
           email,
           name: email.split('@')[0],
-          password: '', // Temporary - user will set password on first login
+          password: hashedPassword, // Random — user must reset via email
         },
       });
     }

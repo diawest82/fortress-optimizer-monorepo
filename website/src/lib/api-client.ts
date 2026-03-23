@@ -72,10 +72,36 @@ export class ApiClient {
     return headers;
   }
 
+  /**
+   * All API requests go through this wrapper.
+   * Always includes credentials: 'include' so httpOnly cookies are sent.
+   */
+  private async request(url: string, options: RequestInit = {}): Promise<Response> {
+    return fetch(url, {
+      ...options,
+      credentials: 'include',
+      headers: { ...this.getHeaders(), ...(options.headers as Record<string, string> || {}) },
+    });
+  }
+
   private async handleResponse<T>(response: Response): Promise<T> {
     const data = await response.json();
 
     if (!response.ok) {
+      // Global 401 handler — session expired or invalid
+      if (response.status === 401 && typeof window !== 'undefined') {
+        // Don't redirect if we're already on the login/signup page
+        const path = window.location.pathname;
+        if (!path.startsWith('/auth/') && !path.startsWith('/api/')) {
+          // Clear local state and redirect to login with return URL
+          this.clearCredentials();
+          document.cookie = 'fortress_logged_in=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+          window.location.href = `/auth/login?callbackUrl=${encodeURIComponent(path)}`;
+          // Throw to stop further execution
+          throw new Error('Session expired — redirecting to login');
+        }
+      }
+
       const error = data as ApiError;
       throw new Error(error.detail || error.error || `API Error: ${response.status}`);
     }
@@ -85,10 +111,9 @@ export class ApiClient {
 
   // Authentication Endpoints
   async signup(email: string, password: string, name?: string): Promise<{ api_key: string; user_id: string }> {
-    const response = await fetch(`${this.baseUrl}/api/auth/signup`, {
+    const response = await this.request(`${this.baseUrl}/api/auth/signup`, {
       method: 'POST',
       headers: this.getHeaders(),
-      credentials: 'include',
       body: JSON.stringify({ email, password, name: name || email.split('@')[0] }),
     });
     const data = await this.handleResponse<{ api_key: string; user_id: string }>(response);
@@ -97,10 +122,9 @@ export class ApiClient {
   }
 
   async login(email: string, password: string): Promise<{ user_id?: string; user?: any }> {
-    const response = await fetch(`${this.baseUrl}/api/auth/login`, {
+    const response = await this.request(`${this.baseUrl}/api/auth/login`, {
       method: 'POST',
       headers: this.getHeaders(),
-      credentials: 'include',
       body: JSON.stringify({ email, password }),
     });
     const data = await this.handleResponse<{ user?: any }>(response);
@@ -113,7 +137,7 @@ export class ApiClient {
 
   // Change Password
   async changePassword(currentPassword: string, newPassword: string): Promise<{ message: string }> {
-    const response = await fetch(`${this.baseUrl}/api/auth/change-password`, {
+    const response = await this.request(`${this.baseUrl}/api/auth/change-password`, {
       method: 'POST',
       headers: this.getHeaders(),
       body: JSON.stringify({ currentPassword, newPassword }),
@@ -129,7 +153,7 @@ export class ApiClient {
     if (options?.limit) params.append('limit', options.limit.toString());
     
     const queryString = params.toString() ? `?${params.toString()}` : '';
-    const response = await fetch(`${this.baseUrl}/api/emails${queryString}`, {
+    const response = await this.request(`${this.baseUrl}/api/emails${queryString}`, {
       method: 'GET',
       headers: this.getHeaders(),
     });
@@ -137,7 +161,7 @@ export class ApiClient {
   }
 
   async getEmail(emailId: string): Promise<any> {
-    const response = await fetch(`${this.baseUrl}/api/emails/${emailId}`, {
+    const response = await this.request(`${this.baseUrl}/api/emails/${emailId}`, {
       method: 'GET',
       headers: this.getHeaders(),
     });
@@ -145,7 +169,7 @@ export class ApiClient {
   }
 
   async replyToEmail(emailId: string, replyText: string): Promise<any> {
-    const response = await fetch(`${this.baseUrl}/api/emails/${emailId}/replies`, {
+    const response = await this.request(`${this.baseUrl}/api/emails/${emailId}/replies`, {
       method: 'POST',
       headers: this.getHeaders(),
       body: JSON.stringify({ text: replyText }),
@@ -154,7 +178,7 @@ export class ApiClient {
   }
 
   async getEnterpriseEmails(): Promise<any> {
-    const response = await fetch(`${this.baseUrl}/api/emails/enterprise`, {
+    const response = await this.request(`${this.baseUrl}/api/emails/enterprise`, {
       method: 'GET',
       headers: this.getHeaders(),
     });
@@ -163,7 +187,7 @@ export class ApiClient {
 
   // ============ ADMIN ENDPOINTS ============
   async getAdminKPIs(): Promise<any> {
-    const response = await fetch(`${this.baseUrl}/api/admin/kpis`, {
+    const response = await this.request(`${this.baseUrl}/api/admin/kpis`, {
       method: 'GET',
       headers: this.getHeaders(),
     });
@@ -172,16 +196,15 @@ export class ApiClient {
 
   // ============ User Profile Endpoints ============
   async getProfile(): Promise<any> {
-    const response = await fetch(`${this.baseUrl}/api/users/profile`, {
+    const response = await this.request(`${this.baseUrl}/api/users/profile`, {
       method: 'GET',
       headers: this.getHeaders(),
-      credentials: 'include', // Send httpOnly cookies
     });
     return this.handleResponse<any>(response);
   }
 
   async updateProfile(data: any): Promise<any> {
-    const response = await fetch(`${this.baseUrl}/api/users/profile`, {
+    const response = await this.request(`${this.baseUrl}/api/users/profile`, {
       method: 'POST',
       headers: this.getHeaders(),
       body: JSON.stringify(data),
@@ -192,7 +215,7 @@ export class ApiClient {
 
   // ============ API Key Management ============
   async generateApiKey(name: string): Promise<{ id: string; apiKey: string; message: string }> {
-    const response = await fetch(`${this.baseUrl}/api/api-keys`, {
+    const response = await this.request(`${this.baseUrl}/api/api-keys`, {
       method: 'POST',
       headers: this.getHeaders(),
       body: JSON.stringify({ name }),
@@ -202,7 +225,7 @@ export class ApiClient {
   }
 
   async listApiKeys(): Promise<{ keys: any[]; count: number }> {
-    const response = await fetch(`${this.baseUrl}/api/api-keys`, {
+    const response = await this.request(`${this.baseUrl}/api/api-keys`, {
       method: 'GET',
       headers: this.getHeaders(),
     });
@@ -210,7 +233,7 @@ export class ApiClient {
   }
 
   async deleteApiKey(keyId: string): Promise<{ message: string }> {
-    const response = await fetch(`${this.baseUrl}/api/api-keys/${keyId}`, {
+    const response = await this.request(`${this.baseUrl}/api/api-keys/${keyId}`, {
       method: 'DELETE',
       headers: this.getHeaders(),
     });
@@ -219,7 +242,7 @@ export class ApiClient {
 
   // ============ Subscription Management ============
   async getCurrentSubscription(): Promise<any> {
-    const response = await fetch(`${this.baseUrl}/api/subscriptions`, {
+    const response = await this.request(`${this.baseUrl}/api/subscriptions`, {
       method: 'GET',
       headers: this.getHeaders(),
     });
@@ -227,7 +250,7 @@ export class ApiClient {
   }
 
   async upgradeTier(newTier: string): Promise<any> {
-    const response = await fetch(`${this.baseUrl}/api/subscriptions/upgrade`, {
+    const response = await this.request(`${this.baseUrl}/api/subscriptions/upgrade`, {
       method: 'POST',
       headers: this.getHeaders(),
       body: JSON.stringify({ newTier }),
@@ -236,7 +259,7 @@ export class ApiClient {
   }
 
   async downgradeTier(newTier: string): Promise<any> {
-    const response = await fetch(`${this.baseUrl}/api/subscriptions/downgrade`, {
+    const response = await this.request(`${this.baseUrl}/api/subscriptions/downgrade`, {
       method: 'POST',
       headers: this.getHeaders(),
       body: JSON.stringify({ newTier }),
@@ -245,7 +268,7 @@ export class ApiClient {
   }
 
   async cancelSubscription(): Promise<any> {
-    const response = await fetch(`${this.baseUrl}/api/subscriptions/cancel`, {
+    const response = await this.request(`${this.baseUrl}/api/subscriptions/cancel`, {
       method: 'POST',
       headers: this.getHeaders(),
     });
@@ -254,7 +277,7 @@ export class ApiClient {
 
   // ============ Optimization Engine ============
   async optimize(text: string, provider: string, model: string): Promise<any> {
-    const response = await fetch(`${this.baseUrl}/api/optimize`, {
+    const response = await this.request(`${this.baseUrl}/api/optimize`, {
       method: 'POST',
       headers: this.getHeaders(),
       body: JSON.stringify({ text, provider, model }),
@@ -264,7 +287,7 @@ export class ApiClient {
 
   // ============ Pricing API ============
   async getPricing(): Promise<any> {
-    const response = await fetch(`${this.baseUrl}/api/pricing`, {
+    const response = await this.request(`${this.baseUrl}/api/pricing`, {
       method: 'GET',
     });
     return this.handleResponse<any>(response);
@@ -272,7 +295,7 @@ export class ApiClient {
 
   // Health Check
   async healthCheck(): Promise<any> {
-    const response = await fetch(`${this.baseUrl}/api/health`, {
+    const response = await this.request(`${this.baseUrl}/api/health`, {
       method: 'GET',
     });
     return this.handleResponse<any>(response);

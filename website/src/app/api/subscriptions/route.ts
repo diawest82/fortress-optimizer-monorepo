@@ -21,7 +21,20 @@ function getTierFeatures(tier: string) {
 
 export async function GET(req: NextRequest) {
   try {
-    const userId = req.headers.get('x-user-id');
+    // Try cookie auth first, then header fallback
+    let userId = null;
+    const cookieToken = req.cookies.get('fortress_auth_token')?.value;
+    if (cookieToken) {
+      try {
+        const jwt = await import('jsonwebtoken');
+        const JWT_SECRET = process.env.JWT_SECRET || process.env.NEXTAUTH_SECRET || '';
+        const decoded = jwt.default.verify(cookieToken, JWT_SECRET) as { id: string };
+        userId = decoded.id;
+      } catch { /* fall through to header */ }
+    }
+    if (!userId) {
+      userId = req.headers.get('x-user-id');
+    }
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
