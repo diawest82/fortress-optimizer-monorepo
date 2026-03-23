@@ -175,6 +175,7 @@ export class ApiClient {
     const response = await fetch(`${this.baseUrl}/api/users/profile`, {
       method: 'GET',
       headers: this.getHeaders(),
+      credentials: 'include', // Send httpOnly cookies
     });
     return this.handleResponse<any>(response);
   }
@@ -184,6 +185,7 @@ export class ApiClient {
       method: 'POST',
       headers: this.getHeaders(),
       body: JSON.stringify(data),
+      credentials: 'include',
     });
     return this.handleResponse<any>(response);
   }

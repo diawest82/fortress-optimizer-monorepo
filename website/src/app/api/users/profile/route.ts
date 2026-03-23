@@ -11,18 +11,30 @@ import jwt from 'jsonwebtoken';
 const JWT_SECRET = process.env.JWT_SECRET || process.env.NEXTAUTH_SECRET || 'CHANGE-THIS-IN-PRODUCTION';
 
 function extractUserIdFromToken(req: NextRequest): string | null {
+  // Try Authorization header first
   const authHeader = req.headers.get('authorization');
-  if (!authHeader?.startsWith('Bearer ')) {
-    return null;
+  if (authHeader?.startsWith('Bearer ')) {
+    try {
+      const token = authHeader.substring(7);
+      const decoded = jwt.verify(token, JWT_SECRET) as { id: string };
+      return decoded.id;
+    } catch {
+      // Fall through to cookie check
+    }
   }
 
-  try {
-    const token = authHeader.substring(7);
-    const decoded = jwt.verify(token, JWT_SECRET) as { id: string };
-    return decoded.id;
-  } catch {
-    return null;
+  // Try httpOnly cookie
+  const cookieToken = req.cookies.get('fortress_auth_token')?.value;
+  if (cookieToken) {
+    try {
+      const decoded = jwt.verify(cookieToken, JWT_SECRET) as { id: string };
+      return decoded.id;
+    } catch {
+      return null;
+    }
   }
+
+  return null;
 }
 
 export async function GET(req: NextRequest) {
