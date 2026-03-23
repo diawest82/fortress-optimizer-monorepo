@@ -88,15 +88,29 @@ export function clearCookie(response: NextResponse, name: string, path: string =
   response.headers.append('Set-Cookie', cookieString);
 }
 
+
 /**
  * Set authentication token cookie (1 day expiry)
  */
 export function setAuthTokenCookie(response: NextResponse, token: string): void {
+  // The actual auth token — httpOnly, not accessible to JS
   setSecureCookie(response, {
     name: 'fortress_auth_token',
     value: token,
     maxAge: 24 * 60 * 60, // 1 day
     httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'Strict',
+    path: '/',
+  });
+
+  // Indicator cookie — readable by client JS to update nav (Sign In → Sign Out)
+  // Contains no sensitive data, just signals "user is logged in"
+  setSecureCookie(response, {
+    name: 'fortress_logged_in',
+    value: 'true',
+    maxAge: 24 * 60 * 60, // same expiry as auth token
+    httpOnly: false, // must be readable by JavaScript
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'Strict',
     path: '/',
@@ -161,4 +175,6 @@ export function clearAuthCookies(response: NextResponse): void {
   clearCookie(response, 'fortress_auth_token');
   clearCookie(response, 'fortress_refresh_token');
   clearCookie(response, 'fortress_csrf_token');
+  // Clear the non-httpOnly indicator cookie (used by nav to show Sign Out)
+  response.headers.append('Set-Cookie', 'fortress_logged_in=; Max-Age=0; Path=/; SameSite=Strict;');
 }

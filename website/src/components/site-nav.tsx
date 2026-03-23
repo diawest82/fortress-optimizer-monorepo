@@ -14,9 +14,9 @@ export function SiteNav() {
     // Check auth via cookie (httpOnly cookie is set by server,
     // but we can check for the non-httpOnly auth indicator cookie)
     const checkAuth = () => {
-      const hasCookie = document.cookie.includes('fortress_auth_token');
+      const hasIndicator = document.cookie.includes('fortress_logged_in=true');
       const hasLocalToken = localStorage.getItem('auth_token');
-      setIsAuthenticated(hasCookie || !!hasLocalToken);
+      setIsAuthenticated(hasIndicator || !!hasLocalToken);
     };
 
     const timer = setTimeout(checkAuth, 0);
@@ -48,8 +48,9 @@ export function SiteNav() {
   }, [mobileMenuOpen]);
 
   const handleSignOut = () => {
-    // Clear cookie by setting expired date
+    // Clear cookies by setting expired date
     document.cookie = 'fortress_auth_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+    document.cookie = 'fortress_logged_in=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
     // Also clear any localStorage remnants
     localStorage.removeItem('auth_token');
     localStorage.removeItem('api_key');
