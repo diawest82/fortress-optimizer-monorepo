@@ -732,6 +732,471 @@ Based on tier:
 - **JavaScript/TypeScript:** npm install fortress-optimizer
 - **Python:** pip install fortress-optimizer
 - **Go:** go get github.com/fortress-optimizer/go`,
+
+  'installation/openclaw': `# OpenClaw Integration
+
+Use Fortress Token Optimizer as an [OpenClaw](https://openclaw.ai) skill to automatically optimize prompts before they reach your AI model.
+
+## What is OpenClaw?
+
+OpenClaw is an open-source personal AI assistant that runs locally on your machine. It connects to messaging apps (WhatsApp, Telegram, Slack, Discord) and supports Claude, OpenAI, and local models as backends.
+
+## Installation
+
+Install the Fortress skill from ClawHub:
+
+\`\`\`bash
+clawhub install fortress-optimizer
+\`\`\`
+
+Or install manually:
+
+\`\`\`bash
+git clone https://github.com/fortress-optimizer/openclaw-skill
+cd openclaw-skill
+npm install
+\`\`\`
+
+## Configuration
+
+Set your Fortress API key:
+
+\`\`\`bash
+claw config set fortress.apiKey "YOUR_API_KEY"
+\`\`\`
+
+Get your API key from your [Account page](https://www.fortress-optimizer.com/account) → API Keys tab.
+
+## How It Works
+
+The Fortress skill acts as a **context engine adapter** that intercepts prompts before they hit the AI model:
+
+1. You send a message to OpenClaw
+2. Fortress optimizes the prompt (removes filler, compresses redundancy)
+3. The optimized prompt is sent to your AI model (Claude, GPT, etc.)
+4. You get the same quality response with fewer tokens
+
+All optimization happens server-side via the Fortress API — your prompts are processed and never stored.
+
+## Usage
+
+Once installed, Fortress runs automatically. Every prompt is optimized before reaching the model.
+
+### Check Savings
+
+\`\`\`
+/fortress stats
+\`\`\`
+
+Shows tokens saved, cost savings, and optimization rate.
+
+### Adjust Optimization Level
+
+\`\`\`
+/fortress level conservative|balanced|aggressive
+\`\`\`
+
+- **Conservative**: 5-10% savings, minimal changes
+- **Balanced** (default): 15-25% savings, safe restructuring
+- **Aggressive**: 25-40% savings, maximum compression
+
+### Disable Temporarily
+
+\`\`\`
+/fortress pause
+/fortress resume
+\`\`\`
+
+## Graceful Degradation
+
+If the Fortress API is unreachable, the skill falls back to sending the original unoptimized prompt. Your OpenClaw experience is never interrupted.
+
+## Requirements
+
+- OpenClaw v1.0+
+- Node.js 22+
+- Fortress API key ([get one free](https://www.fortress-optimizer.com/auth/signup))
+
+## Support
+
+- [Fortress Support](https://www.fortress-optimizer.com/support)
+- [OpenClaw Community](https://openclaw.ai/community)
+- Email: support@fortress-optimizer.com`,
+
+  'installation/jetbrains': `# JetBrains IDE Integration
+
+Use Fortress Token Optimizer in IntelliJ IDEA, WebStorm, PyCharm, and other JetBrains IDEs.
+
+## Installation
+
+1. Open your JetBrains IDE
+2. Go to **Settings → Plugins → Marketplace**
+3. Search for "Fortress Token Optimizer"
+4. Click **Install** and restart the IDE
+
+Or install from disk:
+1. Download the plugin from [fortress-optimizer.com/downloads/jetbrains](https://fortress-optimizer.com/downloads/jetbrains)
+2. Go to **Settings → Plugins → ⚙️ → Install Plugin from Disk**
+
+## Configuration
+
+1. Go to **Settings → Tools → Fortress Token Optimizer**
+2. Enter your API key (get one from your [Account page](https://www.fortress-optimizer.com/account))
+3. Select your default optimization level
+
+## Usage
+
+### Optimize Selected Text
+1. Select text in the editor
+2. Right-click → **Fortress → Optimize Selection**
+3. Or use the keyboard shortcut: \`Ctrl+Shift+F\` (Windows/Linux) / \`Cmd+Shift+F\` (macOS)
+
+### View Token Savings
+Click the Fortress icon in the status bar to see your session savings.
+
+### Optimization Levels
+- **Conservative**: Minimal changes, safe for production code comments
+- **Balanced**: Default, good for most use cases
+- **Aggressive**: Maximum savings for high-volume workflows`,
+
+  'installation/neovim': `# Neovim Integration
+
+Use Fortress Token Optimizer in Neovim.
+
+## Installation
+
+### Using lazy.nvim
+
+\`\`\`lua
+{
+  "fortress-optimizer/fortress.nvim",
+  config = function()
+    require("fortress").setup({
+      api_key = vim.env.FORTRESS_API_KEY,
+    })
+  end,
+}
+\`\`\`
+
+### Using packer.nvim
+
+\`\`\`lua
+use {
+  "fortress-optimizer/fortress.nvim",
+  config = function()
+    require("fortress").setup()
+  end,
+}
+\`\`\`
+
+## Configuration
+
+Set your API key as an environment variable:
+
+\`\`\`bash
+export FORTRESS_API_KEY="your-api-key-here"
+\`\`\`
+
+Or configure in your \`init.lua\`:
+
+\`\`\`lua
+require("fortress").setup({
+  api_key = "your-api-key-here",
+  level = "balanced",  -- conservative, balanced, aggressive
+  auto_optimize = false, -- set true to auto-optimize on save
+})
+\`\`\`
+
+## Usage
+
+### Commands
+
+| Command | Description |
+|---------|-------------|
+| \`:FortressOptimize\` | Optimize selected text or current buffer |
+| \`:FortressUsage\` | Show token usage stats |
+| \`:FortressLevel balanced\` | Set optimization level |
+
+### Keybindings
+
+Default keybindings (customizable):
+
+| Key | Action |
+|-----|--------|
+| \`<leader>fo\` | Optimize selection |
+| \`<leader>fu\` | Show usage stats |`,
+
+  'installation/anthropic-sdk': `# Anthropic SDK Integration
+
+Use Fortress with the Anthropic Python SDK to automatically optimize prompts before they reach Claude.
+
+## Installation
+
+\`\`\`bash
+pip install fortress-anthropic
+\`\`\`
+
+## Usage
+
+Replace your Anthropic client with the Fortress-wrapped client:
+
+\`\`\`python
+# Before
+from anthropic import Anthropic
+client = Anthropic(api_key="your-anthropic-key")
+
+# After
+from fortress_anthropic import FortressAnthropicClient
+client = FortressAnthropicClient(
+    anthropic_api_key="your-anthropic-key",
+    fortress_api_key="your-fortress-key",
+)
+\`\`\`
+
+All \`client.messages.create()\` calls are automatically optimized. No other code changes needed.
+
+## How It Works
+
+1. You call \`client.messages.create()\` as normal
+2. Fortress intercepts the prompt and optimizes it
+3. The optimized prompt is sent to Claude
+4. You get the same quality response with fewer tokens
+
+## Configuration
+
+\`\`\`python
+client = FortressAnthropicClient(
+    anthropic_api_key="your-anthropic-key",
+    fortress_api_key="your-fortress-key",
+    optimization_level="balanced",  # conservative, balanced, aggressive
+)
+\`\`\`
+
+## Graceful Degradation
+
+If the Fortress API is unreachable, the original prompt is sent to Claude unchanged. Your application never breaks.`,
+
+  'installation/langchain': `# LangChain Integration
+
+Use Fortress with LangChain to optimize prompts in your LLM pipelines.
+
+## Installation
+
+\`\`\`bash
+pip install fortress-langchain
+\`\`\`
+
+## Usage
+
+### As a Callback
+
+\`\`\`python
+from fortress_langchain import FortressCallback
+
+callback = FortressCallback(api_key="your-fortress-key")
+
+from langchain_openai import ChatOpenAI
+llm = ChatOpenAI(callbacks=[callback])
+
+# All prompts are automatically optimized
+response = llm.invoke("Your prompt here")
+\`\`\`
+
+### As Middleware
+
+\`\`\`python
+from fortress_langchain import FortressMiddleware
+
+middleware = FortressMiddleware(
+    api_key="your-fortress-key",
+    level="balanced",
+)
+
+# Wrap any LLM
+optimized_llm = middleware.wrap(llm)
+response = optimized_llm.invoke("Your prompt here")
+\`\`\`
+
+## Configuration
+
+Set via environment variable:
+
+\`\`\`bash
+export FORTRESS_API_KEY="your-fortress-key"
+\`\`\`
+
+Or pass directly:
+
+\`\`\`python
+FortressCallback(
+    api_key="your-key",
+    level="balanced",
+    provider="openai",
+)
+\`\`\``,
+
+  'installation/vercel-ai-sdk': `# Vercel AI SDK Integration
+
+Use Fortress as middleware in your Vercel AI SDK application.
+
+## Installation
+
+\`\`\`bash
+npm install @fortress-optimizer/vercel-ai
+\`\`\`
+
+## Usage
+
+Add Fortress as middleware to your AI SDK route:
+
+\`\`\`typescript
+import { fortressMiddleware } from '@fortress-optimizer/vercel-ai';
+import { streamText } from 'ai';
+import { openai } from '@ai-sdk/openai';
+
+export async function POST(req: Request) {
+  const { messages } = await req.json();
+
+  const result = streamText({
+    model: openai('gpt-4'),
+    messages,
+    experimental_transform: fortressMiddleware({
+      apiKey: process.env.FORTRESS_API_KEY!,
+      level: 'balanced',
+    }),
+  });
+
+  return result.toDataStreamResponse();
+}
+\`\`\`
+
+## How It Works
+
+The middleware intercepts prompts before they reach the model:
+
+1. Your app calls \`streamText()\` as normal
+2. Fortress middleware optimizes the prompt
+3. The optimized prompt is sent to the model
+4. Streaming response is returned unchanged
+
+## Graceful Degradation
+
+If Fortress is unavailable, the middleware is a no-op — your original prompt passes through unchanged.`,
+
+  'installation/cursor': `# Cursor IDE Integration
+
+Use Fortress Token Optimizer in Cursor to save on AI-assisted coding costs.
+
+## Installation
+
+1. Open Cursor
+2. Go to **Extensions** panel (\`Ctrl+Shift+X\`)
+3. Search for "Fortress Token Optimizer"
+4. Click **Install**
+
+## Configuration
+
+1. Open Command Palette (\`Ctrl+Shift+P\`)
+2. Type "Fortress: Set API Key"
+3. Enter your API key from your [Account page](https://www.fortress-optimizer.com/account)
+
+## Usage
+
+Fortress automatically optimizes prompts sent to Cursor's AI features:
+- Chat prompts
+- Inline completions
+- Code generation requests
+
+### View Savings
+
+Click the Fortress icon in the status bar to see tokens saved this session.`,
+
+  'installation/sublime': `# Sublime Text Integration
+
+Use Fortress Token Optimizer in Sublime Text.
+
+## Installation
+
+### Via Package Control (Recommended)
+
+1. Open Command Palette (\`Ctrl+Shift+P\`)
+2. Type "Package Control: Install Package"
+3. Search for "Fortress Token Optimizer"
+4. Click to install
+
+### Manual Installation
+
+1. Download from [GitHub releases](https://github.com/fortress-optimizer/sublime-plugin)
+2. Extract to \`~/.config/sublime-text/Packages/Fortress/\` (Linux/Mac)
+3. Or \`%APPDATA%/Sublime Text/Packages/Fortress/\` (Windows)
+
+## Configuration
+
+Open **Preferences → Package Settings → Fortress → Settings** and add:
+
+\`\`\`json
+{
+  "api_key": "your-fortress-api-key",
+  "optimization_level": "balanced"
+}
+\`\`\`
+
+## Usage
+
+### Optimize Selected Text
+
+1. Select text
+2. Right-click → **Fortress: Optimize**
+3. Or use \`Ctrl+Shift+O\` (Windows/Linux) / \`Cmd+Shift+O\` (macOS)
+
+### Keybindings
+
+| Key | Action |
+|-----|--------|
+| \`Ctrl+Shift+O\` | Optimize selection |
+| \`Ctrl+Shift+U\` | Show usage stats |`,
+
+  'installation/make-zapier': `# Make.com & Zapier Integration
+
+Use Fortress Token Optimizer in your automation workflows.
+
+## Make.com
+
+### Setup
+
+1. In your Make.com scenario, add an **HTTP module**
+2. Set method to **POST**
+3. URL: \`https://api.fortress-optimizer.com/api/optimize\`
+4. Headers:
+   - \`Authorization: Bearer YOUR_API_KEY\`
+   - \`Content-Type: application/json\`
+5. Body:
+
+\`\`\`json
+{
+  "prompt": "{{your_prompt_variable}}",
+  "level": "balanced",
+  "provider": "openai"
+}
+\`\`\`
+
+6. Use the response \`optimization.optimized_prompt\` in your next module
+
+## Zapier
+
+### Setup
+
+1. Add a **Webhooks by Zapier** action (POST)
+2. URL: \`https://api.fortress-optimizer.com/api/optimize\`
+3. Headers: \`Authorization: Bearer YOUR_API_KEY\`
+4. Data: \`prompt\`, \`level\`, \`provider\`
+5. Use the optimized prompt in subsequent steps
+
+## Use Cases
+
+- **Customer support automation**: Optimize AI-generated responses before sending
+- **Content generation**: Reduce costs on batch content creation
+- **Data analysis**: Compress analytical prompts for GPT-4 processing`,
 };
 
 export const dynamicParams = true;

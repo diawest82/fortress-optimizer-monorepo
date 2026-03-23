@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 
 export default function AdminLayout({
@@ -10,20 +10,29 @@ export default function AdminLayout({
   children: React.ReactNode;
 }) {
   const router = useRouter();
+  const pathname = usePathname();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
+  // Login and setup pages bypass auth check
+  const isPublicAdminPage = pathname === '/admin/login' || pathname === '/admin/setup';
+
   useEffect(() => {
-    // Check auth immediately, no loading screen
+    if (isPublicAdminPage) return;
+
     const token = localStorage.getItem('adminToken');
     if (!token) {
       router.push('/admin/login');
       return;
     }
-    // Use microtask to avoid cascading renders
     Promise.resolve().then(() => {
       setIsAuthenticated(true);
     });
-  }, [router]);
+  }, [router, isPublicAdminPage]);
+
+  // Public admin pages render without nav
+  if (isPublicAdminPage) {
+    return <>{children}</>;
+  }
 
   // Show nothing while checking auth (silent redirect)
   if (!isAuthenticated) {
