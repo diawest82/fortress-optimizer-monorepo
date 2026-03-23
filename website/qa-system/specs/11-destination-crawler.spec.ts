@@ -161,6 +161,75 @@ test.describe('Destination Crawler: Content Verification', () => {
   });
 });
 
+// ─── Content Rendering Check — catches blank/empty pages after hydration ──
+
+test.describe('Destination Crawler: Rendered Content (Not Blank)', () => {
+  const ALL_PAGES = [
+    // Public pages
+    { url: '/', name: 'Homepage', minLength: 100 },
+    { url: '/pricing', name: 'Pricing', minLength: 100 },
+    { url: '/install', name: 'Install', minLength: 100 },
+    { url: '/compare', name: 'Compare', minLength: 100 },
+    { url: '/support', name: 'Support', minLength: 100 },
+    { url: '/tools', name: 'Tools', minLength: 100 },
+    { url: '/docs', name: 'Docs', minLength: 50 },
+    { url: '/refer', name: 'Referrals', minLength: 50 },
+    { url: '/auth/login', name: 'Login', minLength: 50 },
+    { url: '/auth/signup', name: 'Signup', minLength: 50 },
+    { url: '/auth/signup/team', name: 'Team Signup', minLength: 50 },
+    { url: '/forgot-password', name: 'Forgot Password', minLength: 50 },
+    { url: '/legal/privacy', name: 'Privacy Policy', minLength: 100 },
+    { url: '/legal/terms', name: 'Terms of Service', minLength: 100 },
+    { url: '/dashboard', name: 'Dashboard', minLength: 50 },
+    // Admin pages (public — should render login form)
+    { url: '/admin/login', name: 'Admin Login', minLength: 30 },
+    { url: '/admin/setup', name: 'Admin Setup', minLength: 30 },
+    // Doc pages
+    { url: '/docs/getting-started', name: 'Getting Started Docs', minLength: 100 },
+    { url: '/docs/installation/npm', name: 'npm Install Docs', minLength: 100 },
+    { url: '/docs/installation/openclaw', name: 'OpenClaw Install Docs', minLength: 100 },
+    { url: '/docs/installation/vscode', name: 'VS Code Install Docs', minLength: 100 },
+    { url: '/docs/installation/jetbrains', name: 'JetBrains Install Docs', minLength: 100 },
+    { url: '/docs/installation/neovim', name: 'Neovim Install Docs', minLength: 100 },
+    { url: '/docs/installation/anthropic-sdk', name: 'Anthropic SDK Docs', minLength: 100 },
+    { url: '/docs/installation/langchain', name: 'LangChain Install Docs', minLength: 100 },
+    { url: '/docs/installation/vercel-ai-sdk', name: 'Vercel AI SDK Docs', minLength: 100 },
+    { url: '/docs/installation/cursor', name: 'Cursor Install Docs', minLength: 50 },
+    { url: '/docs/installation/sublime', name: 'Sublime Install Docs', minLength: 50 },
+    { url: '/docs/installation/make-zapier', name: 'Make/Zapier Docs', minLength: 50 },
+  ];
+
+  for (const pg of ALL_PAGES) {
+    test(`[render] ${pg.url} — "${pg.name}" has visible content (not blank)`, async ({ page }) => {
+      await page.goto(`${BASE}${pg.url}`, { waitUntil: 'domcontentloaded' });
+      // Wait for client-side hydration
+      await page.waitForTimeout(5000);
+
+      // Get the main content area text
+      const mainEl = page.locator('main#main-content');
+      const mainExists = await mainEl.count();
+
+      let contentText = '';
+      if (mainExists > 0) {
+        contentText = (await mainEl.textContent({ timeout: 5000 }).catch(() => '')) || '';
+      } else {
+        // Fallback: check body content minus nav
+        contentText = (await page.locator('body').textContent({ timeout: 5000 }).catch(() => '')) || '';
+      }
+
+      // Strip whitespace and measure
+      const trimmed = contentText.replace(/\s+/g, ' ').trim();
+
+      expect(
+        trimmed.length,
+        `${pg.name} at ${pg.url} rendered BLANK (${trimmed.length} chars). ` +
+        `This likely means a JS error, auth redirect loop, or missing content. ` +
+        `Preview: "${trimmed.slice(0, 100)}"`
+      ).toBeGreaterThan(pg.minLength);
+    });
+  }
+});
+
 // ─── Pricing subscribe button actually navigates ────────────────────────
 
 test.describe('Destination Crawler: Button Actions', () => {
