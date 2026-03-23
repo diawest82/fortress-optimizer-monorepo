@@ -68,14 +68,20 @@ Fortress analyzes your prompts and restructures them to be more efficient while 
 
 ## How Much Can You Save?
 
-- **Individual developers**: ~$5-10/month
-- **Teams of 5**: ~$50-100/month  
-- **Enterprise**: ~$500+/month
+Your savings depend on your usage. Typical examples:
 
-Your actual savings depend on:
-- How often you use LLM APIs
-- The size of your prompts
-- Your current API spend
+- **Individual developer** spending $50-100/mo on APIs → saves ~$10-20/month
+- **Team of 10** spending $500/mo → saves ~$100/month
+- **Large org** spending $5,000+/mo → saves ~$1,000+/month
+
+## Pricing
+
+- **Free**: 50K tokens/month, 5 core platforms — $0
+- **Pro**: Unlimited tokens, all 12 platforms — $15/month ($12/month annual)
+- **Teams**: Unlimited tokens, team management — starting at $60/month (5 seats)
+- **Enterprise**: Custom pricing — [contact sales](mailto:sales@fortress-optimizer.com)
+
+[View full pricing →](/pricing)
 
 ## Who Should Use Fortress?
 
@@ -86,10 +92,11 @@ Your actual savings depend on:
 
 ## What Makes Fortress Different?
 
-- **No data storage** - Your prompts are never logged or stored
-- **Works everywhere** - npm, VS Code, Slack, Claude Desktop, and more
-- **Real-time** - See savings immediately
-- **Transparent** - Control exactly how aggressively to optimize`,
+- **Privacy-first** — Prompts are processed in real-time and not stored permanently. Optimization logs are retained for 90 days for analytics, then automatically deleted.
+- **Works everywhere** — 12+ platforms including npm, VS Code, GitHub Copilot, Slack, Claude Desktop, and more
+- **Real-time** — See savings immediately in your dashboard
+- **Transparent** — Control exactly how aggressively to optimize with 3 levels (conservative, balanced, aggressive)
+- **API key security** — Keys are hashed with SHA-256, never stored in plaintext`,
 
   'quick-start': `# Quick Start (5 minutes)
 
