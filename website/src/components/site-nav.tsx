@@ -11,22 +11,28 @@ export function SiteNav() {
   const router = useRouter();
 
   useEffect(() => {
-    // Defer state update to avoid synchronous call warning
-    const timer = setTimeout(() => {
-      const token = localStorage.getItem('auth_token');
-      setIsAuthenticated(!!token);
-    }, 0);
-
-    // Listen for storage changes
-    const handleStorageChange = () => {
-      const token = localStorage.getItem('auth_token');
-      setIsAuthenticated(!!token);
+    // Check auth via cookie (httpOnly cookie is set by server,
+    // but we can check for the non-httpOnly auth indicator cookie)
+    const checkAuth = () => {
+      const hasCookie = document.cookie.includes('fortress_auth_token');
+      const hasLocalToken = localStorage.getItem('auth_token');
+      setIsAuthenticated(hasCookie || !!hasLocalToken);
     };
 
-    window.addEventListener('storage', handleStorageChange);
+    const timer = setTimeout(checkAuth, 0);
+
+    // Re-check on storage/visibility changes
+    window.addEventListener('storage', checkAuth);
+    document.addEventListener('visibilitychange', checkAuth);
+
+    // Poll every 2s to catch cookie changes (cookie changes don't fire events)
+    const interval = setInterval(checkAuth, 2000);
+
     return () => {
       clearTimeout(timer);
-      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('storage', checkAuth);
+      document.removeEventListener('visibilitychange', checkAuth);
+      clearInterval(interval);
     };
   }, []);
 
@@ -42,6 +48,9 @@ export function SiteNav() {
   }, [mobileMenuOpen]);
 
   const handleSignOut = () => {
+    // Clear cookie by setting expired date
+    document.cookie = 'fortress_auth_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+    // Also clear any localStorage remnants
     localStorage.removeItem('auth_token');
     localStorage.removeItem('api_key');
     setIsAuthenticated(false);
