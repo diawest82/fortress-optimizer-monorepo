@@ -47,46 +47,70 @@ export async function GET() {
     // Use Promise.race to enforce 3-second timeout (very strict)
     const kpiPromise = (async () => {
       try {
-        // Get total email count (fastest query)
-        const totalEmails = await prisma.email.count();
-
-        // Get enterprise count from last 7 days
+        // REAL DATA — no fabrication, no proxies, no Math.random()
         const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-        const serviceInterruptions = await prisma.email.count({
-          where: {
-            isEnterprise: true,
-            requiresHuman: true,
-            timestamp: {
-              gte: sevenDaysAgo,
-            },
-          },
+
+        // Real user count
+        const totalUsers = await prisma.user.count();
+
+        // Real signups in last 7 days
+        const recentSignups = await prisma.user.count({
+          where: { createdAt: { gte: sevenDaysAgo } },
         });
 
-        // Use email count as proxy for visitor acquisitions
-        const visitorAcquisitions = Math.max(totalEmails, 0);
+        // Real support tickets needing attention
+        const openTickets = await prisma.supportTicket.count({
+          where: { status: { in: ['open', 'in-progress'] } },
+        }).catch(() => 0);
 
-        // Calculate packages installed and tokens saved
-        const packagesInstalled = Math.max(
-          visitorAcquisitions * 3 + Math.floor(Math.random() * 50),
-          50
-        );
+        // Real optimization data
+        const optimizations = await prisma.tokenCountUsage.aggregate({
+          _sum: {
+            originalTokens: true,
+            optimizedTokens: true,
+          },
+          _count: true,
+        }).catch(() => ({ _sum: { originalTokens: 0, optimizedTokens: 0 }, _count: 0 }));
 
-        const tokensSaved = totalEmails * 250 * 0.2; // 20% savings rate
+        const totalOriginal = optimizations._sum.originalTokens || 0;
+        const totalOptimized = optimizations._sum.optimizedTokens || 0;
+        const tokensSaved = totalOriginal - totalOptimized;
+
+        // Real enterprise inquiries
+        const enterpriseInquiries = await prisma.email.count({
+          where: {
+            isEnterprise: true,
+            timestamp: { gte: sevenDaysAgo },
+          },
+        }).catch(() => 0);
 
         return {
-          visitorAcquisitions,
-          serviceInterruptions,
-          packagesInstalled,
-          tokensSaved: Math.floor(tokensSaved),
+          // Real metrics
+          totalUsers,
+          recentSignups,
+          openTickets,
+          enterpriseInquiries,
+          totalOptimizations: optimizations._count,
+          tokensSaved,
+          tokensProcessed: totalOriginal,
+          // Legacy fields for backward compatibility
+          visitorAcquisitions: totalUsers,
+          serviceInterruptions: openTickets,
+          packagesInstalled: optimizations._count,
           lastUpdated: new Date().toISOString(),
         };
       } catch {
-        // If any database query fails, use fallback
         return {
+          totalUsers: 0,
+          recentSignups: 0,
+          openTickets: 0,
+          enterpriseInquiries: 0,
+          totalOptimizations: 0,
+          tokensSaved: 0,
+          tokensProcessed: 0,
           visitorAcquisitions: 0,
           serviceInterruptions: 0,
-          packagesInstalled: 50,
-          tokensSaved: 0,
+          packagesInstalled: 0,
           lastUpdated: new Date().toISOString(),
         };
       }
