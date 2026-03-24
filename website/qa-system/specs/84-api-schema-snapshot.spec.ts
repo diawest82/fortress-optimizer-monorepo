@@ -1,20 +1,41 @@
 /**
- * API Schema Snapshot — record and verify API response shapes don't drift
+ * API Schema Snapshot — verify API responses match frozen baseline
+ * Baseline: qa-system/contracts/api-schema-baseline.json
+ * If an API response changes, this test fails — preventing silent SDK breakage.
  */
 
 import { test, expect } from '@playwright/test';
+import { readFileSync } from 'fs';
+import { join } from 'path';
 
 const BASE = process.env.TEST_BASE_URL || 'https://www.fortress-optimizer.com';
 const BACKEND = 'https://api.fortress-optimizer.com';
+const baselinePath = join(__dirname, '..', 'contracts', 'api-schema-baseline.json');
+const baseline = JSON.parse(readFileSync(baselinePath, 'utf-8'));
+
+function validateAgainstBaseline(data: any, endpointKey: string) {
+  const schema = baseline.endpoints[endpointKey];
+  if (!schema) return; // No baseline for this endpoint yet
+
+  for (const field of schema.requiredFields) {
+    expect(data, `${endpointKey} missing required field: ${field}`).toHaveProperty(field);
+  }
+
+  for (const [field, expectedType] of Object.entries(schema.fieldTypes)) {
+    if (data[field] !== undefined) {
+      const actualType = Array.isArray(data[field]) ? 'array' : typeof data[field];
+      expect(actualType, `${endpointKey}.${field} type mismatch: expected ${expectedType}, got ${actualType}`).toBe(expectedType);
+    }
+  }
+}
 
 test.describe('API Schema Snapshot: Public Endpoints', () => {
 
-  test('/api/health has required fields', async ({ request }) => {
+  test('/api/health matches baseline schema', async ({ request }) => {
     const res = await request.get(`${BASE}/api/health`);
     if (res.status() !== 200) return;
     const data = await res.json();
-    expect(data).toHaveProperty('status');
-    expect(typeof data.status).toBe('string');
+    validateAgainstBaseline(data, 'GET /api/health');
   });
 
   test('/api/pricing has required fields', async ({ request }) => {

@@ -1,0 +1,49 @@
+{
+  "version": "2026-03-23",
+  "endpoints": {
+    "GET /api/health": {
+      "requiredFields": ["status"],
+      "fieldTypes": { "status": "string" }
+    },
+    "GET /api/pricing": {
+      "requiredFields": ["tiers"],
+      "fieldTypes": { "tiers": "array" }
+    },
+    "GET /api/admin/kpis": {
+      "requiredFields": ["lastUpdated"],
+      "fieldTypes": { "lastUpdated": "string" }
+    },
+    "POST /api/auth/login (success)": {
+      "requiredFields": ["user"],
+      "fieldTypes": { "user": "object" }
+    },
+    "POST /api/auth/login (failure)": {
+      "requiredFields": ["error"],
+      "fieldTypes": { "error": "string" }
+    },
+    "POST /api/auth/signup (success)": {
+      "requiredFields": ["user"],
+      "fieldTypes": { "user": "object" }
+    },
+    "POST /api/auth/logout": {
+      "requiredFields": ["success"],
+      "fieldTypes": { "success": "boolean" }
+    },
+    "GET /api/dashboard/stats (success)": {
+      "requiredFields": ["hasData", "totalTokens", "tokensSaved", "costSaved", "dailyData"],
+      "fieldTypes": { "hasData": "boolean", "totalTokens": "number" }
+    },
+    "GET /api/dashboard/stats (401)": {
+      "requiredFields": ["error"],
+      "fieldTypes": { "error": "string" }
+    },
+    "GET /health (backend)": {
+      "requiredFields": ["status", "version", "database", "timestamp"],
+      "fieldTypes": { "status": "string", "version": "string", "database": "string" }
+    },
+    "POST /api/optimize (backend error)": {
+      "requiredFields": ["status", "error"],
+      "fieldTypes": { "status": "string" }
+    }
+  }
+}
