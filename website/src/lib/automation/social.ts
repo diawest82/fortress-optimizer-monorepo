@@ -48,7 +48,7 @@ export function generateTwitterTemplates() {
     },
     {
       name: 'Quote/Insight',
-      template: '"Most teams waste 30% of their AI budget on unoptimized prompts." - That\'s why we built Fortress. Cut your token costs by 20% automatically.',
+      template: '"Most teams waste 30% of their AI budget on unoptimized prompts." - That\'s why we built Fortress. Cut your token costs by 10-20% automatically.',
     },
     {
       name: 'Social Proof',
@@ -64,7 +64,7 @@ export function generateLinkedInTemplates() {
   return [
     {
       name: 'Enterprise Value',
-      template: 'Enterprise teams are finding that unoptimized AI prompts cost 30% more than necessary. Fortress automatically optimizes prompts across npm, Copilot, VS Code, Slack, and Claude Desktop. Result: 20% cost reduction, 68ms faster responses.',
+      template: 'Enterprise teams are finding that unoptimized AI prompts cost 30% more than necessary. Fortress automatically optimizes prompts across npm, Copilot, VS Code, Slack, and Claude Desktop. Result: 10-20% cost reduction, 68ms faster responses.',
     },
     {
       name: 'Industry Insight',
@@ -84,7 +84,7 @@ export function generateDevtoTemplates() {
   return [
     {
       name: 'How-To Guide',
-      template: `# How to Reduce Your LLM Token Costs by 20%
+      template: `# How to Reduce Your LLM Token Costs by 10-20%
 
 Prompt optimization doesn't have to be manual. Learn how Fortress automatically compresses your prompts across npm, Copilot, VS Code, Slack, and Claude Desktop.
 
@@ -95,7 +95,7 @@ Token costs are the second-largest expense in AI development, often wasted on re
 Fortress uses intelligent compression to eliminate unnecessary tokens while preserving quality.
 
 ## Results
-- 20% token cost reduction
+- 10-20% token cost reduction
 - 68ms latency improvement
 - No API changes needed
 

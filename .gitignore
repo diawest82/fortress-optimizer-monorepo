@@ -65,4 +65,6 @@ coverage/
 .md
 
 #passwords
-.fortress-db-url
+.fortress-db-url.next/
+products/vscode-enhanced/.vscode-test/
+website/.next/

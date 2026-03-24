@@ -16,7 +16,7 @@ export default function Home() {
               Cut AI Costs Automatically
             </p>
             <h1 className="text-5xl font-bold text-white mb-4">
-              Cut your AI API costs by 20% without changing your code
+              Cut your AI API costs by 10-20% without changing your code
             </h1>
             <p className="max-w-2xl text-lg text-slate-300 mb-8">
               Fortress compresses your prompts in realtime across npm, Copilot, VS Code, Slack, and Claude Desktop — reducing token usage while preserving quality. Start free, no credit card required.
@@ -43,7 +43,7 @@ export default function Home() {
               <p className="text-xs uppercase tracking-[0.35em] text-blue-200 mb-2">
                 Live savings
               </p>
-              <p className="text-4xl font-bold text-white">20%</p>
+              <p className="text-4xl font-bold text-white">10-20%</p>
               <p className="text-sm text-blue-200 mt-1">Average token reduction</p>
             </div>
             <div className="rounded-2xl border border-blue-500/30 bg-blue-950/20 p-6">

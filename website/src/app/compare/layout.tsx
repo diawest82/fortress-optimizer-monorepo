@@ -2,7 +2,7 @@ import { Metadata } from 'next';
 
 export const metadata: Metadata = {
   title: 'Why Fortress | Token Optimization Comparison',
-  description: 'See why Fortress is the only token optimization platform that actually reduces your LLM costs by 20%. Compare Fortress vs CloudFlare, Azure, Google, and manual optimization.',
+  description: 'See why Fortress is the only token optimization platform that actually reduces your LLM costs by 10-20%. Compare Fortress vs CloudFlare, Azure, Google, and manual optimization.',
   keywords: [
     'token optimization',
     'LLM cost reduction',
@@ -13,7 +13,7 @@ export const metadata: Metadata = {
     'LLM cost optimization',
   ],
   openGraph: {
-    title: 'Why Fortress Wins | Save 20% on LLM Costs',
+    title: 'Why Fortress Wins | Save 10-20% on LLM Costs',
     description: 'The only token optimization platform that delivers up to 20% savings consistently without sacrificing quality. No vendor lock-in, 5-minute setup.',
     url: 'https://www.fortress-optimizer.com/compare',
     type: 'website',
@@ -28,7 +28,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Why Fortress Wins | Save 20% on LLM Costs',
+    title: 'Why Fortress Wins | Save 10-20% on LLM Costs',
     description: 'The only token optimization platform that delivers up to 20% savings consistently. See the comparison.',
     images: ['https://www.fortress-optimizer.com/og-compare.png'],
   },

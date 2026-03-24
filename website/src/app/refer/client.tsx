@@ -144,7 +144,7 @@ function ReferralDashboard() {
   };
 
   const shareOn = (platform: string) => {
-    const text = `I'm saving 20% on my LLM costs with Fortress Token Optimizer. Try it free: ${referralLink}`;
+    const text = `I'm saving 10-20% on my LLM costs with Fortress Token Optimizer. Try it free: ${referralLink}`;
 
     if (platform === 'twitter') {
       window.open(

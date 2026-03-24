@@ -116,7 +116,7 @@ export function CostCalculator() {
             <div className="text-right">
               <div className="text-sm text-zinc-400 mb-1">With Fortress</div>
               <div className="text-4xl font-bold text-green-400">${optimizedCost.toFixed(2)}</div>
-              <div className="text-xs text-green-500 mt-1">20% reduction</div>
+              <div className="text-xs text-green-500 mt-1">10-20% reduction</div>
             </div>
           </div>
 

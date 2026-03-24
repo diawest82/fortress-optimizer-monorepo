@@ -10,7 +10,7 @@ Welcome to Fortress Token Optimizer! This guide will help you get up and running
 
 ## What is Fortress?
 
-Fortress Token Optimizer is an intelligent token optimization platform that helps you save 20% on LLM API costs. By analyzing your prompts and restructuring them intelligently, Fortress reduces token usage while maintaining quality.
+Fortress Token Optimizer is an intelligent token optimization platform that helps you save 10-20% on LLM API costs. By analyzing your prompts and restructuring them intelligently, Fortress reduces token usage while maintaining quality.
 
 ## Quick Start
 
@@ -37,7 +37,7 @@ Once installed, simply use Fortress normally. It automatically optimizes your pr
 
 - ⚡ **Real-time Optimization** - Instant token calculation and savings
 - 🔒 **Secure** - Your data stays private, encrypted end-to-end
-- 💰 **Cost Savings** - Save 20% on API costs automatically
+- 💰 **Cost Savings** - Save 10-20% on API costs automatically
 - 📊 **Analytics** - Track savings with detailed dashboards
 - 🚀 **Easy Setup** - Works with your existing tools
 
@@ -64,7 +64,7 @@ This means you're paying for tokens you don't actually need.
 
 ## The Solution
 
-Fortress analyzes your prompts and restructures them to be more efficient while keeping the meaning intact. The result: you use fewer tokens and pay less, typically **20% savings**.
+Fortress analyzes your prompts and restructures them to be more efficient while keeping the meaning intact. The result: you use fewer tokens and pay less, typically **10-20% savings**.
 
 ## How Much Can You Save?
 
@@ -577,7 +577,7 @@ Fortress vs other token optimization solutions.
 | Feature | Fortress | Compression |
 |---------|----------|-------------|
 | Preserves meaning | ✅ Yes | ⚠️ Sometimes |
-| Token savings | 20% avg | 30% avg |
+| Token savings | 10-20% avg | 30% avg |
 | Quality loss | Minimal | Moderate |
 | Ease of use | Very easy | Complex |
 

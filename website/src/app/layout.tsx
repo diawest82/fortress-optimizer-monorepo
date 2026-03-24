@@ -7,12 +7,12 @@ import CookieConsentBanner from "@/components/cookie-consent";
 import { AnalyticsProvider } from "@/components/analytics-provider";
 
 export const metadata: Metadata = {
-  title: "Fortress Token Optimizer | Cut Your AI API Costs by 20%",
-  description: "Fortress optimizes AI prompts across npm, Copilot, VS Code, Slack & Claude Desktop. Save 20% on token costs, reduce latency by 68ms. Start free — no credit card required.",
+  title: "Fortress Token Optimizer | Cut Your AI API Costs by 10-20%",
+  description: "Fortress optimizes AI prompts across npm, Copilot, VS Code, Slack & Claude Desktop. Save 10-20% on token costs, reduce latency by 68ms. Start free — no credit card required.",
   keywords: "token optimization, AI prompt compression, cost reduction, token efficiency, LLM optimization",
   metadataBase: new URL("https://fortress-optimizer.com"),
   openGraph: {
-    title: "Fortress Token Optimizer - Cut Token Costs by 20%",
+    title: "Fortress Token Optimizer - Cut Token Costs by 10-20%",
     description: "Automatically optimize your AI prompts and save on token costs. Start free — no credit card required.",
     type: "website",
     locale: "en_US",
@@ -27,8 +27,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Fortress Token Optimizer - 20% Token Savings",
-    description: "Cut your AI API costs by 20% without changing your code. Start free.",
+    title: "Fortress Token Optimizer - 10-20% Token Savings",
+    description: "Cut your AI API costs by 10-20% without changing your code. Start free.",
   },
   robots: {
     index: true,
@@ -55,7 +55,7 @@ export default function RootLayout({
               "@context": "https://schema.org",
               "@type": "SoftwareApplication",
               name: "Fortress Token Optimizer",
-              description: "AI prompt optimization platform that reduces token costs by 20%",
+              description: "AI prompt optimization platform that reduces token costs by 10-20%",
               url: "https://fortress-optimizer.com",
               applicationCategory: "DeveloperApplication",
               offers: {

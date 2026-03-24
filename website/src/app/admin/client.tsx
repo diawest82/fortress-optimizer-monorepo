@@ -156,7 +156,7 @@ export default function AdminDashboard() {
               <div className="space-y-2 text-sm text-slate-400">
                 <p>• Total packages: {loading ? '—' : kpiData.packagesInstalled}</p>
                 <p>• Avg tokens per request: ~250</p>
-                <p>• Savings rate: 20%</p>
+                <p>• Savings rate: 10-20%</p>
               </div>
             </div>
           </div>

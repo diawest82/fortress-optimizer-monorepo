@@ -127,9 +127,14 @@ export function calculateTeamPrice(seats: number): {
 export const ANNUAL_DISCOUNT = 0.20;
 
 /**
- * Savings claim percentage (used across marketing)
+ * Savings claim (used across marketing)
+ * Based on real benchmark: 10-18% balanced, up to 20% aggressive
  */
-export const SAVINGS_PERCENTAGE = 20;
+export const SAVINGS_MIN = 10;
+export const SAVINGS_MAX = 20;
+export const SAVINGS_DISPLAY = '10-20%';
+export const SAVINGS_MULTIPLIER_LOW = 0.80;  // up to 20% savings
+export const SAVINGS_MULTIPLIER_HIGH = 0.90; // 10% savings
 
 // ═══════════════════════════════════════════════════════════════════════════
 // PLATFORM / INTEGRATION CONFIG
@@ -166,7 +171,7 @@ export const COMPANY = {
   supportEmail: 'support@fortress-optimizer.com',
   salesEmail: 'sales@fortress-optimizer.com',
   copyrightYear: 2026,
-  tagline: 'Cut your AI API costs by 20% without changing your code',
+  tagline: 'Cut your AI API costs by 10-20% without changing your code',
 } as const;
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -174,9 +179,9 @@ export const COMPANY = {
 // ═══════════════════════════════════════════════════════════════════════════
 
 export const MARKETING = {
-  savingsPercentage: 20,
+  savingsPercentage: { min: 10, max: 20, display: "10-20%" },
   optimizationLatencyMs: 68,
-  savingsMultiplier: 0.80, // 1 - savingsPercentage/100
+  savingsMultiplier: { low: 0.80, high: 0.90 }, // 1 - max/min savings
   platformCount: '12+',
   freeTokens: '50K',
   noCardRequired: true,

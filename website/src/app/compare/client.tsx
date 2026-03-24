@@ -510,7 +510,7 @@ export default function ComparePage() {
             <div className={styles.reasonIcon}>✅</div>
             <h3>Quality Consistent</h3>
             <p>
-              20% average token reduction without sacrificing output quality. Techniques include
+              10-20% average token reduction without sacrificing output quality. Techniques include
               semantic deduplication, filler removal, and context compression.
             </p>
           </div>
@@ -601,7 +601,7 @@ export default function ComparePage() {
       {/* Final CTA */}
       <section className={styles.finalCta}>
         <div className={styles.ctaBox}>
-          <h2>Ready to Save 20% on Your LLM Costs?</h2>
+          <h2>Ready to Save 10-20% on Your LLM Costs?</h2>
           <p>Start optimizing in less than 5 minutes. No credit card required.</p>
           
           <div className={styles.ctaButtons}>

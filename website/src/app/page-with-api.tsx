@@ -97,7 +97,7 @@ export default function Home() {
               Average savings
             </p>
             <p className="mt-3 text-4xl font-semibold text-white">
-              {result ? `${result.savings_percentage.toFixed(1)}%` : '20%'}
+              {result ? `${result.savings_percentage.toFixed(1)}%` : '10-20%'}
             </p>
             <p className="mt-2 text-sm text-emerald-100">
               Token reduction on typical prompts.
