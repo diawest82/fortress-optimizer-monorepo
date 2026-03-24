@@ -7,8 +7,8 @@
  * Run: npx ts-node test/runTest.ts
  */
 
-import { runTests } from '@vscode/test-electron';
-import * as path from 'path';
+const { runTests } = require('@vscode/test-electron');
+const path = require('path');
 
 async function main() {
   try {
