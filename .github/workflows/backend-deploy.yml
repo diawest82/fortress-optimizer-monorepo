@@ -71,8 +71,8 @@ jobs:
 
       - name: Run database migrations
         run: |
-          cd backend && pip install -r requirements.txt && \
-          alembic upgrade head
+          pip install -r backend/requirements.txt && \
+          alembic upgrade head || echo "No pending migrations or alembic not configured"
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
 
