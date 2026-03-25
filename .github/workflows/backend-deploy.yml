@@ -97,11 +97,13 @@ jobs:
 
       - name: Deploy to ECS
         run: |
+          # Force ECS to pull the latest :production image
           aws ecs update-service \
             --cluster ${{ env.ECS_CLUSTER }} \
             --service ${{ env.ECS_SERVICE }} \
             --force-new-deployment \
             --region ${{ env.AWS_REGION }}
+          echo "Deployed image: ${{ env.ECR_REPO }}:production (SHA: ${{ github.sha }})"
 
       - name: Wait for deployment
         id: wait-deploy
