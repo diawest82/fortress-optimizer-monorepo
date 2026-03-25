@@ -2,10 +2,29 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import prisma from '@/lib/prisma';
 
+async function getUserId(req: NextRequest): Promise<string | null> {
+  // Try NextAuth session first
+  const session = await getServerSession();
+  if (session?.user?.id) return session.user.id;
+
+  // Fallback: try custom JWT cookie
+  const cookieToken = req.cookies.get('fortress_auth_token')?.value;
+  if (cookieToken) {
+    try {
+      const jwt = await import('jsonwebtoken');
+      const secret = process.env.JWT_SECRET || process.env.NEXTAUTH_SECRET || '';
+      const decoded = jwt.default.verify(cookieToken, secret) as { id: string };
+      return decoded.id;
+    } catch { /* invalid token */ }
+  }
+
+  return null;
+}
+
 export async function POST(req: NextRequest) {
   try {
-    const session = await getServerSession();
-    if (!session?.user?.id) {
+    const userId = await getUserId(req);
+    if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -23,9 +42,9 @@ export async function POST(req: NextRequest) {
       data: {
         name,
         slug: name.toLowerCase().replace(/\s+/g, '-'),
-        ownerId: session.user.id,
+        ownerId: userId,
         members: {
-          connect: [{ id: session.user.id }],
+          connect: [{ id: userId }],
         },
       },
       include: { members: true },
@@ -50,10 +69,10 @@ export async function POST(req: NextRequest) {
   }
 }
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
-    const session = await getServerSession();
-    if (!session?.user?.id) {
+    const userId = await getUserId(req);
+    if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -61,8 +80,8 @@ export async function GET() {
     const teams = await prisma.team.findMany({
       where: {
         OR: [
-          { ownerId: session.user.id },
-          { members: { some: { id: session.user.id } } },
+          { ownerId: userId },
+          { members: { some: { id: userId } } },
         ],
       },
       include: { members: { select: { id: true, email: true, name: true } } },
@@ -75,7 +94,7 @@ export async function GET() {
         name: team.name,
         slug: team.slug,
         memberCount: team.members.length,
-        isOwner: team.ownerId === session.user.id,
+        isOwner: team.ownerId === userId,
       })),
     });
   } catch (error) {

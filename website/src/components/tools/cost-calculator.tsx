@@ -32,7 +32,7 @@ export function CostCalculator() {
   const monthlyTokens = inputs.tokensPerDay * 30;
   const providerData = providers[inputs.provider as keyof typeof providers];
   const currentCost = monthlyTokens * providerData.costPer1k;
-  const optimizedCost = currentCost * MARKETING.savingsMultiplier;
+  const optimizedCost = currentCost * MARKETING.savingsMultiplier.high; // Conservative estimate (10% savings)
   const savingsAmount = currentCost - optimizedCost;
 
   // Determine Fortress plan cost and token limits

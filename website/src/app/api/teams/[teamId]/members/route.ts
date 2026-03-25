@@ -9,13 +9,28 @@ import prisma from '@/lib/prisma';
 import { checkTeamSeatLimit } from '@/lib/team-limits';
 import { sendTeamInviteEmail } from '@/lib/email';
 
+async function getUserId(req: NextRequest): Promise<string | null> {
+  const session = await getServerSession();
+  if (session?.user?.id) return session.user.id;
+  const cookieToken = req.cookies.get('fortress_auth_token')?.value;
+  if (cookieToken) {
+    try {
+      const jwt = await import('jsonwebtoken');
+      const secret = process.env.JWT_SECRET || process.env.NEXTAUTH_SECRET || '';
+      const decoded = jwt.default.verify(cookieToken, secret) as { id: string };
+      return decoded.id;
+    } catch { /* invalid */ }
+  }
+  return null;
+}
+
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ teamId: string }> }
 ) {
   try {
-    const session = await getServerSession();
-    if (!session?.user?.id) {
+    const userId = await getUserId(req);
+    if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -33,8 +48,8 @@ export async function GET(
     }
 
     // Only team members can view the member list
-    const isMember = team.members.some(m => m.id === session.user.id);
-    if (!isMember && team.ownerId !== session.user.id) {
+    const isMember = team.members.some(m => m.id === userId);
+    if (!isMember && team.ownerId !== userId) {
       return NextResponse.json({ error: 'Not a member of this team' }, { status: 403 });
     }
 
@@ -81,8 +96,8 @@ export async function POST(
   { params }: { params: Promise<{ teamId: string }> }
 ) {
   try {
-    const session = await getServerSession();
-    if (!session?.user?.id) {
+    const userId = await getUserId(req);
+    if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
@@ -102,7 +117,7 @@ export async function POST(
       return NextResponse.json({ error: 'Team not found' }, { status: 404 });
     }
 
-    if (team.ownerId !== session.user.id) {
+    if (team.ownerId !== userId) {
       return NextResponse.json({ error: 'Only team owner can add members' }, { status: 403 });
     }
 
@@ -195,7 +210,7 @@ export async function POST(
       await sendTeamInviteEmail(
         invitedUser.email,
         team.name,
-        session.user.name || session.user.email || 'Someone',
+        'Team admin',
         `https://fortress-optimizer.com/teams/invitations/${teamId}`
       );
     } catch (emailError) {
