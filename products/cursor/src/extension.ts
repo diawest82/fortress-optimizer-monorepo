@@ -196,21 +196,25 @@ async function cmdShowUsage(): Promise<void> {
 
         outputChannel.appendLine('');
         outputChannel.appendLine('--- Usage Stats ---');
-        outputChannel.appendLine(`Period: ${usage.period}`);
+        outputChannel.appendLine(`Tier: ${usage.tier}`);
         outputChannel.appendLine(
-          `Total requests: ${usage.total_requests.toLocaleString()}`,
+          `Requests: ${usage.requests.toLocaleString()}`,
+        );
+        outputChannel.appendLine(
+          `Tokens optimized: ${usage.tokens_optimized.toLocaleString()}`,
         );
         outputChannel.appendLine(
           `Tokens saved: ${usage.tokens_saved.toLocaleString()}`,
         );
         outputChannel.appendLine(
-          `Estimated cost saved: $${usage.cost_saved.toFixed(2)}`,
+          `Remaining: ${usage.tokens_remaining.toLocaleString()} / ${usage.tokens_limit.toLocaleString()}`,
         );
+        outputChannel.appendLine(`Reset: ${usage.reset_date}`);
         outputChannel.appendLine('-------------------');
         outputChannel.show(true);
 
         vscode.window.showInformationMessage(
-          `Fortress Cursor: ${usage.tokens_saved.toLocaleString()} tokens saved | $${usage.cost_saved.toFixed(2)} saved | ${usage.total_requests} requests`,
+          `Fortress Cursor: ${usage.tokens_saved.toLocaleString()} tokens saved | ${usage.requests} requests | ${usage.tier} tier`,
         );
       } catch (err: unknown) {
         const msg = err instanceof Error ? err.message : String(err);

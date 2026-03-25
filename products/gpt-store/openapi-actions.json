@@ -33,7 +33,9 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": ["prompt"],
+                "required": [
+                  "prompt"
+                ],
                 "properties": {
                   "prompt": {
                     "type": "string",
@@ -41,13 +43,24 @@
                   },
                   "level": {
                     "type": "string",
-                    "enum": ["conservative", "balanced", "aggressive"],
+                    "enum": [
+                      "conservative",
+                      "balanced",
+                      "aggressive"
+                    ],
                     "default": "balanced",
                     "description": "Optimization level. 'conservative' makes minimal changes (~5% savings), 'balanced' is the default (~15% savings), 'aggressive' maximizes compression (~30% savings)."
                   },
                   "provider": {
                     "type": "string",
-                    "enum": ["openai", "anthropic", "google"],
+                    "enum": [
+                      "openai",
+                      "anthropic",
+                      "azure",
+                      "gemini",
+                      "groq",
+                      "ollama"
+                    ],
                     "default": "openai",
                     "description": "Target LLM provider for tokenizer-specific optimization"
                   }
@@ -70,7 +83,10 @@
                     },
                     "status": {
                       "type": "string",
-                      "enum": ["success", "error"]
+                      "enum": [
+                        "success",
+                        "error"
+                      ]
                     },
                     "optimization": {
                       "type": "object",
@@ -142,28 +158,43 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "total_requests": {
-                      "type": "integer"
-                    },
-                    "total_tokens_processed": {
-                      "type": "integer"
-                    },
-                    "total_tokens_saved": {
-                      "type": "integer"
-                    },
-                    "current_tier": {
+                    "tier": {
                       "type": "string"
                     },
-                    "requests_remaining": {
+                    "tokens_optimized": {
                       "type": "integer"
                     },
-                    "period_start": {
-                      "type": "string",
-                      "format": "date-time"
+                    "tokens_saved": {
+                      "type": "integer"
                     },
-                    "period_end": {
-                      "type": "string",
-                      "format": "date-time"
+                    "requests": {
+                      "type": "integer"
+                    },
+                    "tokens_limit": {
+                      "type": "integer"
+                    },
+                    "tokens_remaining": {
+                      "type": "integer"
+                    },
+                    "rate_limit": {
+                      "type": "object",
+                      "properties": {
+                        "requests_this_minute": {
+                          "type": "integer"
+                        },
+                        "requests_this_day": {
+                          "type": "integer"
+                        },
+                        "rpm_limit": {
+                          "type": "integer"
+                        },
+                        "rpd_limit": {
+                          "type": "integer"
+                        }
+                      }
+                    },
+                    "reset_date": {
+                      "type": "string"
                     }
                   }
                 }
@@ -284,7 +315,10 @@
                   "properties": {
                     "status": {
                       "type": "string",
-                      "enum": ["healthy", "degraded"]
+                      "enum": [
+                        "healthy",
+                        "degraded"
+                      ]
                     },
                     "version": {
                       "type": "string"
@@ -311,7 +345,9 @@
             "application/json": {
               "schema": {
                 "type": "object",
-                "required": ["name"],
+                "required": [
+                  "name"
+                ],
                 "properties": {
                   "name": {
                     "type": "string",
@@ -319,7 +355,11 @@
                   },
                   "tier": {
                     "type": "string",
-                    "enum": ["free", "pro", "enterprise"],
+                    "enum": [
+                      "free",
+                      "pro",
+                      "enterprise"
+                    ],
                     "default": "free",
                     "description": "The pricing tier. Defaults to 'free'."
                   }

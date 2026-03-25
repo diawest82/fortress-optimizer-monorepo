@@ -158,10 +158,9 @@ components:
         level:
           type: string
           enum:
-            - minimal
+            - conservative
             - balanced
             - aggressive
-            - maximum
           default: balanced
           description: How aggressively to compress the prompt
         provider:
@@ -169,7 +168,10 @@ components:
           enum:
             - openai
             - anthropic
-            - cohere
+            - azure
+            - gemini
+            - groq
+            - ollama
           description: Target LLM provider for provider-specific tokenization tuning
 
     OptimizeResponse:
@@ -216,37 +218,38 @@ components:
     UsageResponse:
       type: object
       properties:
-        total_requests:
-          type: integer
-          description: Total optimization requests in the current billing period
-        total_tokens_saved:
-          type: integer
-          description: Cumulative tokens saved
-        total_cost_saved_usd:
-          type: number
-          format: float
-          description: Estimated cost savings in USD
-        current_tier:
+        tier:
           type: string
           description: The user's current pricing tier
-        period_start:
+        tokens_optimized:
+          type: integer
+          description: Total tokens processed through optimization
+        tokens_saved:
+          type: integer
+          description: Cumulative tokens saved
+        requests:
+          type: integer
+          description: Total optimization requests
+        tokens_limit:
+          type: integer
+          description: Monthly token limit for the current tier
+        tokens_remaining:
+          type: integer
+          description: Tokens remaining in the current billing period
+        rate_limit:
+          type: object
+          properties:
+            requests_this_minute:
+              type: integer
+            requests_this_day:
+              type: integer
+            rpm_limit:
+              type: integer
+            rpd_limit:
+              type: integer
+        reset_date:
           type: string
           format: date
-        period_end:
-          type: string
-          format: date
-        daily_breakdown:
-          type: array
-          items:
-            type: object
-            properties:
-              date:
-                type: string
-                format: date
-              requests:
-                type: integer
-              tokens_saved:
-                type: integer
 
     PricingResponse:
       type: object

@@ -57,6 +57,10 @@ end
 
 -- Call Fortress API
 function M.call_api(text)
+  if not M.config.api_key or M.config.api_key == "" then
+    vim.notify("Fortress: API key not set. Set FORTRESS_API_KEY env var or call setup({api_key = 'fk_...'})", vim.log.levels.ERROR)
+    return
+  end
   vim.notify("Optimizing...", vim.log.levels.INFO)
   
   local payload = vim.fn.json_encode({
@@ -146,6 +150,10 @@ end
 
 -- Show usage statistics
 function M.show_usage()
+  if not M.config.api_key or M.config.api_key == "" then
+    vim.notify("Fortress: API key not set.", vim.log.levels.ERROR)
+    return
+  end
   local cmd = string.format(
     'curl -s -X GET %s -H %s',
     vim.fn.shellescape(M.config.api_url .. "/api/usage"),

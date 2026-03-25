@@ -194,7 +194,6 @@ class FortressClient:
     # ------------------------------------------------------------------
 
     @staticmethod
-    @staticmethod
     def _fallback(prompt: str) -> OptimizationResult:
         """Return original prompt as a failed optimization (injection detected)."""
         return OptimizationResult(

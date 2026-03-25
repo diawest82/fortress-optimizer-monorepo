@@ -22,6 +22,9 @@ from http_client import FortressClient
 FORTRESS_API_KEY = os.environ.get("FORTRESS_API_KEY", "")
 FORTRESS_URL = os.environ.get("FORTRESS_URL", "https://api.fortress-optimizer.com")
 
+if not FORTRESS_API_KEY:
+    raise ValueError("FORTRESS_API_KEY environment variable is required. Get one at https://www.fortress-optimizer.com/account")
+
 fortress_shared_client = FortressClient(api_key=FORTRESS_API_KEY, base_url=FORTRESS_URL)
 
 logger = logging.getLogger(__name__)

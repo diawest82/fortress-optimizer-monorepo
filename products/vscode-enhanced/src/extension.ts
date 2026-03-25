@@ -1,129 +1,154 @@
 import * as vscode from 'vscode';
-import { FortressAnalyticsPanel } from './panels/AnalyticsPanel';
-import { FortressTeamManager } from './team/TeamManager';
-import { FortressOfflineSync } from './offline/OfflineSync';
+import { ServerAPI } from './api/ServerAPI';
 
 export class FortressEnhanced {
-  private analyticPanel: FortressAnalyticsPanel;
-  private teamManager: FortressTeamManager;
-  private offlineSync: FortressOfflineSync;
+  private api: ServerAPI;
 
-  constructor(context: vscode.ExtensionContext) {
-    this.analyticPanel = new FortressAnalyticsPanel(context);
-    this.teamManager = new FortressTeamManager(context);
-    this.offlineSync = new FortressOfflineSync(context);
+  constructor(private context: vscode.ExtensionContext) {
+    this.api = new ServerAPI();
   }
 
   /**
-   * Show analytics dashboard
+   * Show analytics in an output channel (analytics panel planned for future)
    */
-  showAnalytics(): void {
-    this.analyticPanel.show();
+  async showAnalytics(): Promise<void> {
+    const channel = vscode.window.createOutputChannel('Fortress Analytics');
+    channel.show();
+    channel.appendLine('Fortress Token Optimizer — Usage Analytics');
+    channel.appendLine('─'.repeat(50));
+
+    try {
+      const apiKey = await this.getApiKey();
+      if (!apiKey) {
+        channel.appendLine('No API key configured. Set via command palette: Fortress: Set API Key');
+        return;
+      }
+      channel.appendLine('API Key: ' + apiKey.slice(0, 8) + '...');
+      channel.appendLine('Analytics dashboard coming soon. Visit https://www.fortress-optimizer.com/account for full analytics.');
+    } catch (e: any) {
+      channel.appendLine(`Error: ${e.message}`);
+    }
   }
 
   /**
    * Batch optimize files/folders
    */
   async batchOptimize(uris: vscode.Uri[]): Promise<void> {
-    const progress = vscode.window.withProgress(
+    const apiKey = await this.getApiKey();
+    if (!apiKey) {
+      vscode.window.showErrorMessage('Fortress: Set your API key first (Fortress: Set API Key)');
+      return;
+    }
+
+    await vscode.window.withProgress(
       {
         location: vscode.ProgressLocation.Notification,
-        title: "Optimizing files...",
+        title: 'Fortress: Optimizing files...',
         cancellable: true,
       },
-      async (progress) => {
-        let completed = 0;
-        for (const uri of uris) {
-          progress.report({
-            increment: (100 / uris.length),
-            message: `Optimizing ${uri.fsPath}...`,
-          });
+      async (progress, token) => {
+        let processed = 0;
+        let totalSaved = 0;
 
-          // Optimize file
-          await this.optimizeFile(uri);
-          completed++;
+        for (const uri of uris) {
+          if (token.isCancellationRequested) break;
+
+          try {
+            const stat = await vscode.workspace.fs.stat(uri);
+            if (stat.type === vscode.FileType.File) {
+              const saved = await this.optimizeFile(uri, apiKey);
+              totalSaved += saved;
+              processed++;
+              progress.report({
+                increment: (100 / uris.length),
+                message: `${processed}/${uris.length} files (${totalSaved} tokens saved)`,
+              });
+            }
+          } catch (e: any) {
+            // Skip files that can't be optimized
+          }
         }
 
         vscode.window.showInformationMessage(
-          `Optimized ${completed} files successfully`
+          `Fortress: Optimized ${processed} files, saved ${totalSaved} tokens`
         );
       }
     );
   }
 
   /**
-   * Create shared optimization template
+   * Optimize selected text
    */
-  async createTemplate(name: string, prompt: string, level: string): Promise<void> {
-    await this.teamManager.saveTemplate({
-      name,
-      prompt,
-      level,
-      createdAt: new Date(),
-      createdBy: await this.teamManager.getCurrentUser(),
-    });
-
-    vscode.window.showInformationMessage(`Template "${name}" created`);
-  }
-
-  /**
-   * Share template with team
-   */
-  async shareTemplate(templateId: string, teamIds: string[]): Promise<void> {
-    await this.teamManager.shareTemplate(templateId, teamIds);
-    vscode.window.showInformationMessage("Template shared with team");
-  }
-
-  /**
-   * Apply custom optimization rules
-   */
-  async applyCustomRules(text: string): Promise<string> {
-    const config = vscode.workspace.getConfiguration('fortress');
-    const rules = config.get('customRules', []);
-
-    // Apply rules based on patterns
-    let optimized = text;
-    for (const rule of rules) {
-      if (this.matchesPattern(text, rule.patterns)) {
-        optimized = await this.optimizeWithLevel(
-          optimized,
-          rule.optimizationLevel
-        );
-      }
+  async optimizeSelection(): Promise<void> {
+    const editor = vscode.window.activeTextEditor;
+    if (!editor) {
+      vscode.window.showWarningMessage('Fortress: No active editor');
+      return;
     }
 
-    return optimized;
+    const selection = editor.selection;
+    const text = editor.document.getText(selection);
+    if (!text) {
+      vscode.window.showWarningMessage('Fortress: Select text to optimize');
+      return;
+    }
+
+    const apiKey = await this.getApiKey();
+    if (!apiKey) {
+      vscode.window.showErrorMessage('Fortress: Set your API key first (Fortress: Set API Key)');
+      return;
+    }
+
+    try {
+      const result = await this.api.optimize(text, apiKey);
+      if (result.optimized_prompt && result.optimized_prompt !== text) {
+        await editor.edit(editBuilder => {
+          editBuilder.replace(selection, result.optimized_prompt);
+        });
+        const saved = (result.tokens?.savings || 0);
+        vscode.window.showInformationMessage(
+          `Fortress: Saved ${saved} tokens (${result.tokens?.savings_percentage?.toFixed(1)}%)`
+        );
+      } else {
+        vscode.window.showInformationMessage('Fortress: Text is already optimized');
+      }
+    } catch (e: any) {
+      vscode.window.showErrorMessage(`Fortress: ${e.message}`);
+    }
   }
 
-  /**
-   * Enable offline mode with caching
-   */
-  async enableOfflineMode(): Promise<void> {
-    await this.offlineSync.startSync();
-    vscode.window.showInformationMessage("Offline mode enabled");
-  }
-
-  private matchesPattern(text: string, patterns: string[]): boolean {
-    return patterns.some(p => text.toLowerCase().includes(p.toLowerCase()));
-  }
-
-  private async optimizeFile(uri: vscode.Uri): Promise<void> {
+  private async optimizeFile(uri: vscode.Uri, apiKey: string): Promise<number> {
     const doc = await vscode.workspace.openTextDocument(uri);
     const text = doc.getText();
-    // Optimization logic here
+    if (text.length < 50) return 0; // Skip tiny files
+
+    try {
+      const result = await this.api.optimize(text, apiKey);
+      return result.tokens?.savings || 0;
+    } catch {
+      return 0;
+    }
   }
 
-  private async optimizeWithLevel(text: string, level: string): Promise<string> {
-    // Call API with specified level
-    return text;
+  private async getApiKey(): Promise<string | undefined> {
+    // Try SecretStorage first
+    const stored = await this.context.secrets.get('fortress-api-key');
+    if (stored) return stored;
+
+    // Fallback to settings
+    const config = vscode.workspace.getConfiguration('fortress');
+    return config.get<string>('apiKey') || undefined;
   }
 }
 
 export function activate(context: vscode.ExtensionContext) {
   const fortress = new FortressEnhanced(context);
 
-  // Register commands
   context.subscriptions.push(
+    vscode.commands.registerCommand('fortress.optimize', () => {
+      fortress.optimizeSelection();
+    }),
+
     vscode.commands.registerCommand('fortress.showAnalytics', () => {
       fortress.showAnalytics();
     }),
@@ -134,14 +159,21 @@ export function activate(context: vscode.ExtensionContext) {
         canSelectFolders: true,
         canSelectMany: true,
       });
-
       if (uris) {
         await fortress.batchOptimize(uris);
       }
     }),
 
-    vscode.commands.registerCommand('fortress.enableOffline', async () => {
-      await fortress.enableOfflineMode();
+    vscode.commands.registerCommand('fortress.setApiKey', async () => {
+      const key = await vscode.window.showInputBox({
+        prompt: 'Enter your Fortress API key',
+        placeHolder: 'fk_...',
+        password: true,
+      });
+      if (key) {
+        await context.secrets.store('fortress-api-key', key);
+        vscode.window.showInformationMessage('Fortress: API key saved securely');
+      }
     })
   );
 }

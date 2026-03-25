@@ -33,15 +33,19 @@ export interface OptimizeResponse {
 }
 
 export interface UsageResponse {
-  total_requests: number;
+  tier: string;
+  tokens_optimized: number;
   tokens_saved: number;
-  cost_saved: number;
-  period: string;
-  daily_breakdown?: Array<{
-    date: string;
-    requests: number;
-    tokens_saved: number;
-  }>;
+  requests: number;
+  tokens_limit: number;
+  tokens_remaining: number;
+  rate_limit: {
+    requests_this_minute: number;
+    requests_this_day: number;
+    rpm_limit: number;
+    rpd_limit: number;
+  };
+  reset_date: string;
 }
 
 export interface ProvidersResponse {

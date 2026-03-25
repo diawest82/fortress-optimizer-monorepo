@@ -6,18 +6,19 @@ let provider: FortressCopilotProvider;
 export function activate(context: vscode.ExtensionContext) {
   provider = new FortressCopilotProvider();
 
-  // Register Copilot participant
-  const chatParticipantHandler = vscode.chat.registerChatParticipantHandler(
-    'fortress',
-    async (request, context, response, token) => {
+  // Register Copilot chat participant (VS Code 1.85+)
+  const chatParticipant = vscode.chat.createChatParticipant(
+    'fortress.optimizer',
+    async (request, chatContext, response, token) => {
       try {
-        const result = await provider.handleRequest(request, context);
+        const result = await provider.handleRequest(request, chatContext);
         response.markdown(result);
-      } catch (error) {
-        response.markdown(`Error: ${error}`);
+      } catch (error: any) {
+        response.markdown(`Optimization unavailable: ${error.message || 'Unknown error'}`);
       }
     }
   );
+  chatParticipant.iconPath = vscode.Uri.joinPath(context.extensionUri, 'icon.png');
 
   // Register commands
   const optimizeCommand = vscode.commands.registerCommand(
@@ -73,7 +74,7 @@ export function activate(context: vscode.ExtensionContext) {
   );
 
   context.subscriptions.push(
-    chatParticipantHandler,
+    chatParticipant,
     optimizeCommand,
     usageCommand,
     setLevelCommand

@@ -103,14 +103,19 @@ class FortressUsageCommand(sublime_plugin.TextCommand):
             with urlopen(req, timeout=10) as response:
                 data = json.loads(response.read().decode())
                 
+                used = data.get('tokens_optimized', 0)
+                limit = data.get('tokens_limit', 0)
+                remaining = data.get('tokens_remaining', 0)
+                pct = (used / limit * 100) if limit > 0 else 0
                 message = f"""
 Token Usage
 ===========
-
-Used: {data['tokens_used_this_month']:,} / {data['tokens_limit']:,} tokens
-Remaining: {data['tokens_remaining']:,} tokens
-Progress: {data['percentage_used']:.1f}%
-Reset: {data['reset_date']}
+Tier: {data.get('tier', 'free')}
+Used: {used:,} / {limit:,} tokens
+Saved: {data.get('tokens_saved', 0):,} tokens
+Remaining: {remaining:,} tokens
+Progress: {pct:.1f}%
+Reset: {data.get('reset_date', 'N/A')}
 """
                 sublime.message_dialog(message)
         except URLError as e:
