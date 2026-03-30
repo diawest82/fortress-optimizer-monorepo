@@ -446,5 +446,18 @@ export default defineConfig({
       testMatch: '*.spec.ts',
       timeout: 120000,
     },
+    // ─── Launch Day Simulation ─────────────────────────────────────────
+    {
+      name: 'launch-day-simulation',
+      testDir: './tests/launch-day',
+      testMatch: 'launch-day-simulation.spec.ts',
+      timeout: 300000,
+      use: {
+        baseURL: process.env.TEST_BASE_URL || 'https://www.fortress-optimizer.com',
+        screenshot: 'on',
+        trace: 'on',
+        video: 'on',
+      },
+    },
   ],
 });
