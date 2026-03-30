@@ -53,7 +53,7 @@ class OptimizationLog(Base):
     optimized_tokens = Column(Integer, nullable=False)
     savings = Column(Integer, nullable=False)
     savings_percentage = Column(Float, nullable=False)
-    technique = Column(String(100), nullable=False)
+    technique = Column(String(255), nullable=False)
     level = Column(String(20), nullable=False)
     provider = Column(String(50), nullable=False)
     created_at = Column(DateTime, nullable=False, default=datetime.utcnow)

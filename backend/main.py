@@ -607,9 +607,8 @@ async def optimize(
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         import traceback
-        tb = traceback.format_exc()
-        logger.error(f"Optimization error: {str(e)}\n{tb}")
-        raise HTTPException(status_code=500, detail=f"Internal server error: {type(e).__name__}: {str(e)}")
+        logger.error(f"Optimization error: {str(e)}\n{traceback.format_exc()}")
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 @app.get("/api/usage")
