@@ -539,7 +539,7 @@ async def optimize(
             if not db_key.first_used_at:
                 db_key.first_used_at = datetime.utcnow()
 
-        # Write audit log
+        # Write audit log (technique truncated to fit VARCHAR(100) column)
         log_entry = OptimizationLog(
             request_id=request_id,
             key_hash=key_hash,
@@ -547,7 +547,7 @@ async def optimize(
             optimized_tokens=result.optimized_tokens,
             savings=result.savings,
             savings_percentage=round(result.savings_percentage, 2),
-            technique=result.technique_used,
+            technique=result.technique_used[:100],
             level=request.level,
             provider=request.provider,
         )
