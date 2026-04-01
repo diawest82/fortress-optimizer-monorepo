@@ -26,7 +26,7 @@ export function CostCalculator() {
   const [inputs, setInputs] = useState({
     tokensPerDay: 10000,
     provider: 'gpt4',
-    plan: 'starter'
+    plan: 'free'
   });
 
   const monthlyTokens = inputs.tokensPerDay * 30;

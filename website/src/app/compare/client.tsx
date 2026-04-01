@@ -9,7 +9,7 @@ export default function ComparePage() {
   const [monthlyTokens, setMonthlyTokens] = useState(10000000);
   
   const costPerToken = 0.00003; // $0.03 per 1K tokens
-  const fortressSavings = 0.20; // 20% savings
+  const fortressSavings = 0.15; // 15% average savings (real range: 10-20%)
   
   const currentCost = monthlyTokens * costPerToken;
   const savedCost = currentCost * fortressSavings;
@@ -27,8 +27,8 @@ export default function ComparePage() {
           </p>
           <div className={styles.heroStats}>
             <div className={styles.stat}>
-              <span className={styles.statNumber}>20%</span>
-              <span className={styles.statLabel}>Consistent Savings</span>
+              <span className={styles.statNumber}>10-20%</span>
+              <span className={styles.statLabel}>Verified Savings</span>
             </div>
             <div className={styles.stat}>
               <span className={styles.statNumber}>5min</span>
@@ -178,7 +178,7 @@ export default function ComparePage() {
                   color: '#34d399',
                   fontSize: '0.95rem',
                   fontWeight: 700,
-                }}>✓ 20%</td>
+                }}>✓ 10-20%</td>
                 <td style={{
                   padding: '16px',
                   borderBottom: '1px solid rgba(59, 130, 246, 0.1)',
@@ -584,8 +584,8 @@ export default function ComparePage() {
 
         <div className={styles.statsRow}>
           <div className={styles.proofStat}>
-            <span className={styles.proofNumber}>20%</span>
-            <span className={styles.proofLabel}>Avg Token Savings</span>
+            <span className={styles.proofNumber}>10-20%</span>
+            <span className={styles.proofLabel}>Verified Token Savings</span>
           </div>
           <div className={styles.proofStat}>
             <span className={styles.proofNumber}>68ms</span>

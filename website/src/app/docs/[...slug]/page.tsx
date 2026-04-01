@@ -720,12 +720,17 @@ Health check.
 
 ## Rate Limits
 
-Based on tier:
+All tiers share the same per-key rate limits:
 
-- **Free:** 100 calls/day
-- **Individual:** 5,000 calls/month
-- **Teams:** 50,000 calls/month
-- **Enterprise:** Custom
+- **Per minute:** 100 requests/minute
+- **Per day:** 10,000 requests/day
+
+Token limits by tier:
+
+- **Free:** 50,000 tokens/month
+- **Pro:** Unlimited tokens
+- **Teams:** Unlimited tokens (per seat)
+- **Enterprise:** Custom limits
 
 ## SDKs
 
@@ -1234,54 +1239,76 @@ export default async function DocPage({
           --tw-prose-hr: rgb(30 41 59);
           --tw-prose-th-borders: rgb(71 85 99);
           --tw-prose-td-borders: rgb(71 85 99);
+          line-height: 1.75;
+          font-size: 1rem;
         }
-        
+
         .prose h1,
         .prose h2,
         .prose h3 {
           @apply text-white font-bold;
+          letter-spacing: -0.01em;
         }
-        
-        .prose h1 { @apply text-3xl mt-8 mb-4; }
-        .prose h2 { @apply text-2xl mt-6 mb-3; }
-        .prose h3 { @apply text-xl mt-4 mb-2; }
-        
+
+        .prose h1 { @apply text-3xl mt-12 mb-6; border-bottom: 1px solid rgb(51 65 85); padding-bottom: 0.75rem; }
+        .prose h2 { @apply text-2xl mt-10 mb-4; border-bottom: 1px solid rgb(51 65 85 / 0.5); padding-bottom: 0.5rem; }
+        .prose h3 { @apply text-xl mt-8 mb-3; }
+        .prose h4 { @apply text-lg mt-6 mb-2 text-slate-200 font-semibold; }
+
+        .prose p {
+          @apply mb-4;
+          line-height: 1.8;
+        }
+
         .prose a {
           @apply text-emerald-400 hover:text-emerald-300;
         }
-        
+
         .prose code {
           @apply bg-slate-900 px-2 py-1 rounded text-sm;
         }
-        
+
         .prose pre {
-          @apply bg-slate-900 rounded-lg overflow-x-auto;
+          @apply bg-slate-900 rounded-lg overflow-x-auto my-6 p-4;
         }
-        
+
         .prose pre code {
           @apply bg-transparent px-0 py-0;
         }
-        
+
         .prose table {
-          @apply border-collapse border border-slate-700;
+          @apply border-collapse border border-slate-700 my-6 w-full;
         }
-        
+
         .prose th,
         .prose td {
-          @apply border border-slate-700 p-3;
+          @apply border border-slate-700 p-3 text-sm;
         }
-        
+
         .prose th {
-          @apply bg-slate-900 text-white font-semibold;
+          @apply bg-slate-900 text-white font-semibold text-left;
         }
-        
+
         .prose ul,
         .prose ol {
-          @apply ml-6;
+          @apply ml-6 my-4;
         }
-        
+
         .prose li {
-          @apply my-1;
+          @apply my-2;
+          line-height: 1.7;
+        }
+
+        .prose hr {
+          @apply my-8 border-slate-700;
+        }
+
+        .prose blockquote {
+          @apply border-l-4 border-emerald-500 pl-4 my-6 italic text-slate-300;
+        }
+
+        .prose strong {
+          @apply text-white font-semibold;
         }
       `}</style>
       

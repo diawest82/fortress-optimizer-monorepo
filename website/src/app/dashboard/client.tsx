@@ -32,6 +32,7 @@ export default function Dashboard() {
   const [toolSavingsError, setToolSavingsError] = useState('');
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [statsLoading, setStatsLoading] = useState(true);
+  const [isDemo, setIsDemo] = useState(false);
 
   // Fetch REAL dashboard data from API
   useEffect(() => {
@@ -44,7 +45,27 @@ export default function Dashboard() {
           const data = await res.json();
           setStats(data);
         } else {
-          setStats({ hasData: false, totalTokens: 0, tokensOptimized: 0, tokensSaved: 0, costSaved: 0, avgSavingsPercent: 0, optimizationCount: 0, dailyData: [], emptyStateMessage: 'Sign in to see your optimization data.' });
+          // Show demo data for pre-login visitors
+          setIsDemo(true);
+          setStats({
+            hasData: true,
+            totalTokens: 284500,
+            tokensOptimized: 241800,
+            tokensSaved: 42700,
+            costSaved: 1.92,
+            avgSavingsPercent: 15,
+            optimizationCount: 347,
+            dailyData: [
+              { day: 'Mon', original: 520, optimized: 440 },
+              { day: 'Tue', original: 480, optimized: 400 },
+              { day: 'Wed', original: 610, optimized: 510 },
+              { day: 'Thu', original: 550, optimized: 470 },
+              { day: 'Fri', original: 490, optimized: 420 },
+              { day: 'Sat', original: 320, optimized: 275 },
+              { day: 'Sun', original: 280, optimized: 240 },
+            ],
+            emptyStateMessage: null,
+          });
         }
       } catch {
         setStats({ hasData: false, totalTokens: 0, tokensOptimized: 0, tokensSaved: 0, costSaved: 0, avgSavingsPercent: 0, optimizationCount: 0, dailyData: [], emptyStateMessage: 'Unable to load dashboard data.' });
@@ -102,6 +123,22 @@ export default function Dashboard() {
             </div>
           </div>
         </section>
+
+        {/* Demo Banner */}
+        {isDemo && (
+          <div className="rounded-xl border border-yellow-500/30 bg-yellow-950/20 px-6 py-4 mb-8 flex items-center justify-between">
+            <div>
+              <p className="text-sm font-semibold text-yellow-300">Sample Dashboard</p>
+              <p className="text-xs text-yellow-200/70">This is demo data. Sign in to see your real optimization stats.</p>
+            </div>
+            <a
+              href="/auth/signup"
+              className="rounded-lg bg-yellow-600 hover:bg-yellow-500 px-4 py-2 text-sm font-semibold text-white transition flex-shrink-0"
+            >
+              Get Started Free
+            </a>
+          </div>
+        )}
 
         {/* Time Range Selector */}
         <div className="flex flex-col sm:flex-row gap-4 mb-8">

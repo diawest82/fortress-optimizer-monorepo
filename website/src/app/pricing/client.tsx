@@ -362,12 +362,13 @@ export default function PricingClient() {
                       />
                     </div>
                   </div>
-                  {/* Tick labels */}
-                  <div className="flex justify-between text-xs text-slate-500 px-1">
+                  {/* Tick labels — positioned at correct logarithmic positions */}
+                  <div className="relative h-6 text-xs text-slate-500 mt-1">
                     {sliderTicks.map((t) => (
                       <button
                         key={t}
                         onClick={() => setTeamSeats(t)}
+                        style={{ position: 'absolute', left: `${seatsToSlider(t)}%`, transform: 'translateX(-50%)' }}
                         className={`hover:text-cyan-400 transition-colors ${teamSeats === t ? "text-cyan-400 font-semibold" : ""}`}
                       >
                         {t}
