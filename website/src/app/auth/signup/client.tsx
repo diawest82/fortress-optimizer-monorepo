@@ -14,18 +14,20 @@ function SignUpContent() {
   const [formData, setFormData] = useState({
     email: '',
     password: '',
+    confirmPassword: '',
     firstName: '',
     lastName: '',
   });
   const [fieldErrors, setFieldErrors] = useState({
     email: '',
     password: '',
+    confirmPassword: '',
     firstName: '',
     lastName: '',
   });
 
   const validateForm = () => {
-    const errors = { email: '', password: '', firstName: '', lastName: '' };
+    const errors = { email: '', password: '', confirmPassword: '', firstName: '', lastName: '' };
     let isValid = true;
 
     // Email validation
@@ -44,6 +46,15 @@ function SignUpContent() {
       isValid = false;
     } else if (formData.password.length < 8) {
       errors.password = 'Password must be at least 8 characters';
+      isValid = false;
+    }
+
+    // Confirm password validation
+    if (!formData.confirmPassword) {
+      errors.confirmPassword = 'Please confirm your password';
+      isValid = false;
+    } else if (formData.password !== formData.confirmPassword) {
+      errors.confirmPassword = 'Passwords do not match';
       isValid = false;
     }
 
@@ -249,6 +260,28 @@ function SignUpContent() {
             )}
             {fieldErrors.password && (
               <p className="text-red-400 text-sm mt-1">{fieldErrors.password}</p>
+            )}
+          </div>
+
+          {/* Confirm Password field */}
+          <div>
+            <label htmlFor="confirmPassword" className="block text-sm font-medium mb-2">
+              Confirm Password
+            </label>
+            <input
+              id="confirmPassword"
+              type="password"
+              name="confirmPassword"
+              value={formData.confirmPassword}
+              onChange={handleChange}
+              placeholder="Confirm your password"
+              autoComplete="new-password"
+              aria-describedby={fieldErrors.confirmPassword ? 'confirm-password-error' : undefined}
+              aria-invalid={!!fieldErrors.confirmPassword}
+              className="w-full px-4 py-2 bg-zinc-900 border border-zinc-800 rounded-lg focus:outline-none focus:border-blue-500 transition"
+            />
+            {fieldErrors.confirmPassword && (
+              <p id="confirm-password-error" role="alert" className="text-red-400 text-sm mt-1">{fieldErrors.confirmPassword}</p>
             )}
           </div>
 

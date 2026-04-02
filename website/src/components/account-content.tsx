@@ -8,8 +8,8 @@ import { apiClient } from "@/lib/api";
 import TeamManagement from "./account/team-management";
 import SupportSystem from "./account/support-system";
 import SubscriptionManagement from "./account/subscription-management";
-import CommunityPortal from "./account/community-portal";
-import EnterpriseFeatures from "./account/enterprise-features";
+// Community tab removed — channels not active yet
+// Enterprise tab shows "Coming Soon" inline
 import MFASetupWizard from "./security/mfa-setup-wizard";
 
 interface ApiKey {
@@ -260,7 +260,6 @@ export default function AccountContent() {
     { id: "subscription", label: "Subscription" },
     { id: "team", label: "Team Management" },
     { id: "support", label: "Support" },
-    { id: "community", label: "Community" },
     { id: "enterprise", label: "Enterprise" },
     { id: "api-keys", label: "API Keys" },
     { id: "security", label: "Security" },
@@ -584,17 +583,22 @@ export default function AccountContent() {
               </div>
             )}
 
-            {activeTab === "community" && (
-              <div>
-                <h1 className="text-3xl font-bold text-white mb-6">Community & Resources</h1>
-                <CommunityPortal />
-              </div>
-            )}
-
             {activeTab === "enterprise" && (
               <div>
                 <h1 className="text-3xl font-bold text-white mb-6">Enterprise Solutions</h1>
-                <EnterpriseFeatures />
+                <div className="rounded-2xl border border-blue-500/30 bg-blue-950/20 p-8 text-center mb-8">
+                  <p className="text-xs uppercase tracking-[0.35em] text-blue-300 font-semibold mb-3">Coming Soon</p>
+                  <h2 className="text-2xl font-bold text-white mb-3">Enterprise features are on the way</h2>
+                  <p className="text-slate-400 max-w-md mx-auto mb-6">
+                    Dedicated account management, SLA guarantees, custom integrations, and on-premise deployment options are currently in development.
+                  </p>
+                  <a
+                    href="mailto:sales@fortress-optimizer.com?subject=Enterprise Inquiry"
+                    className="inline-block bg-blue-600 hover:bg-blue-500 text-white font-semibold px-6 py-3 rounded-lg transition"
+                  >
+                    Contact Sales for Early Access
+                  </a>
+                </div>
               </div>
             )}
 
