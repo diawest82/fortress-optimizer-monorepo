@@ -137,22 +137,26 @@ export default function Install() {
           <h2 className="text-2xl font-bold mb-6">11+ More Platforms</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {[
-              { name: 'Neovim', user: '2.5M' },
-              { name: 'Sublime Text', user: '2M' },
-              { name: 'JetBrains IDEs', user: '10M' },
-              { name: 'Make.com', user: '1.5M' },
-              { name: 'Zapier', user: '3M' },
-              { name: 'Claude Desktop', user: '400K' },
-              { name: 'Anthropic SDK', user: '100K+' },
-              { name: 'GPT Store', user: '5M+' },
+              { name: 'Neovim', user: '2.5M', docs: '/docs/installation/neovim' },
+              { name: 'Sublime Text', user: '2M', docs: '/docs/installation/sublime' },
+              { name: 'JetBrains IDEs', user: '10M', docs: '/docs/installation/jetbrains' },
+              { name: 'Make.com / Zapier', user: '4.5M', docs: '/docs/installation/make-zapier' },
+              { name: 'Claude Desktop', user: '400K', docs: '/docs/installation/claude-desktop' },
+              { name: 'Anthropic SDK', user: '100K+', docs: '/docs/installation/anthropic-sdk' },
+              { name: 'LangChain', user: '1M+', docs: '/docs/installation/langchain' },
+              { name: 'Vercel AI SDK', user: '500K+', docs: '/docs/installation/vercel-ai-sdk' },
+              { name: 'Cursor', user: '2M+', docs: '/docs/installation/cursor' },
+              { name: 'OpenClaw CLI', user: 'New', docs: '/docs/installation/openclaw' },
             ].map((platform, idx) => (
-              <div
+              <a
                 key={idx}
-                className="bg-zinc-950 border border-zinc-800 rounded-lg p-4 text-center hover:border-blue-500 transition"
+                href={platform.docs}
+                className="bg-zinc-950 border border-zinc-800 rounded-lg p-4 text-center hover:border-blue-500 transition block"
               >
                 <p className="font-semibold text-sm mb-1">{platform.name}</p>
                 <p className="text-xs text-zinc-400">{platform.user} users</p>
-              </div>
+                <p className="text-xs text-blue-400 mt-2">Install Guide →</p>
+              </a>
             ))}
           </div>
           <p className="mt-6 text-sm text-zinc-400 text-center">
