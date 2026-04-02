@@ -46,12 +46,17 @@ class ApiClient {
         headers: headersObj,
       });
 
-      // Handle 401 Unauthorized - redirect to login
+      // Handle 401 Unauthorized - only redirect from protected pages
       if (response.status === 401) {
         if (typeof window !== 'undefined') {
-          localStorage.removeItem('auth_token');
-          localStorage.removeItem('api_key');
-          window.location.href = '/auth/login';
+          const path = window.location.pathname;
+          const protectedPrefixes = ['/account', '/dashboard'];
+          const isProtectedPage = protectedPrefixes.some(p => path.startsWith(p));
+          if (isProtectedPage) {
+            localStorage.removeItem('auth_token');
+            localStorage.removeItem('api_key');
+            window.location.href = `/auth/login?callbackUrl=${encodeURIComponent(path)}`;
+          }
         }
         throw {
           message: 'Unauthorized. Please log in again.',

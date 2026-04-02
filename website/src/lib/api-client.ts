@@ -90,14 +90,14 @@ export class ApiClient {
     if (!response.ok) {
       // Global 401 handler — session expired or invalid
       if (response.status === 401 && typeof window !== 'undefined') {
-        // Don't redirect if we're already on the login/signup page
+        // Only redirect to login from protected pages — never from public pages
         const path = window.location.pathname;
-        if (!path.startsWith('/auth/') && !path.startsWith('/api/')) {
-          // Clear local state and redirect to login with return URL
+        const protectedPrefixes = ['/account', '/dashboard'];
+        const isProtectedPage = protectedPrefixes.some(p => path.startsWith(p));
+        if (isProtectedPage) {
           this.clearCredentials();
           document.cookie = 'fortress_logged_in=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
           window.location.href = `/auth/login?callbackUrl=${encodeURIComponent(path)}`;
-          // Throw to stop further execution
           throw new Error('Session expired — redirecting to login');
         }
       }

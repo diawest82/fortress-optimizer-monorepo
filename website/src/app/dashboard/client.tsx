@@ -84,10 +84,27 @@ export default function Dashboard() {
         if (res.ok) {
           const data = await res.json();
           setToolSavings(data.toolSavingsBySource || []);
+        } else if (isDemo) {
+          // Show demo tool savings for pre-login visitors
+          setToolSavings([
+            { source: 'npm SDK', tokensBefore: 125000, tokensAfter: 106250, tokensSaved: 18750, costSavedUSD: 0.84, events: 142 },
+            { source: 'VS Code', tokensBefore: 89000, tokensAfter: 76530, tokensSaved: 12470, costSavedUSD: 0.56, events: 98 },
+            { source: 'Copilot', tokensBefore: 45000, tokensAfter: 39150, tokensSaved: 5850, costSavedUSD: 0.26, events: 64 },
+            { source: 'Slack Bot', tokensBefore: 25500, tokensAfter: 21930, tokensSaved: 3570, costSavedUSD: 0.16, events: 43 },
+          ]);
         }
       } catch {
-        setToolSavingsError('Failed to load tool savings');
-        setToolSavings([]);
+        if (isDemo) {
+          setToolSavings([
+            { source: 'npm SDK', tokensBefore: 125000, tokensAfter: 106250, tokensSaved: 18750, costSavedUSD: 0.84, events: 142 },
+            { source: 'VS Code', tokensBefore: 89000, tokensAfter: 76530, tokensSaved: 12470, costSavedUSD: 0.56, events: 98 },
+            { source: 'Copilot', tokensBefore: 45000, tokensAfter: 39150, tokensSaved: 5850, costSavedUSD: 0.26, events: 64 },
+            { source: 'Slack Bot', tokensBefore: 25500, tokensAfter: 21930, tokensSaved: 3570, costSavedUSD: 0.16, events: 43 },
+          ]);
+        } else {
+          setToolSavingsError('Failed to load tool savings');
+          setToolSavings([]);
+        }
       } finally {
         setToolSavingsLoading(false);
       }
