@@ -1,4 +1,4 @@
-# Environment
+# Environment & Secrets
 .env
 .env.local
 .env.*.local
@@ -6,22 +6,29 @@
 *.env.*
 .env.template
 .env.example
+.fortress-db-url/
 
-# Documentation & Internal Files
+# Internal config (not for public repo)
+.cloud_config.json
+.collaboration_config
+.workspace_hub_sync.json
+.ima/
+.conversation_logs/
+
+# Documentation (keep locally, only README public)
 *.md
 !README.md
 !website/README.md
 !docs/**/*.md
-!infra/**/*.md
 
 # Dependencies
 node_modules/
 venv/
+.venv/
 __pycache__/
 *.pyc
 .Python
 pip-log.txt
-pip-delete-this-directory.txt
 
 # Build artifacts
 dist/
@@ -30,11 +37,18 @@ build/
 .pytest_cache/
 .coverage
 htmlcov/
+.next/
+website/.next/
 
-# Testing
+# Testing artifacts
 WEB_TESTING/screenshots/
 WEB_TESTING/logs/
 WEB_TESTING/reports/
+coverage/
+.nyc_output
+test-results/
+*.db
+test-data/
 
 # IDE
 .vscode/
@@ -43,28 +57,30 @@ WEB_TESTING/reports/
 *.swo
 *~
 .DS_Store
-# Documentation (keep locally only)
-*.md
+
 # AWS
 .aws/
+aws-deploy.log
+awscliv2.zip
 terraform.tfstate*
 *.tfvars
 
 # Logs
 logs/
 *.log
+server.log
+test-output.log
 
-# Docker
-.dockerignore
+# Vercel
+.vercel/
 
-# Testing
-.nyc_output
-coverage/
-.vercel
-.env*.local
-.md
-
-#passwords
-.fortress-db-url.next/
+# VS Code test downloads
 products/vscode-enhanced/.vscode-test/
-website/.next/
+
+# Misc
+*.zip
+customer-service-test-results.txt
+centralized_conversation_hub.py
+conversation_context_retriever.py
+conversation_memory_service.py
+build-backend-image.sh
