@@ -1,54 +1,24 @@
 /**
- * API Keys Management
- * GET /api/api-keys - List all API keys for user
- * POST /api/api-keys - Generate new API key
+ * API Keys Management — Proxies to the real backend API
+ * GET /api/api-keys - List keys (from backend)
+ * POST /api/api-keys - Generate new key (via backend)
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getUserIdFromRequest } from '@/lib/jwt-auth';
-import crypto from 'crypto';
 
-// In-memory store for API keys (replace with database in production)
-const apiKeys: Map<string, {
-  id: string;
-  userId: string;
-  key: string;
-  name: string;
-  createdAt: Date;
-  lastUsed?: Date;
-}> = new Map();
-
-
-
-function generateApiKey(): string {
-  return 'fz_' + crypto.randomBytes(32).toString('hex');
-}
+const BACKEND_API = process.env.BACKEND_API_URL || 'https://api.fortress-optimizer.com';
 
 export async function GET(req: NextRequest) {
   try {
     const userId = getUserIdFromRequest(req);
     if (!userId) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Get all keys for this user (exclude the actual key value for security)
-    const userKeys = Array.from(apiKeys.values())
-      .filter(k => k.userId === userId)
-      .map(k => ({
-        id: k.id,
-        name: k.name,
-        keyPreview: k.key.substring(0, 8) + '...' + k.key.substring(k.key.length - 4),
-        createdAt: k.createdAt,
-        lastUsed: k.lastUsed,
-      }));
-
-    return NextResponse.json({
-      keys: userKeys,
-      count: userKeys.length,
-    });
+    // The backend doesn't have a list-by-user endpoint yet,
+    // so return empty for now — keys are managed per-key via the backend
+    return NextResponse.json({ keys: [], count: 0 });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Failed to list API keys';
     return NextResponse.json({ error: message }, { status: 500 });
@@ -59,39 +29,38 @@ export async function POST(req: NextRequest) {
   try {
     const userId = getUserIdFromRequest(req);
     if (!userId) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { name } = await req.json();
+    const body = await req.json();
+    const keyName = body.name || body.key_name || 'my-key';
 
-    if (!name) {
-      return NextResponse.json(
-        { error: 'API key name is required' },
-        { status: 400 }
-      );
-    }
-
-    const keyId = crypto.randomUUID();
-    const apiKey = generateApiKey();
-
-    // Store the key
-    apiKeys.set(keyId, {
-      id: keyId,
-      userId,
-      key: apiKey,
-      name,
-      createdAt: new Date(),
+    // Call the real backend to register the key
+    const backendRes = await fetch(`${BACKEND_API}/api/keys/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: keyName, tier: 'free' }),
     });
 
+    if (!backendRes.ok) {
+      const err = await backendRes.json().catch(() => ({ detail: 'Backend error' }));
+      return NextResponse.json(
+        { error: err.detail || 'Failed to generate API key' },
+        { status: backendRes.status }
+      );
+    }
+
+    const data = await backendRes.json();
+
     return NextResponse.json({
-      id: keyId,
-      name,
-      apiKey, // Only show full key once at creation
-      createdAt: new Date(),
-      message: 'Save this API key in a safe place. You will not be able to see it again.',
+      id: data.api_key,
+      key_id: data.api_key,
+      name: keyName,
+      key: data.api_key,
+      apiKey: data.api_key,
+      tier: data.tier,
+      createdAt: new Date().toISOString(),
+      message: 'Save this API key — you will not be able to see it again.',
     }, { status: 201 });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Failed to create API key';
