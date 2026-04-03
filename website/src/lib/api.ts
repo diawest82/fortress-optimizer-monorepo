@@ -133,9 +133,10 @@ class ApiClient {
   // ============================================================================
 
   async getAPIKeys() {
-    return this.request('/api-keys', {
-      method: 'GET',
-    });
+    const res = await fetch('/api/api-keys', { credentials: 'include' });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed to load API keys');
+    return data.keys || [];
   }
 
   async generateAPIKey(keyName: string) {

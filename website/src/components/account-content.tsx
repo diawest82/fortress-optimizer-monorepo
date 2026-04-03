@@ -191,10 +191,21 @@ export default function AccountContent() {
 
   const generateNewKey = async () => {
     if (!newKeyName.trim()) return;
-    
+    setApiKeysError(null);
+
     try {
       const response = await apiClient.generateAPIKey(newKeyName);
-      setApiKeys([...apiKeys, response as ApiKey]);
+      const fullKey = response.apiKey || response.key || response.api_key || "";
+      const newApiKey: ApiKey = {
+        key_id: response.id || fullKey,
+        id: response.id || fullKey,
+        name: response.name || newKeyName,
+        key: fullKey,
+        masked: fullKey ? fullKey.substring(0, 8) + "..." + fullKey.substring(fullKey.length - 4) : "",
+        created_at: response.createdAt || new Date().toISOString(),
+        last_used: null,
+      };
+      setApiKeys([...apiKeys, newApiKey]);
       setNewKeyName("");
       setShowNewKeyForm(false);
     } catch (error) {
