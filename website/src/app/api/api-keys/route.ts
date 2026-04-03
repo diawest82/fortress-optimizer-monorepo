@@ -20,15 +20,8 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const userId = getUserIdFromRequest(req);
-    const hasCookie = !!req.cookies.get('fortress_auth_token')?.value;
-    const hasNextAuth = !!req.cookies.get('next-auth.session-token')?.value;
-    console.log(`[api-keys] POST auth debug: userId=${userId}, hasFortressCookie=${hasCookie}, hasNextAuthCookie=${hasNextAuth}, secret_set=${!!process.env.NEXTAUTH_SECRET}`);
-
     if (!userId) {
-      return NextResponse.json({
-        error: 'Unauthorized',
-        debug: { hasFortressCookie: hasCookie, hasNextAuthCookie: hasNextAuth, secretSet: !!process.env.NEXTAUTH_SECRET }
-      }, { status: 401 });
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const body = await req.json();

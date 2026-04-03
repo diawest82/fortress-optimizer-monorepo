@@ -139,10 +139,16 @@ class ApiClient {
   }
 
   async generateAPIKey(keyName: string) {
-    return this.request('/api-keys', {
+    // Call the Next.js API route (same origin), not the backend
+    const res = await fetch('/api/api-keys', {
       method: 'POST',
-      body: JSON.stringify({ key_name: keyName }),
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: keyName }),
     });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed to generate API key');
+    return data;
   }
 
   async revokeAPIKey(keyName: string) {
