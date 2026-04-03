@@ -159,15 +159,21 @@ export default function Dashboard() {
         if (res.ok) {
           const data = await res.json();
           setToolSavings(data.toolSavingsBySource || []);
-        } else {
+        } else if (isDemo) {
           setToolSavings(selectedPlatform === 'all'
             ? DEMO_TOOLS_ALL
             : DEMO_TOOLS_ALL.filter(t => t.source.toLowerCase().includes(selectedPlatform)));
+        } else {
+          setToolSavings([]);
         }
       } catch {
-        setToolSavings(selectedPlatform === 'all'
-          ? DEMO_TOOLS_ALL
-          : DEMO_TOOLS_ALL.filter(t => t.source.toLowerCase().includes(selectedPlatform)));
+        if (isDemo) {
+          setToolSavings(selectedPlatform === 'all'
+            ? DEMO_TOOLS_ALL
+            : DEMO_TOOLS_ALL.filter(t => t.source.toLowerCase().includes(selectedPlatform)));
+        } else {
+          setToolSavings([]);
+        }
       } finally {
         setToolSavingsLoading(false);
       }
@@ -319,34 +325,55 @@ export default function Dashboard() {
             <h2 className="text-lg font-semibold mb-6">
               {selectedPlatform === 'all' ? 'Usage by Platform' : `${PLATFORM_NAMES[selectedPlatform] || selectedPlatform} Usage`}
             </h2>
-            <div className="space-y-3">
-              {(selectedPlatform === 'all'
-                ? [
-                    { name: 'npm SDK', tokens: 125000, pct: 41, color: 'bg-blue-500' },
-                    { name: 'VS Code', tokens: 89000, pct: 29, color: 'bg-purple-500' },
-                    { name: 'Copilot', tokens: 45000, pct: 15, color: 'bg-green-500' },
-                    { name: 'Slack Bot', tokens: 25500, pct: 9, color: 'bg-yellow-500' },
-                    { name: 'Make.com', tokens: 18000, pct: 6, color: 'bg-pink-500' },
-                  ]
-                : platformData
-              ).map((p, i) => (
-                <div key={i} className="flex items-center gap-3">
-                  <div className={`w-3 h-3 rounded-full ${p.color} flex-shrink-0`} />
-                  <span className="text-sm text-slate-300 flex-1">{selectedPlatform === 'all' ? ['npm SDK', 'VS Code', 'Copilot', 'Slack Bot', 'Make.com'][i] : PLATFORM_NAMES[selectedPlatform]}</span>
-                  <span className="text-xs text-slate-500">{formatNumber(p.tokens)} tokens</span>
-                  <span className="text-xs text-slate-400 w-10 text-right">{p.pct}%</span>
+            {isDemo ? (
+              <>
+                <div className="space-y-3">
+                  {(selectedPlatform === 'all'
+                    ? [
+                        { name: 'npm SDK', tokens: 125000, pct: 41, color: 'bg-blue-500' },
+                        { name: 'VS Code', tokens: 89000, pct: 29, color: 'bg-purple-500' },
+                        { name: 'Copilot', tokens: 45000, pct: 15, color: 'bg-green-500' },
+                        { name: 'Slack Bot', tokens: 25500, pct: 9, color: 'bg-yellow-500' },
+                        { name: 'Make.com', tokens: 18000, pct: 6, color: 'bg-pink-500' },
+                      ]
+                    : platformData
+                  ).map((p, i) => (
+                    <div key={i} className="flex items-center gap-3">
+                      <div className={`w-3 h-3 rounded-full ${p.color} flex-shrink-0`} />
+                      <span className="text-sm text-slate-300 flex-1">{selectedPlatform === 'all' ? ['npm SDK', 'VS Code', 'Copilot', 'Slack Bot', 'Make.com'][i] : PLATFORM_NAMES[selectedPlatform]}</span>
+                      <span className="text-xs text-slate-500">{formatNumber(p.tokens)} tokens</span>
+                      <span className="text-xs text-slate-400 w-10 text-right">{p.pct}%</span>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-            <div className="mt-6 pt-4 border-t border-zinc-800">
-              <div className="flex h-3 rounded-full overflow-hidden">
-                {platformData.map((p, i) => (
-                  <div key={i} className={`${p.color} transition-all duration-500`} style={{ width: `${p.pct}%` }} />
-                ))}
+                <div className="mt-6 pt-4 border-t border-zinc-800">
+                  <div className="flex h-3 rounded-full overflow-hidden">
+                    {platformData.map((p, i) => (
+                      <div key={i} className={`${p.color} transition-all duration-500`} style={{ width: `${p.pct}%` }} />
+                    ))}
+                  </div>
+                </div>
+                {selectedPlatform !== 'all' && (
+                  <p className="text-xs text-zinc-500 mt-4">Showing {PLATFORM_NAMES[selectedPlatform]} only. Click "All Platforms" to see the full breakdown.</p>
+                )}
+              </>
+            ) : sortedToolSavings.length > 0 ? (
+              <>
+                <div className="space-y-3">
+                  {sortedToolSavings.map((tool) => (
+                    <div key={tool.source} className="flex items-center gap-3">
+                      <div className="w-3 h-3 rounded-full bg-blue-500 flex-shrink-0" />
+                      <span className="text-sm text-slate-300 flex-1">{tool.source}</span>
+                      <span className="text-xs text-slate-500">{formatNumber(tool.tokensSaved)} saved</span>
+                    </div>
+                  ))}
+                </div>
+              </>
+            ) : (
+              <div className="text-center py-8">
+                <p className="text-sm text-zinc-500">No platform data yet.</p>
+                <p className="text-xs text-zinc-600 mt-1">Install Fortress on npm, VS Code, or Slack to see per-platform stats.</p>
               </div>
-            </div>
-            {selectedPlatform !== 'all' && (
-              <p className="text-xs text-zinc-500 mt-4">Showing {PLATFORM_NAMES[selectedPlatform]} only. Click "All Platforms" to see the full breakdown.</p>
             )}
           </div>
         </div>
@@ -390,7 +417,7 @@ export default function Dashboard() {
               <Clock className="w-5 h-5 text-zinc-500" />
             </div>
             <div className="space-y-3">
-              {(isDemo ? filteredRecent : []).map((opt) => (
+              {isDemo ? filteredRecent.map((opt) => (
                 <div key={opt.id} className="p-3 bg-zinc-950 rounded-lg border border-zinc-800">
                   <div className="flex items-center justify-between mb-1">
                     <span className="text-xs font-medium text-purple-400">{opt.platform}</span>
@@ -400,10 +427,9 @@ export default function Dashboard() {
                   <p className="text-sm text-green-400">{opt.optimized}</p>
                   <p className="text-xs text-emerald-500 mt-1">{opt.savings}% tokens saved</p>
                 </div>
-              ))}
-              {!isDemo && (
+              )) : (
                 <div className="text-center py-8">
-                  <p className="text-sm text-zinc-500">Your recent activity will appear here.</p>
+                  <p className="text-sm text-zinc-500">Your recent optimization activity will appear here as you use the API.</p>
                   <a href="/install" className="text-blue-400 hover:text-blue-300 text-sm mt-2 inline-block">Install Fortress →</a>
                 </div>
               )}
