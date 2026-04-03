@@ -44,7 +44,7 @@ export async function POST(req: NextRequest) {
 
     const data = await backendRes.json();
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       id: data.api_key,
       key_id: data.api_key,
       name: keyName,
@@ -55,6 +55,17 @@ export async function POST(req: NextRequest) {
       createdAt: new Date().toISOString(),
       message: 'Save this API key — you will not be able to see it again.',
     }, { status: 201 });
+
+    // Store the API key in a cookie so the dashboard can fetch usage stats
+    response.cookies.set('fortress_api_key', data.api_key, {
+      path: '/',
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 30 * 24 * 60 * 60, // 30 days
+    });
+
+    return response;
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Failed to create API key';
     return NextResponse.json({ error: message }, { status: 500 });
