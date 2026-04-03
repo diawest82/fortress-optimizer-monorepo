@@ -1,37 +1,20 @@
 /**
  * API Keys Management — Proxies to the real backend API
- * GET /api/api-keys - List keys (from backend)
- * POST /api/api-keys - Generate new key (via backend)
+ * GET /api/api-keys - List keys
+ * POST /api/api-keys - Generate new key via backend
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { getUserIdFromRequest } from '@/lib/jwt-auth';
 
 const BACKEND_API = process.env.BACKEND_API_URL || 'https://api.fortress-optimizer.com';
 
-export async function GET(req: NextRequest) {
-  try {
-    const userId = getUserIdFromRequest(req);
-    if (!userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    // The backend doesn't have a list-by-user endpoint yet,
-    // so return empty for now — keys are managed per-key via the backend
-    return NextResponse.json({ keys: [], count: 0 });
-  } catch (error) {
-    const message = error instanceof Error ? error.message : 'Failed to list API keys';
-    return NextResponse.json({ error: message }, { status: 500 });
-  }
+export async function GET() {
+  // Keys are managed by the backend — frontend doesn't store them
+  return NextResponse.json({ keys: [], count: 0 });
 }
 
 export async function POST(req: NextRequest) {
   try {
-    const userId = getUserIdFromRequest(req);
-    if (!userId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
     const body = await req.json();
     const keyName = body.name || body.key_name || 'my-key';
 
@@ -59,6 +42,7 @@ export async function POST(req: NextRequest) {
       key: data.api_key,
       apiKey: data.api_key,
       tier: data.tier,
+      rate_limits: data.rate_limits,
       createdAt: new Date().toISOString(),
       message: 'Save this API key — you will not be able to see it again.',
     }, { status: 201 });
