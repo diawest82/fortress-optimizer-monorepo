@@ -1,20 +1,29 @@
 /**
  * API Keys Management — Proxies to the real backend API
  * GET /api/api-keys - List keys
- * POST /api/api-keys - Generate new key via backend
+ * POST /api/api-keys - Generate new key (requires auth)
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { getUserIdFromRequest } from '@/lib/jwt-auth';
 
 const BACKEND_API = process.env.BACKEND_API_URL || 'https://api.fortress-optimizer.com';
 
-export async function GET() {
-  // Keys are managed by the backend — frontend doesn't store them
+export async function GET(req: NextRequest) {
+  const userId = getUserIdFromRequest(req);
+  if (!userId) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
   return NextResponse.json({ keys: [], count: 0 });
 }
 
 export async function POST(req: NextRequest) {
   try {
+    const userId = getUserIdFromRequest(req);
+    if (!userId) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const body = await req.json();
     const keyName = body.name || body.key_name || 'my-key';
 
