@@ -231,6 +231,12 @@ export default defineConfig({
       testDir: './qa-system/specs',
       testMatch: '33-stripe-live-test.spec.ts',
       timeout: 60000,
+      // Single worker so the persistent shared user cache in the spec
+      // is reused across all 4 tests that need authentication. Same
+      // pattern as qa-rbac. Avoids burning the 3-per-IP-per-hour signup
+      // rate limit on every deploy run.
+      fullyParallel: false,
+      workers: 1,
     },
     {
       name: 'qa-support-workflow',

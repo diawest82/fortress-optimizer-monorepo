@@ -9,24 +9,77 @@ import { readFileSync } from 'fs';
 import { join } from 'path';
 
 const BASE = process.env.TEST_BASE_URL || 'https://www.fortress-optimizer.com';
-const UNIQUE = Date.now().toString(36);
 const WEBSITE_DIR = join(__dirname, '..', '..');
 
+/**
+ * Persistent shared test user for qa-stripe-live.
+ *
+ * Same pattern as 29-rbac-tier-enforcement.spec.ts and 61-identity-chains:
+ * use a deterministic email so the account persists across deploy runs,
+ * try login first (rate-limited 5/15min, much more generous than signup's
+ * 3/hour), only sign up if the account doesn't exist yet.
+ *
+ * The 4 tests below all need an authenticated user but none care that the
+ * user is unique. Sharing one user is correct.
+ *
+ * History: helper used to do signup → login → extract cookie per test,
+ * burning through the 3-signup/hour rate limiter on every deploy run.
+ */
+const STRIPE_TEST_EMAIL = 'stripe-test-fixed@test.fortress-optimizer.com';
+const STRIPE_TEST_PASSWORD = 'StripeTestP@ss123!';
+
+function extractAuthCookie(response: Response): string {
+  const headers = response.headers as Headers & { getSetCookie?: () => string[] };
+  const cookies: string[] = headers.getSetCookie
+    ? headers.getSetCookie()
+    : (headers.get('set-cookie') || '').split(/,\s*(?=[a-zA-Z0-9_-]+=)/);
+  for (const cookie of cookies) {
+    const match = cookie.match(/fortress_auth_token=([^;]+)/);
+    if (match) return `fortress_auth_token=${match[1]}`;
+  }
+  return '';
+}
+
+let _cachedUser: { cookie: string; email: string } | null = null;
+
 async function createAuthUser(): Promise<{ cookie: string; email: string }> {
-  const email = `stripe-${UNIQUE}-${Math.random().toString(36).slice(2, 6)}@test.fortress-optimizer.com`;
-  const password = `SecureP@ss${UNIQUE}!`;
-  await fetch(`${BASE}/api/auth/signup`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email, password, name: 'Stripe Test' }),
-  });
+  if (_cachedUser) return _cachedUser;
+
+  // Try login first — account probably exists from a previous run.
   const loginRes = await fetch(`${BASE}/api/auth/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email, password }),
+    body: JSON.stringify({ email: STRIPE_TEST_EMAIL, password: STRIPE_TEST_PASSWORD }),
   });
-  const setCookie = loginRes.headers.get('set-cookie') || '';
-  return { cookie: setCookie.split(';')[0] || '', email };
+  if (loginRes.ok) {
+    const cookie = extractAuthCookie(loginRes);
+    if (cookie) {
+      _cachedUser = { cookie, email: STRIPE_TEST_EMAIL };
+      return _cachedUser;
+    }
+  }
+
+  // Account doesn't exist — sign it up. Signup itself authenticates and
+  // sets the cookie, so no follow-up login needed.
+  const signupRes = await fetch(`${BASE}/api/auth/signup`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email: STRIPE_TEST_EMAIL, password: STRIPE_TEST_PASSWORD, name: 'Stripe Test' }),
+  });
+  if (!signupRes.ok) {
+    throw new Error(
+      `[qa-stripe-live] Cannot bootstrap shared test user ${STRIPE_TEST_EMAIL}: ` +
+      `login returned ${loginRes.status}, signup returned ${signupRes.status} ${await signupRes.text()}. ` +
+      `If signup is rate-limited (429), wait an hour or manually create ` +
+      `${STRIPE_TEST_EMAIL} via /admin/users.`
+    );
+  }
+  const cookie = extractAuthCookie(signupRes);
+  if (!cookie) {
+    throw new Error(`Signup for ${STRIPE_TEST_EMAIL} succeeded but no fortress_auth_token cookie was returned`);
+  }
+  _cachedUser = { cookie, email: STRIPE_TEST_EMAIL };
+  return _cachedUser;
 }
 
 test.describe('Stripe Live Test: Checkout & Subscriptions', () => {
