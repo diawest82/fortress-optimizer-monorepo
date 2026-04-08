@@ -44,8 +44,9 @@ const PUBLIC_PREFIXES = [
   'auth/logout',
   'auth/refresh',
   'auth/csrf-token',
-  'auth/admin/init',  // first-time admin bootstrap
-  'auth/admin/login', // legacy admin login (will be removed in cleanup)
+  // /api/auth/admin/* deleted on 2026-04-08 — was a parallel JWT system
+  // disconnected from the regular session, replaced by requireAdmin() on
+  // each /api/admin/* route.
   'password',         // forgotten-password flow (request-reset, reset, validate)
   'health',
   'pricing',

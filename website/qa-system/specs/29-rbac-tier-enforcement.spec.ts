@@ -32,20 +32,31 @@ function extractAuthCookie(response: Response): string {
 }
 
 /**
- * Create a fresh test user via signup and return the auth cookie.
+ * Get a test user — cached at module level so all tests in this file share
+ * a single user across the run.
  *
- * Important: signup ITSELF authenticates the user — /api/auth/signup sets
- * fortress_auth_token in the response. There is no need for a follow-up
- * login call. Doing so just doubles the round-trip and risks tripping the
- * per-IP login rate limiter (15 minute window after 5 failed attempts).
+ * Important constraint: /api/auth/signup is rate-limited to 3 attempts per
+ * IP per 1 hour (rate-limit.ts:30). qa-rbac has 2 tests that need an
+ * authenticated user, plus all the previous deploy runs that have already
+ * burned through quota for the CI runner's IP. If we created a fresh user
+ * per test, the 3rd test in line on a given hour gets 429 and the rest
+ * cascade-fail.
  *
- * History: previous version did signup + login. When login failed (e.g.
- * because signup quietly returned 400 from password validation, or hit
- * the rate limiter), 6 sequential createTestUser calls would lock out
- * the test runner's IP for 15 minutes. The 2026-04-08 deploy run failed
- * exactly this way.
+ * Solution: cache the first successful signup at the module level. The
+ * TWO tests that need a user reuse the same one. Even if signup is rate
+ * limited from a previous run, this only burns 1 quota slot instead of 2.
+ *
+ * Signup ITSELF authenticates — /api/auth/signup sets fortress_auth_token
+ * in the response, no follow-up login call needed (which would also have
+ * tripped the per-IP login rate limiter).
  */
-async function createTestUser(): Promise<{ email: string; password: string; token: string }> {
+let _cachedUser: { email: string; password: string; token: string } | null = null;
+let _cachedError: Error | null = null;
+
+async function getTestUser(): Promise<{ email: string; password: string; token: string }> {
+  if (_cachedUser) return _cachedUser;
+  if (_cachedError) throw _cachedError;
+
   const email = `rbac-${UNIQUE}-${Math.random().toString(36).slice(2)}@test.fortress-optimizer.com`;
   const password = `SecureP@ss${UNIQUE}!`;
 
@@ -55,14 +66,17 @@ async function createTestUser(): Promise<{ email: string; password: string; toke
     body: JSON.stringify({ email, password, name: 'RBAC Test' }),
   });
   if (!signupRes.ok) {
-    throw new Error(`Signup failed for ${email}: ${signupRes.status} ${await signupRes.text()}`);
+    _cachedError = new Error(`Signup failed for ${email}: ${signupRes.status} ${await signupRes.text()}`);
+    throw _cachedError;
   }
   const token = extractAuthCookie(signupRes);
   if (!token) {
-    throw new Error(`Signup for ${email} succeeded but no fortress_auth_token cookie was returned`);
+    _cachedError = new Error(`Signup for ${email} succeeded but no fortress_auth_token cookie was returned`);
+    throw _cachedError;
   }
 
-  return { email, password, token };
+  _cachedUser = { email, password, token };
+  return _cachedUser;
 }
 
 function authHeaders(token: string): Record<string, string> {
@@ -77,7 +91,7 @@ test.describe('RBAC & Tier Enforcement', () => {
 
   test.describe('Free Tier Limits', () => {
     test('Free user gets correct tier from /api/subscriptions', async () => {
-      const user = await createTestUser();
+      const user = await getTestUser();
       const res = await fetch(`${BASE}/api/subscriptions`, {
         headers: authHeaders(user.token),
       });
@@ -104,7 +118,7 @@ test.describe('RBAC & Tier Enforcement', () => {
     });
 
     test('Free user cannot access team management API', async () => {
-      const user = await createTestUser();
+      const user = await getTestUser();
       const res = await fetch(`${BASE}/api/teams`, {
         method: 'POST',
         headers: authHeaders(user.token),
@@ -201,12 +215,19 @@ test.describe('RBAC & Tier Enforcement', () => {
   });
 
   test.describe('Admin Route Protection', () => {
-    test('Non-admin cannot access /admin routes', async ({ page }) => {
-      await page.goto(`${BASE}/admin/login`, { waitUntil: 'domcontentloaded' });
-      // Should either show admin login form or be blocked — never expose admin data
+    test('Non-admin gets redirected away from /admin', async ({ page }) => {
+      // /admin/login was deleted on 2026-04-08 — admins now sign in via
+      // the regular /auth/login flow and /admin/layout.tsx redirects
+      // anonymous visitors there. /admin must NOT render admin data to
+      // anyone without a session + role === 'admin'.
+      await page.goto(`${BASE}/admin`, { waitUntil: 'domcontentloaded' });
+      const finalUrl = page.url();
+      // Should land on /auth/login (no session) — never on /admin itself.
+      expect(finalUrl).not.toContain('/admin/users');
+      expect(finalUrl).not.toContain('/admin/emails');
       const bodyText = await page.locator('body').textContent() || '';
-      expect(bodyText).not.toContain('users');
-      expect(bodyText).not.toContain('database');
+      // Even if the layout briefly renders, it must not leak admin data.
+      expect(bodyText.toLowerCase()).not.toContain('database');
     });
 
     test('Backend admin cleanup requires ADMIN_SECRET', async () => {

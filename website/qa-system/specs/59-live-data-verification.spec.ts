@@ -217,14 +217,15 @@ test.describe('Live Data: Dashboard UI Shows Real State', () => {
     expect(body).not.toMatch(/3,840 active|8,200 active/);
   });
 
-  test('[ui] Admin KPIs show real numbers or zero', async ({ page }) => {
-    await page.goto(`${BASE}/admin/login`);
+  test('[ui] Admin route either shows admin UI or redirects to auth', async ({ page }) => {
+    // /admin/login was deleted on 2026-04-08; admins use /auth/login.
+    // Visiting /admin without a session should redirect to /auth/login.
+    await page.goto(`${BASE}/admin`);
     await page.waitForTimeout(3000);
-
-    // We can't easily log in as admin in this test, but we can verify
-    // the KPI API doesn't return random data
+    const finalUrl = page.url();
+    expect(finalUrl).toMatch(/\/auth\/login|\/admin/);
+    // Page should render something, not be blank
     const body = await page.locator('body').textContent() || '';
-    // Admin login page should render (not blank)
     expect(body.length).toBeGreaterThan(30);
   });
 

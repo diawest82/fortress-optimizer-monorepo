@@ -34,15 +34,9 @@ test.describe('Auth Accessibility: axe-core on Authenticated Pages', () => {
     expect(critical, `Account has ${critical.length} critical a11y violations`).toHaveLength(0);
   });
 
-  test('[H1] /admin/login has no critical accessibility violations', async ({ page }) => {
-    await page.goto(`${BASE}/admin/login`);
-    await page.waitForTimeout(3000);
-    const AxeBuilder = await import('@axe-core/playwright').then(m => m.default).catch(() => null);
-    if (!AxeBuilder) return;
-    const results = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa']).analyze();
-    const critical = results.violations.filter(v => v.impact === 'critical');
-    expect(critical).toHaveLength(0);
-  });
+  // /admin/login was deleted on 2026-04-08 — admins now sign in via the
+  // regular /auth/login flow which is already covered by the test above.
+  // No separate accessibility check needed for the deleted route.
 });
 
 test.describe('Auth Accessibility: Keyboard Navigation', () => {

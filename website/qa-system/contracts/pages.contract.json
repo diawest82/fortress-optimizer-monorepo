@@ -18,6 +18,6 @@
     { "path": "/dashboard", "expectedTitle": "Fortress", "status": 200, "authRequired": false },
     { "path": "/account", "expectedTitle": "Fortress", "status": 200, "authRequired": true },
     { "path": "/logo-showcase", "expectedTitle": "Fortress", "status": 200, "authRequired": false },
-    { "path": "/admin/login", "expectedTitle": "Fortress", "status": 200, "authRequired": false }
+    { "path": "/admin", "expectedTitle": "Fortress", "status": 200, "authRequired": true }
   ]
 }

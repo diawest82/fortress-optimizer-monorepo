@@ -181,9 +181,9 @@ test.describe('Destination Crawler: Rendered Content (Not Blank)', () => {
     { url: '/legal/privacy', name: 'Privacy Policy', minLength: 100 },
     { url: '/legal/terms', name: 'Terms of Service', minLength: 100 },
     { url: '/dashboard', name: 'Dashboard', minLength: 50 },
-    // Admin pages (public — should render login form)
-    { url: '/admin/login', name: 'Admin Login', minLength: 30 },
-    { url: '/admin/setup', name: 'Admin Setup', minLength: 30 },
+    // /admin/login and /admin/setup deleted on 2026-04-08 — admins now
+    // sign in via the regular /auth/login flow and /admin redirects to it
+    // if not authenticated as admin role.
     // Doc pages
     { url: '/docs/getting-started', name: 'Getting Started Docs', minLength: 100 },
     { url: '/docs/installation/npm', name: 'npm Install Docs', minLength: 100 },

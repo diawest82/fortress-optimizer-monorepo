@@ -9,7 +9,8 @@ const BASE = process.env.TEST_BASE_URL || 'https://www.fortress-optimizer.com';
 const PAGES = [
   '/', '/pricing', '/install', '/compare', '/support', '/tools',
   '/docs', '/auth/login', '/auth/signup', '/auth/signup/team',
-  '/dashboard', '/account', '/admin/login', '/forgot-password',
+  '/dashboard', '/account', '/forgot-password',
+  // /admin/login deleted on 2026-04-08 — admins use /auth/login now
 ];
 
 test.describe('CSP Violation Monitor', () => {

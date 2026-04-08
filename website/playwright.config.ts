@@ -206,6 +206,12 @@ export default defineConfig({
       testDir: './qa-system/specs',
       testMatch: '29-rbac-tier-enforcement.spec.ts',
       timeout: 60000,
+      // Single worker so the module-level user cache in
+      // 29-rbac-tier-enforcement.spec.ts is shared across all tests.
+      // Without this each worker triggers its own signup and trips the
+      // 3-per-IP-per-hour signup rate limiter (rate-limit.ts:30).
+      fullyParallel: false,
+      workers: 1,
     },
     {
       name: 'qa-council-fixes',

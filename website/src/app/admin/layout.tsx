@@ -14,13 +14,9 @@ export default function AdminLayout({
   const pathname = usePathname();
   const { user, loading } = useAuthContext();
 
-  // Login and setup pages bypass auth check
-  const isPublicAdminPage = pathname === '/admin/login' || pathname === '/admin/setup';
-
   const isAdmin = (user as any)?.role === 'admin';
 
   useEffect(() => {
-    if (isPublicAdminPage) return;
     if (loading) return;
     if (!user) {
       router.push(`/auth/login?callbackUrl=${encodeURIComponent(pathname)}`);
@@ -29,12 +25,7 @@ export default function AdminLayout({
     if (!isAdmin) {
       router.push('/account');
     }
-  }, [router, isPublicAdminPage, loading, user, isAdmin, pathname]);
-
-  // Public admin pages render without nav
-  if (isPublicAdminPage) {
-    return <>{children}</>;
-  }
+  }, [router, loading, user, isAdmin, pathname]);
 
   // Show nothing while checking auth (silent redirect)
   if (loading || !user || !isAdmin) {

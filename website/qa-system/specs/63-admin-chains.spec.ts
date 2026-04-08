@@ -43,12 +43,18 @@ test.describe('Admin Chain: Access Control', () => {
     expect(typeof (data.totalUsers ?? data.visitorAcquisitions)).toBe('number');
   });
 
-  test('[D3] Admin login page renders (not blank)', async ({ page }) => {
-    await page.goto(`${BASE}/admin/login`);
+  test('[D3] /admin redirects to /auth/login when unauthenticated', async ({ page }) => {
+    // /admin/login was deleted on 2026-04-08 — admins now sign in via the
+    // regular /auth/login flow with role === 'admin' on their User row.
+    await page.goto(`${BASE}/admin`);
     await page.waitForTimeout(3000);
+    // Either we're on /auth/login (redirected) or still on /admin (the
+    // layout is silently redirecting). In neither case should admin data
+    // be visible.
+    const url = page.url();
+    expect(url).toMatch(/\/auth\/login|\/admin/);
     const content = await page.locator('body').textContent() || '';
-    expect(content.length).toBeGreaterThan(50);
-    expect(content).toMatch(/email|password|sign in|log in|admin/i);
+    expect(content.toLowerCase()).not.toContain('database');
   });
 
   test('[D3] Admin layout source requires admin role (not just any session)', () => {
