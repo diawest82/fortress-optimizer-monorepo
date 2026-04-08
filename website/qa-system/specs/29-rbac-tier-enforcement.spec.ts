@@ -32,50 +32,68 @@ function extractAuthCookie(response: Response): string {
 }
 
 /**
- * Get a test user — cached at module level so all tests in this file share
- * a single user across the run.
+ * Get a test user — uses a deterministic shared email so the user persists
+ * across deploy runs. Tries login first; only signs up if the account
+ * doesn't exist yet.
  *
- * Important constraint: /api/auth/signup is rate-limited to 3 attempts per
- * IP per 1 hour (rate-limit.ts:30). qa-rbac has 2 tests that need an
- * authenticated user, plus all the previous deploy runs that have already
- * burned through quota for the CI runner's IP. If we created a fresh user
- * per test, the 3rd test in line on a given hour gets 429 and the rest
- * cascade-fail.
+ * Why deterministic: /api/auth/signup is rate-limited to 3 attempts per IP
+ * per 1 hour (rate-limit.ts:30). Generating a fresh email per run means
+ * every deploy attempt burns a quota slot, and the runner's IP gets rate-
+ * limited within 3 deploys. Using a shared email + login-first means we
+ * only ever do 1 signup (the first time) and then login forever after.
  *
- * Solution: cache the first successful signup at the module level. The
- * TWO tests that need a user reuse the same one. Even if signup is rate
- * limited from a previous run, this only burns 1 quota slot instead of 2.
+ * Same pattern as 61-identity-chains.spec.ts and 71/87/102 — they all
+ * converge on persistent test accounts to avoid the rate limiter.
  *
- * Signup ITSELF authenticates — /api/auth/signup sets fortress_auth_token
- * in the response, no follow-up login call needed (which would also have
- * tripped the per-IP login rate limiter).
+ * The module-level cache below is best-effort within a single test run.
+ * It's defensive: even if Playwright resets module state between retries,
+ * the login-first pattern still works because the account exists in
+ * production from the first successful signup.
  */
+const RBAC_TEST_EMAIL = 'rbac-test-fixed@test.fortress-optimizer.com';
+const RBAC_TEST_PASSWORD = 'RbacTestP@ss123!';
 let _cachedUser: { email: string; password: string; token: string } | null = null;
-let _cachedError: Error | null = null;
 
 async function getTestUser(): Promise<{ email: string; password: string; token: string }> {
   if (_cachedUser) return _cachedUser;
-  if (_cachedError) throw _cachedError;
 
-  const email = `rbac-${UNIQUE}-${Math.random().toString(36).slice(2)}@test.fortress-optimizer.com`;
-  const password = `SecureP@ss${UNIQUE}!`;
+  // Try login first — account probably exists from a previous run.
+  // Login is rate-limited 5 attempts per 15 min per IP, much more
+  // generous than signup's 3 per hour.
+  const loginRes = await fetch(`${BASE}/api/auth/login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email: RBAC_TEST_EMAIL, password: RBAC_TEST_PASSWORD }),
+  });
+  if (loginRes.ok) {
+    const token = extractAuthCookie(loginRes);
+    if (token) {
+      _cachedUser = { email: RBAC_TEST_EMAIL, password: RBAC_TEST_PASSWORD, token };
+      return _cachedUser;
+    }
+  }
 
+  // Account doesn't exist (404 or 401 with no remembered creds) — sign it up.
+  // Signup ITSELF authenticates and sets the cookie, so no follow-up login.
   const signupRes = await fetch(`${BASE}/api/auth/signup`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email, password, name: 'RBAC Test' }),
+    body: JSON.stringify({ email: RBAC_TEST_EMAIL, password: RBAC_TEST_PASSWORD, name: 'RBAC Test' }),
   });
   if (!signupRes.ok) {
-    _cachedError = new Error(`Signup failed for ${email}: ${signupRes.status} ${await signupRes.text()}`);
-    throw _cachedError;
+    throw new Error(
+      `[qa-rbac] Cannot bootstrap shared test user ${RBAC_TEST_EMAIL}: ` +
+      `login returned ${loginRes.status}, signup returned ${signupRes.status} ${await signupRes.text()}. ` +
+      `If signup is rate-limited (429), either wait an hour, manually create ` +
+      `${RBAC_TEST_EMAIL} via /admin/users, or reset the in-memory rate limiter on Vercel.`
+    );
   }
   const token = extractAuthCookie(signupRes);
   if (!token) {
-    _cachedError = new Error(`Signup for ${email} succeeded but no fortress_auth_token cookie was returned`);
-    throw _cachedError;
+    throw new Error(`Signup for ${RBAC_TEST_EMAIL} succeeded but no fortress_auth_token cookie was returned`);
   }
 
-  _cachedUser = { email, password, token };
+  _cachedUser = { email: RBAC_TEST_EMAIL, password: RBAC_TEST_PASSWORD, token };
   return _cachedUser;
 }
 

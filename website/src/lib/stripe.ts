@@ -1,17 +1,45 @@
 /**
  * Stripe utility for server-side operations
+ *
+ * History: this used to throw at module-import time if STRIPE_SECRET_KEY
+ * was missing. Any route that imported this module (e.g. /api/subscriptions)
+ * would 500 on every request from a Vercel container that didn't have the
+ * env var populated yet — and worse, since module-import errors are cached
+ * by Node, the route would 500 for the LIFETIME of that container, not
+ * just the first request. This caused intermittent qa-stripe-live failures
+ * that resolved only when a fresh container started.
+ *
+ * Fix: lazy-init the Stripe client. The check still happens, but at first
+ * USE rather than first import. Routes that don't actually call Stripe
+ * (e.g. unauthenticated POST → 401 short-circuit) never trigger the check.
  */
 import Stripe from 'stripe';
+import { PRICING } from '@/lib/pricing-config';
 
-if (!process.env.STRIPE_SECRET_KEY) {
-  throw new Error('STRIPE_SECRET_KEY is not set');
+let _stripe: Stripe | null = null;
+
+function getStripe(): Stripe {
+  if (_stripe) return _stripe;
+  if (!process.env.STRIPE_SECRET_KEY) {
+    throw new Error('STRIPE_SECRET_KEY is not set');
+  }
+  _stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+    apiVersion: '2026-01-28.clover',
+  });
+  return _stripe;
 }
 
-export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-  apiVersion: '2026-01-28.clover',
+// Proxy that defers Stripe client construction until first property access.
+// All existing call sites (`stripe.customers.create(...)`, `stripe.prices.list(...)`,
+// etc) work unchanged because property access on the proxy lazily constructs
+// the real client.
+export const stripe: Stripe = new Proxy({} as Stripe, {
+  get(_target, prop) {
+    const client = getStripe();
+    const value = client[prop as keyof Stripe];
+    return typeof value === 'function' ? value.bind(client) : value;
+  },
 });
-
-import { PRICING } from '@/lib/pricing-config';
 
 // Pricing tier configuration (prices from PRICING single source of truth)
 export const PRICING_TIERS = {
