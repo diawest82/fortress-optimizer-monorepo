@@ -5,13 +5,55 @@ import nextTs from "eslint-config-next/typescript";
 const eslintConfig = defineConfig([
   ...nextVitals,
   ...nextTs,
-  // Override default ignores of eslint-config-next.
+
+  // Relax strict rules for test infrastructure.
+  // Test code routinely uses `any` for mock objects, has unused destructured
+  // params, and uses CommonJS require() in setup files. Apply production-grade
+  // strictness to src/ only.
+  {
+    files: [
+      "qa-system/**/*.ts",
+      "tests/**/*.ts",
+      "tests/**/*.tsx",
+      "src/__tests__/**/*.ts",
+      "src/__tests__/**/*.tsx",
+      "cypress/**/*.ts",
+      "cypress.config.ts",
+      "jest.setup.js",
+      "jest.config.js",
+    ],
+    rules: {
+      "@typescript-eslint/no-explicit-any": "off",
+      "@typescript-eslint/no-unused-vars": "off",
+      "@typescript-eslint/no-require-imports": "off",
+      "@typescript-eslint/no-namespace": "off",
+      "prefer-const": "off",
+    },
+  },
+
   globalIgnores([
-    // Default ignores of eslint-config-next:
+    // Next.js build output
     ".next/**",
     "out/**",
     "build/**",
     "next-env.d.ts",
+
+    // Test output / artifacts (regenerated, never hand-edited)
+    "coverage/**",
+    "playwright-report/**",
+    "test-results/**",
+    "cypress/screenshots/**",
+    "cypress/videos/**",
+
+    // Nested package: extensions/vscode-extension has its own tsconfig +
+    // its own build output. It's not part of the website's source set
+    // and lints ~120 errors of its own. Lint it from its own package
+    // instead, not transitively from the website.
+    "extensions/**",
+
+    // Standalone scripts (not part of the Next.js app)
+    "test-stripe-config.js",
+    "test-payment-flow.js",
   ]),
 ]);
 
