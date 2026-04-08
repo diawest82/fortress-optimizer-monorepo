@@ -1,0 +1,141 @@
+name: Website PR Checks
+
+# Fast quality gate that runs on every PR touching the website.
+# Blocking jobs: type-check, jest, build (on same-repo PRs only).
+# Advisory jobs (continue-on-error: true): lint, audit.
+#
+# History: this file consolidates two earlier workflows that lived at
+# website/.github/workflows/ci-cd.yml and ci-cd-unified.yml. Those files
+# never ran because GitHub Actions only reads .github/workflows/ at the
+# repository root, not nested under subdirectories.
+
+on:
+  pull_request:
+    paths:
+      - 'website/**'
+      - '.github/workflows/website-pr.yml'
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: '22'
+  WORKING_DIRECTORY: website
+
+jobs:
+  # ──────────────────────────────────────────────────────────────────────
+  # BLOCKING: TypeScript type check
+  # ──────────────────────────────────────────────────────────────────────
+  type-check:
+    name: Type Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: 'website/package-lock.json'
+      - name: Install dependencies
+        working-directory: ${{ env.WORKING_DIRECTORY }}
+        run: npm ci
+      - name: TypeScript type check
+        working-directory: ${{ env.WORKING_DIRECTORY }}
+        run: npm run type-check
+
+  # ──────────────────────────────────────────────────────────────────────
+  # BLOCKING: Jest unit + API tests (10 files / 201 tests as of 2026-04-07)
+  # ──────────────────────────────────────────────────────────────────────
+  jest:
+    name: Jest
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: 'website/package-lock.json'
+      - name: Install dependencies
+        working-directory: ${{ env.WORKING_DIRECTORY }}
+        run: npm ci
+      - name: Run Jest
+        working-directory: ${{ env.WORKING_DIRECTORY }}
+        run: npm test -- --ci
+
+  # ──────────────────────────────────────────────────────────────────────
+  # ADVISORY: ESLint
+  # As of 2026-04-07 the website has 245 lint errors that pre-date this
+  # workflow. Lint runs but does not block PRs until cleanup is complete.
+  # When the error count hits 0, remove `continue-on-error: true` below
+  # to make this a blocking gate.
+  # ──────────────────────────────────────────────────────────────────────
+  lint:
+    name: Lint (advisory)
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: 'website/package-lock.json'
+      - name: Install dependencies
+        working-directory: ${{ env.WORKING_DIRECTORY }}
+        run: npm ci
+      - name: Run ESLint
+        working-directory: ${{ env.WORKING_DIRECTORY }}
+        run: npm run lint
+
+  # ──────────────────────────────────────────────────────────────────────
+  # ADVISORY: npm audit (high+critical only)
+  # ──────────────────────────────────────────────────────────────────────
+  audit:
+    name: Security Audit (advisory)
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: 'website/package-lock.json'
+      - name: npm audit
+        working-directory: ${{ env.WORKING_DIRECTORY }}
+        run: npm audit --audit-level=high
+
+  # ──────────────────────────────────────────────────────────────────────
+  # BLOCKING: Build verification
+  # Skipped on PRs from forks because deploy secrets aren't available
+  # to forked PRs.
+  # ──────────────────────────────────────────────────────────────────────
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    needs: [type-check, jest]
+    if: github.event_name == 'workflow_dispatch' || github.event.pull_request.head.repo.full_name == github.repository
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: 'website/package-lock.json'
+      - name: Install dependencies
+        working-directory: ${{ env.WORKING_DIRECTORY }}
+        run: npm ci
+      - name: Build Next.js app
+        working-directory: ${{ env.WORKING_DIRECTORY }}
+        run: npm run build
+        env:
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          NEXTAUTH_SECRET: ${{ secrets.JWT_SECRET }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      - name: Verify .next directory exists
+        working-directory: ${{ env.WORKING_DIRECTORY }}
+        run: |
+          if [ ! -d ".next" ]; then
+            echo "::error::Build did not produce a .next/ directory"
+            exit 1
+          fi
+          echo "✓ Build output present"

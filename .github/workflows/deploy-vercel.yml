@@ -1,10 +1,19 @@
 name: Deploy to Vercel Production
 
+# Triggered on push to main when website code changes.
+# Builds, deploys to Vercel, then runs post-deploy verification against
+# the live production URL.
+#
+# Note: Jest unit tests, type-check, lint, and build verification all
+# run pre-merge in .github/workflows/website-pr.yml. This workflow does
+# NOT re-run them — it focuses on deploy + post-deploy live verification.
+
 on:
   push:
     branches: [main]
     paths:
       - 'website/**'
+      - '.github/workflows/deploy-vercel.yml'
   workflow_dispatch:
 
 env:
@@ -16,25 +25,21 @@ jobs:
   deploy:
     name: Deploy to Vercel
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '22'
           cache: 'npm'
           cache-dependency-path: 'website/package-lock.json'
-      
+
       - name: Install dependencies
         working-directory: ${{ env.WORKING_DIRECTORY }}
         run: npm ci
-
-      - name: Run tests
-        working-directory: ${{ env.WORKING_DIRECTORY }}
-        run: npm test -- --ci --passWithNoTests
 
       - name: Install Vercel CLI
         run: npm install -g vercel@latest
@@ -96,11 +101,35 @@ jobs:
         env:
           TEST_BASE_URL: https://www.fortress-optimizer.com
 
+      # ──────────────────────────────────────────────────────────────────
+      # ADVISORY: Full qa-system wildcard project (~1567 tests in 118 files)
+      #
+      # This step is intentionally non-blocking (continue-on-error: true)
+      # because many specs in qa-system/specs/ have known issues being
+      # worked through (broken createTestUser fixture, weak `status<500`
+      # assertions, hardcoded fixture users, etc. — see todo list).
+      #
+      # As those specs are repaired, the goal is to drop continue-on-error
+      # and make this the primary deploy gate. The named --project steps
+      # above remain blocking until then.
+      #
+      # Failures here are visible in the workflow run but do NOT block
+      # the deploy from being marked successful.
+      # ──────────────────────────────────────────────────────────────────
+      - name: Run full qa-system suite (advisory)
+        working-directory: ${{ env.WORKING_DIRECTORY }}
+        run: npx playwright test --project=qa-system --retries=1
+        continue-on-error: true
+        env:
+          TEST_BASE_URL: https://www.fortress-optimizer.com
+          TEST_API_URL: https://api.fortress-optimizer.com
+
       - name: Test deployment
         run: |
-          echo "✓ Website deployed and all critical tests passed"
+          echo "✓ Website deployed and critical (blocking) tests passed"
           echo "Check https://fortress-optimizer.com"
-      
+          echo "Check the qa-system advisory step above for non-blocking failures."
+
       - name: Notify success
         if: success()
         run: echo "✅ Deployment to Vercel completed successfully!"
