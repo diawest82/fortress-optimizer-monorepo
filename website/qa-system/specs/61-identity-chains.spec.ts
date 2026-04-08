@@ -21,13 +21,26 @@ import crypto from 'crypto';
 
 const BASE = process.env.TEST_BASE_URL || 'https://www.fortress-optimizer.com';
 
-// FIXED test account — survives across runs, avoids signup rate limit
-// Uses a deterministic email so login works even if signup was rate-limited
+// Shared identity-chain test account.
+//
+// Design choice: this spec deliberately uses a single deterministic user
+// across all tests instead of creating a fresh user per test. The reason
+// is the production rate limiter — /api/auth/signup caps registrations at
+// 5/hour/IP, and per-test signups would burn through that quota in seconds
+// and fail the rest of the suite. Sharing one persistent account is the
+// correct tradeoff for this codebase's constraints.
+//
+// Cost: if this user is ever locked out, password-rotated, or deleted from
+// the production DB, every chain in this spec breaks until Chain 0 below
+// recreates it. Chain 0 is responsible for ensuring the account exists.
+//
+// The other 3 specs (71-signup-to-first-optimization, 87-session-fixation,
+// 102-oauth-profile) intentionally share this same email so they all
+// converge on the same persisted account.
 const SHARED_EMAIL = 'chain-test-fixed@test.fortress-optimizer.com';
 const SHARED_PASSWORD = 'ChainTestP@ss123!';
 const SHARED_NAME = 'Chain Test User';
 const RUN_ID = crypto.randomBytes(4).toString('hex'); // For one-off signups
-let sharedAccountReady = false;
 
 // Helper: signup via API, return cookies
 async function signupViaAPI(context: BrowserContext, email: string, password: string, name: string) {
@@ -62,27 +75,35 @@ function findCookie(cookies: Array<{ name: string; value: string }>, name: strin
 
 test.describe('Chain 0: Setup', () => {
   test('0.1 Ensure shared test account exists (signup or login)', async ({ context }) => {
-    // Try login first — account may already exist from a previous run
+    // Try login first — account may already exist from a previous run.
     const login = await loginViaAPI(context, SHARED_EMAIL, SHARED_PASSWORD);
     if (login.status === 200) {
-      sharedAccountReady = true;
       console.log('[chain] Shared account exists — login successful');
       return;
     }
 
-    // Account doesn't exist — try to create it
+    // Account doesn't exist — try to create it.
     const signup = await signupViaAPI(context, SHARED_EMAIL, SHARED_PASSWORD, SHARED_NAME);
     if (signup.status === 201) {
-      sharedAccountReady = true;
       console.log('[chain] Shared account created');
-    } else if (signup.status === 429) {
-      console.log('[chain] Rate limited — cannot create account. Auth-dependent tests will be skipped.');
-      sharedAccountReady = false;
-    } else {
-      console.log(`[chain] Unexpected signup status: ${signup.status} — ${JSON.stringify(signup.body)}`);
-      sharedAccountReady = false;
+      return;
     }
-    expect(true).toBe(true);
+
+    // Loud failure — used to silently set sharedAccountReady=false (a
+    // dead variable) and let the rest of the suite cascade-fail with
+    // confusing 401 errors.
+    if (signup.status === 429) {
+      throw new Error(
+        '[chain 0.1] Cannot bootstrap shared identity-chain test account: ' +
+        '/api/auth/signup is rate-limited (429). Either wait an hour, ' +
+        'reset the rate limiter, or manually create the user ' +
+        `${SHARED_EMAIL} via /admin/users.`
+      );
+    }
+    throw new Error(
+      `[chain 0.1] Cannot bootstrap shared identity-chain test account: ` +
+      `signup returned ${signup.status} ${JSON.stringify(signup.body)}`
+    );
   });
 });
 

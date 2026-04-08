@@ -64,6 +64,12 @@ test.describe('Session Fixation Prevention', () => {
 
 test.describe('JWT Claim Trust Verification', () => {
 
+  // Static signals — paired at the suite level with runtime tests in
+  // 88-api-surface-auto-audit.spec.ts (which actually hits these endpoints
+  // unauthenticated and asserts 401/403). The static checks here verify
+  // implementation details (DB-backed identity verification) that runtime
+  // tests can't see from outside.
+
   test('Server verifies user from database, not just JWT claims', () => {
     const file = join(WEBSITE_DIR, 'src/app/api/users/profile/route.ts');
     if (!existsSync(file)) return;

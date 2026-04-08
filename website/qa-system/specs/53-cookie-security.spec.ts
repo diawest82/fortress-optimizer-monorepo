@@ -28,7 +28,9 @@ test.describe('Cookie Security: Flags, Tokens, Sessions', () => {
   test.describe('Auth Cookie Flags', () => {
     test('Auth cookie has HttpOnly flag', async () => {
       const { setCookie, status } = await loginAndGetCookies();
-      if (status !== 200) { test.skip(true, 'Login rate limited'); return; }
+      if (status !== 200) {
+        throw new Error(`Login failed with status ${status}. Cookie security tests require a successful login — fix the test setup or rate limiter, do not skip silently.`);
+      }
       if (setCookie.includes('fortress_auth_token')) {
         expect(setCookie.toLowerCase()).toContain('httponly');
       }
@@ -36,7 +38,9 @@ test.describe('Cookie Security: Flags, Tokens, Sessions', () => {
 
     test('Auth cookie has Secure flag', async () => {
       const { setCookie, status } = await loginAndGetCookies();
-      if (status !== 200) { test.skip(true, 'Login rate limited'); return; }
+      if (status !== 200) {
+        throw new Error(`Login failed with status ${status}. Cookie security tests require a successful login — fix the test setup or rate limiter, do not skip silently.`);
+      }
       if (setCookie.includes('fortress_auth_token')) {
         // In production (HTTPS), Secure should be set
         // In dev (HTTP), it may not be — check for presence
@@ -49,7 +53,9 @@ test.describe('Cookie Security: Flags, Tokens, Sessions', () => {
 
     test('Auth cookie has SameSite=Strict or Lax', async () => {
       const { setCookie, status } = await loginAndGetCookies();
-      if (status !== 200) { test.skip(true, 'Login rate limited'); return; }
+      if (status !== 200) {
+        throw new Error(`Login failed with status ${status}. Cookie security tests require a successful login — fix the test setup or rate limiter, do not skip silently.`);
+      }
       if (setCookie.includes('fortress_auth_token')) {
         expect(setCookie.toLowerCase()).toMatch(/samesite=(strict|lax)/);
       }

@@ -48,7 +48,7 @@ test.describe('Stripe Real Checkout: Test Mode Verification', () => {
         expect(data.url).toContain('checkout.stripe.com');
         expect(data.sessionId || data.url).toBeTruthy();
       } else if (res.status === 429) {
-        test.skip(true, 'Rate limited');
+        throw new Error('Stripe checkout rate limited (429). Fix the test setup or rate limiter, do not skip silently.');
       } else {
         // Stripe may not be configured — verify it's not a 500
         expect(res.status).not.toBe(500);

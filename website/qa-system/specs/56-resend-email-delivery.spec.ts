@@ -34,10 +34,14 @@ test.describe('Resend Email Delivery: Real Verification', () => {
 
   test.describe('Resend API Connectivity', () => {
     test('Resend API is accessible (list emails)', async () => {
-      if (!RESEND_API_KEY) {
-        test.skip(true, 'RESEND_API_KEY not set');
-        return;
-      }
+      // Loud failure if the secret is missing — used to silently skip,
+      // which meant misconfigured CI looked green for years.
+      expect(
+        RESEND_API_KEY,
+        'RESEND_API_KEY env var must be set in CI to verify email delivery. ' +
+        'Either set it in repository secrets or remove this test from the gate.'
+      ).toBeTruthy();
+
       const res = await fetch('https://api.resend.com/emails', {
         headers: { 'Authorization': `Bearer ${RESEND_API_KEY}` },
       });

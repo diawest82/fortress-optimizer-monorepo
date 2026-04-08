@@ -128,20 +128,17 @@ test.describe('Post-Action: Pricing → Signup Chains', () => {
     const resp = await signupResp;
     await page.waitForTimeout(5000);
 
-    // If rate limited, skip gracefully
+    // Loud failure on rate limit — used to silently skip.
     if (resp && resp.status() === 429) {
-      test.skip(true, 'Signup rate limited');
-      return;
+      throw new Error('Signup rate limited (429). Use a unique test user per worker or run against a local server.');
     }
 
     // Final destination: dashboard (not stuck on signup, not error page)
     const finalUrl = page.url();
     if (finalUrl.includes('/auth/signup')) {
-      // May have failed due to rate limit — check page for error
       const pageText = await page.locator('body').textContent() || '';
       if (pageText.toLowerCase().includes('rate') || pageText.toLowerCase().includes('too many')) {
-        test.skip(true, 'Signup rate limited');
-        return;
+        throw new Error('Signup rate limited (page text indicates rate limit). Fix the test setup.');
       }
     }
     expect(finalUrl).toContain('/dashboard');
@@ -264,8 +261,7 @@ test.describe('Post-Action: Authenticated Destinations', () => {
     await page.waitForTimeout(5000);
 
     if (loginResp && loginResp.status() === 429) {
-      test.skip(true, 'Rate limited');
-      return;
+      throw new Error('Login rate limited (429). Fix the test setup, do not skip silently.');
     }
 
     // Should land on pricing, not dashboard
@@ -277,7 +273,9 @@ test.describe('Post-Action: Authenticated Destinations', () => {
 
   test('Account "Upgrade Plan" → pricing page with subscribe buttons', async ({ page }) => {
     const loggedIn = await loginViaUI(page, email, password);
-    if (!loggedIn) { test.skip(true, 'Rate limited'); return; }
+    if (!loggedIn) {
+      throw new Error('Login failed (likely rate-limited). Fix the test setup, do not skip silently.');
+    }
 
     await page.goto(`${BASE}/account`, { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(5000);
@@ -296,7 +294,9 @@ test.describe('Post-Action: Authenticated Destinations', () => {
 
   test('Account "API Keys" tab → generate key form visible', async ({ page }) => {
     const loggedIn = await loginViaUI(page, email, password);
-    if (!loggedIn) { test.skip(true, 'Rate limited'); return; }
+    if (!loggedIn) {
+      throw new Error('Login failed (likely rate-limited). Fix the test setup, do not skip silently.');
+    }
 
     await page.goto(`${BASE}/account`, { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(5000);
@@ -316,7 +316,9 @@ test.describe('Post-Action: Authenticated Destinations', () => {
 
   test('Account "Support" tab → ticket form + ticket list visible', async ({ page }) => {
     const loggedIn = await loginViaUI(page, email, password);
-    if (!loggedIn) { test.skip(true, 'Rate limited'); return; }
+    if (!loggedIn) {
+      throw new Error('Login failed (likely rate-limited). Fix the test setup, do not skip silently.');
+    }
 
     await page.goto(`${BASE}/account`, { waitUntil: 'domcontentloaded' });
     await page.waitForTimeout(5000);
@@ -543,7 +545,9 @@ test.describe('Post-Action: API Response → UI State', () => {
 
     // 2. Login via UI
     const loggedIn = await loginViaUI(page, email, password);
-    if (!loggedIn) { test.skip(true, 'Rate limited'); return; }
+    if (!loggedIn) {
+      throw new Error('Login failed (likely rate-limited). Fix the test setup, do not skip silently.');
+    }
 
     // 3. Account page loads with user content
     await page.goto(`${BASE}/account`, { waitUntil: 'domcontentloaded' });

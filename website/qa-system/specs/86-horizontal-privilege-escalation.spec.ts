@@ -45,10 +45,16 @@ test.describe('Privilege Escalation: Unauthenticated Access', () => {
     expect([401, 403, 404]).toContain(res.status());
   });
 
-  test('Cannot access admin KPIs as regular request', async ({ request }) => {
+  test('Cannot access admin KPIs without auth', async ({ request }) => {
     const res = await request.get(`${BASE}/api/admin/kpis`);
-    // Should either require auth or return data (admin KPIs may be public) — NOT 500
-    expect(res.status()).toBeLessThan(500);
+    // Admin endpoints MUST require auth — 401/403 only.
+    // The previous assertion `< 500` passed for unauthenticated 200s,
+    // which is exactly how the unprotected /api/admin/kpis bug shipped.
+    // See feedback_qa_admin_role_blindspot memory.
+    expect(
+      [401, 403],
+      `/api/admin/kpis returned ${res.status()} for an unauthenticated request — admin endpoints must require auth.`
+    ).toContain(res.status());
   });
 });
 

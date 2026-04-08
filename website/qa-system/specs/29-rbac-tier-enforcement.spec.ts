@@ -9,6 +9,28 @@ const BASE = process.env.TEST_BASE_URL || 'https://www.fortress-optimizer.com';
 const API_BASE = process.env.TEST_API_URL || 'https://api.fortress-optimizer.com';
 const UNIQUE = Date.now().toString(36);
 
+/**
+ * Read the fortress_auth_token JWT from the Set-Cookie response header.
+ *
+ * Why: /api/auth/login intentionally does NOT return the token in the body —
+ * it sets it as an httpOnly cookie. The previous helper read `data.token`
+ * which was always empty, so every "authenticated" assertion in this file
+ * was silently degrading to unauthenticated. See feedback memory.
+ */
+function extractAuthCookie(response: Response): string {
+  // Node 18+ exposes getSetCookie() which returns all Set-Cookie headers.
+  // Standard response.headers.get('set-cookie') is restricted in some envs.
+  const headers = response.headers as Headers & { getSetCookie?: () => string[] };
+  const cookies: string[] = headers.getSetCookie
+    ? headers.getSetCookie()
+    : (headers.get('set-cookie') || '').split(/,\s*(?=[a-zA-Z0-9_-]+=)/);
+  for (const cookie of cookies) {
+    const match = cookie.match(/fortress_auth_token=([^;]+)/);
+    if (match) return match[1];
+  }
+  return '';
+}
+
 async function createTestUser(): Promise<{ email: string; password: string; token: string }> {
   const email = `rbac-${UNIQUE}-${Math.random().toString(36).slice(2)}@test.fortress-optimizer.com`;
   const password = `SecureP@ss${UNIQUE}!`;
@@ -24,8 +46,13 @@ async function createTestUser(): Promise<{ email: string; password: string; toke
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email, password }),
   });
-  const loginData = await loginRes.json();
-  const token = loginData.token || '';
+  if (!loginRes.ok) {
+    throw new Error(`Login failed for ${email}: ${loginRes.status} ${await loginRes.text()}`);
+  }
+  const token = extractAuthCookie(loginRes);
+  if (!token) {
+    throw new Error(`Login for ${email} succeeded but no fortress_auth_token cookie was returned`);
+  }
 
   return { email, password, token };
 }

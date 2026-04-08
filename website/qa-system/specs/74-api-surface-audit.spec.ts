@@ -24,16 +24,25 @@ const API_ROUTES = [
   { path: '/api/teams/fake/members', method: 'GET', requiresAuth: true },
 ];
 
+// Acceptable status codes for "the route exists and is responding correctly".
+// Excludes 0 (unreachable) and 5xx (server errors). Tightened from the
+// previous `< 500` which accepted unauthenticated 200s on protected routes.
+const VALID_NON_ERROR_STATUSES = [200, 201, 204, 301, 302, 400, 401, 403, 422, 429];
+
 test.describe('API Surface Audit: No 500 Errors', () => {
   for (const route of API_ROUTES) {
-    test(`${route.method} ${route.path} does not return 500`, async ({ request }) => {
+    test(`${route.method} ${route.path} responds with a valid status (no 500, no 404, no 0)`, async ({ request }) => {
       let res;
       if (route.method === 'GET') {
         res = await request.get(`${BASE}${route.path}`);
       } else {
         res = await request.post(`${BASE}${route.path}`, { data: (route as any).data || {} });
       }
-      expect(res.status(), `${route.method} ${route.path} returned 500`).toBeLessThan(500);
+      // 404 is excluded — a renamed/removed route should fail this audit, not silently pass.
+      expect(
+        VALID_NON_ERROR_STATUSES,
+        `${route.method} ${route.path} returned ${res.status()} (expected one of ${VALID_NON_ERROR_STATUSES.join(', ')})`
+      ).toContain(res.status());
     });
   }
 });
@@ -49,7 +58,12 @@ test.describe('API Surface Audit: Auth Enforcement', () => {
       } else {
         res = await request.post(`${BASE}${route.path}`, { data: (route as any).data || {} });
       }
-      expect([401, 403, 404]).toContain(res.status());
+      // 404 is NOT acceptable — a removed/renamed route shouldn't silently
+      // pass the auth gate. If the route is gone, the audit should fail loud.
+      expect(
+        [401, 403],
+        `${route.method} ${route.path} returned ${res.status()} for an unauthenticated request — protected routes must return 401 or 403.`
+      ).toContain(res.status());
     });
   }
 });
@@ -65,8 +79,13 @@ test.describe('API Surface Audit: Public Routes Accessible', () => {
       } else {
         res = await request.post(`${BASE}${route.path}`, { data: (route as any).data || {} });
       }
-      // Should return something, not necessarily 200 (login with wrong creds = 401 is OK for public)
-      expect(res.status()).toBeLessThan(500);
+      // Public routes should return successful or expected client-error
+      // codes — never 500, never 0, never 404 (which would mean the route
+      // was removed without updating this audit).
+      expect(
+        VALID_NON_ERROR_STATUSES,
+        `${route.method} ${route.path} returned ${res.status()} (expected one of ${VALID_NON_ERROR_STATUSES.join(', ')})`
+      ).toContain(res.status());
     });
   }
 });

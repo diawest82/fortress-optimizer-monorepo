@@ -15,15 +15,27 @@ const WEBSITE_DIR = join(__dirname, '..', '..');
 
 test.describe('Admin Chain: Access Control', () => {
 
-  test('[D3] /api/admin/kpis returns data or requires auth', async ({ request }) => {
+  test('[D3] /api/admin/kpis requires auth (no anonymous access)', async ({ request }) => {
     const res = await request.get(`${BASE}/api/admin/kpis`);
-    // Should either return real data (200) or require auth (401/403) — NOT crash (500)
-    expect(res.status()).toBeLessThan(500);
+    // Admin endpoints MUST require auth — 401/403 only.
+    // Previously this asserted `< 500` which let the unprotected /api/admin/kpis
+    // bug ship for months. See feedback_qa_admin_role_blindspot memory.
+    expect(
+      [401, 403],
+      `/api/admin/kpis returned ${res.status()} unauthenticated — admin endpoints must reject anonymous requests.`
+    ).toContain(res.status());
   });
 
-  test('[D3] Admin KPIs return real metrics (not fabricated)', async ({ request }) => {
+  test('[D3] Admin KPIs return real metrics when authenticated as admin', async ({ request }) => {
+    // Without admin auth this returns 401/403, so we can't validate content here.
+    // The shape assertion runs only when run with FORTRESS_TEST_URL + a valid
+    // admin session cookie. Skipping silently when unauthenticated is an
+    // explicit limitation noted in the cleanup todos.
     const res = await request.get(`${BASE}/api/admin/kpis`);
-    if (res.status() !== 200) return;
+    if (res.status() !== 200) {
+      test.skip(true, `Admin KPIs require authenticated session (got ${res.status()})`);
+      return;
+    }
     const data = await res.json();
     expect(data).toHaveProperty('lastUpdated');
     expect(data.isFallback).not.toBe(true);
@@ -39,11 +51,19 @@ test.describe('Admin Chain: Access Control', () => {
     expect(content).toMatch(/email|password|sign in|log in|admin/i);
   });
 
-  test('[D3] Admin routes source requires authentication', () => {
+  test('[D3] Admin layout source requires admin role (not just any session)', () => {
+    // Static signal — paired with runtime tests in 87-admin-surface-audit.spec.ts
+    // (which actually hit /api/admin/* and assert 401/403 unauthenticated).
     const file = join(WEBSITE_DIR, 'src/app/admin/layout.tsx');
     if (!existsSync(file)) return;
     const content = readFileSync(file, 'utf-8');
-    expect(content).toMatch(/adminToken|isAuthenticated|isPublicAdminPage/);
+    // The layout must do more than check for "any logged-in user" — it must
+    // verify the user has role === 'admin'. The previous check accepted
+    // adminToken/isAuthenticated which were removed when the layout was
+    // refactored to use the regular session + role; that left the static
+    // check passing on a stale signal.
+    expect(content).toMatch(/role\s*===?\s*['"]admin['"]/);
+    expect(content).toMatch(/useAuthContext|getServerSession|requireAdmin/);
   });
 });
 
@@ -75,10 +95,13 @@ test.describe('Admin Chain: KPI Data Quality', () => {
 
 test.describe('Admin Chain: Ticket Management', () => {
 
-  test('[D2] Support ticket API exists', async ({ request }) => {
+  test('[D2] Support ticket API requires auth', async ({ request }) => {
     const res = await request.get(`${BASE}/api/support/tickets`);
-    // Should require auth, not crash
-    expect(res.status()).toBeLessThan(500);
+    // /api/support/tickets is per-user data — must require auth.
+    expect(
+      [401, 403],
+      `/api/support/tickets returned ${res.status()} unauthenticated — must require auth.`
+    ).toContain(res.status());
   });
 
   test('[D2] Ticket creation returns ticket number', async ({ request }) => {

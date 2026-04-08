@@ -56,13 +56,19 @@ async function performAuth(page: Page, step: FlowStep, flowId: string): Promise<
     await page.locator('button[type="submit"]').first().click();
     const resp = await loginResp;
     await page.waitForTimeout(3000);
-    // If rate limited (429), skip remaining steps gracefully
+    // Loud failure on rate limit — used to silently skip, which masked
+    // a misconfigured login flow indefinitely. If you hit this:
+    //   1) Verify /api/auth/login is reachable from the test environment
+    //   2) Use a unique test user per-worker to avoid IP-based rate limits
+    //   3) Or run this test against a local server with rate limits disabled
     if (resp && resp.status() === 429) {
-      test.skip(true, 'Login rate limited — skipping authenticated flow');
+      throw new Error('Login rate limited (429) — fix the test setup, do not skip silently.');
     }
-    // If still on login page, login failed
     if (page.url().includes('/auth/login')) {
-      test.skip(true, 'Login did not succeed — likely rate limited');
+      throw new Error(
+        `Login did not succeed: still on ${page.url()}. ` +
+        `Either credentials are wrong or the rate limiter is blocking the test.`
+      );
     }
   }
 
