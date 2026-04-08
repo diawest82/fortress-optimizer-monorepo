@@ -12,13 +12,35 @@ const API_DIR = join(WEBSITE_DIR, 'src/app/api');
 
 test.describe('Auth Pattern Guard', () => {
 
-  test('No API route uses x-user-context header (removed vulnerability)', () => {
+  test('No API route trusts spoofable x-user-* headers', () => {
+    // Bans both x-user-context (the original vulnerability) and x-user-id
+    // (same vuln class — spoofable header used in place of session auth).
+    // /api/subscriptions/invoices was caught using x-user-id on 2026-04-08,
+    // letting any caller read any user's Stripe billing history.
     const result = execSync(
-      `grep -rn "x-user-context" ${API_DIR} --include="*.ts" 2>/dev/null || true`,
+      `grep -rEn "x-user-context|x-user-id" ${API_DIR} --include="*.ts" 2>/dev/null || true`,
       { encoding: 'utf-8' }
     ).trim();
-    const lines = result ? result.split('\n').filter(l => !l.includes('.spec.ts') && !l.includes('//')) : [];
-    expect(lines, `x-user-context found in:\n${lines.join('\n')}`).toHaveLength(0);
+    // Filter out comment lines (// and JSDoc * lines), spec files, and
+    // lines that mention these strings only inside backticks/quotes in a
+    // doc comment.
+    const lines = result
+      ? result.split('\n').filter(l => {
+          if (l.includes('.spec.ts')) return false;
+          // Strip leading "path:lineno:" prefix, then check if the actual
+          // line content is a comment.
+          const code = l.replace(/^[^:]+:\d+:\s*/, '');
+          if (code.startsWith('//')) return false;
+          if (code.startsWith('*')) return false;
+          if (code.startsWith('/*')) return false;
+          return true;
+        })
+      : [];
+    expect(
+      lines,
+      `Spoofable identity header (x-user-context or x-user-id) used in:\n${lines.join('\n')}\n` +
+      `Use verifyAuthToken() to extract identity from the signed JWT cookie instead.`
+    ).toHaveLength(0);
   });
 
   test('No API route returns token in response body', () => {
@@ -36,10 +58,39 @@ test.describe('Auth Pattern Guard', () => {
   });
 
   test('ALL API routes have auth or are explicitly public', () => {
-    // Known public routes that intentionally don't require auth
+    // Routes that intentionally don't require auth.
+    // Keep this list small and explicit — every entry is a public surface.
     const PUBLIC_ROUTES = [
-      'auth/', 'health', 'pricing', 'cron', 'webhook', 'contact',
-      'password/',
+      'auth/',     // login, signup, logout, refresh, csrf, etc.
+      'health',
+      'pricing',
+      'cron',      // protected by CRON_SECRET, not user session
+      'webhook',   // protected by webhook signature
+      'webhooks',
+      'contact',
+      'password/', // forgotten-password flow
+      'tools/',    // public token-counter / cost-calculator widgets
+      'analytics/track', // anonymous tracking endpoint
+      'community/',// public community links
+      'optimize',  // intentionally public per route comment ("no auth required for MVP")
+    ];
+
+    // STRONG auth signals — any of these in a route file proves it actually
+    // verifies the caller's identity, not just that it touches headers or
+    // does a Prisma user lookup. Tightened from the previous broad regex
+    // that accepted weak signals like `prisma.user`, `userId`, `request.headers`.
+    const STRONG_AUTH_PATTERNS = [
+      /verifyAuthToken\s*\(/,
+      /getServerSession\s*\(/,
+      /requireAdmin\s*\(/,
+      /verifyMutatingRequest\s*\(/,
+      /getUserIdFromRequest\s*\(/,
+      /jwt\.verify\s*\(/,
+      /getToken\s*\(/,
+      /cookies\.get\(['"]fortress_auth_token/,
+      /CRON_SECRET/,
+      /WEBHOOK_SECRET/,
+      /ADMIN_SECRET/,
     ];
 
     // Find ALL route.ts files under /api/
@@ -55,27 +106,51 @@ test.describe('Auth Pattern Guard', () => {
       if (PUBLIC_ROUTES.some(pub => relative.startsWith(pub))) continue;
 
       const content = require('fs').readFileSync(routeFile, 'utf-8');
-      // Broad auth pattern check — catches all auth strategies
-      const hasAuth = /verifyAuthToken|getServerSession|session\.user|cookies|Authorization|adminToken|CRON_SECRET|WEBHOOK_SECRET|Bearer|jwt\.verify|NextAuth|request\.headers|req\.headers|getToken|prisma\.user|userId|user\.id/.test(content);
+      const hasAuth = STRONG_AUTH_PATTERNS.some(p => p.test(content));
 
       if (!hasAuth) {
         unprotected.push(relative);
       }
     }
 
-    // Allow some routes that use analytics/tracking (public by design)
-    // Filter out routes that use auth patterns not caught by regex,
-    // or are intentionally accessible (admin panel has its own auth layer)
-    const reallyUnprotected = unprotected.filter(r =>
-      !r.includes('tools/') && !r.includes('analytics') && !r.includes('community') &&
-      !r.includes('optimize') && !r.includes('security/') && !r.includes('emails') &&
-      !r.includes('email/') && !r.includes('admin/') && !r.includes('mfa/') &&
-      !r.includes('api-keys') && !r.includes('subscriptions') && !r.includes('users/')
+    // Routes flagged by the tight regex that are KNOWN broken/incomplete stubs
+    // — they have no real auth and should be fixed (not just exempted forever).
+    // Each entry below has a corresponding cleanup todo. Remove from this list
+    // as the underlying route is fixed.
+    //
+    // NOTE: admin/ is NOT exempted — admin routes MUST use requireAdmin().
+    // See feedback_qa_admin_role_blindspot memory.
+    const KNOWN_BROKEN_STUBS = [
+      // FIXED on 2026-04-08 — kept here as comment so the diff is reviewable:
+      //   security/sessions     — now uses verifyAuthToken + per-user scope
+      //   security/metrics      — now uses verifyAuthToken
+      //   security/dashboard-metrics — now uses requireAdmin
+      //   mfa/totp-setup        — now uses verifyAuthToken, ignores body email
+      //   mfa/verify            — now uses verifyAuthToken
+      //   analytics             — GET now uses requireAdmin; POST stays public
+      //   analytics/metrics     — now uses requireAdmin
+      //
+      // The remaining list below is the ACTUAL set of routes that the
+      // strong-auth regex doesn't recognize — investigated and confirmed
+      // unprotected (or protected by a pattern not in STRONG_AUTH_PATTERNS).
+
+      // (populated below after running the test)
+    ];
+
+    // Match the route prefix exactly OR followed by '/' so 'emails' matches
+    // both bare /api/emails and /api/emails/[id], without accidentally
+    // matching /api/emails-other.
+    const reallyUnprotected = unprotected.filter(
+      r => !KNOWN_BROKEN_STUBS.some(stub => r === stub || r.startsWith(`${stub}/`))
     );
 
     expect(
       reallyUnprotected,
-      `UNPROTECTED API routes (no auth pattern found):\n${reallyUnprotected.map(r => `  /api/${r}`).join('\n')}\nAdd auth or update PUBLIC_ROUTES if intentional.`
+      `UNPROTECTED API routes (no strong auth pattern found):\n${reallyUnprotected.map(r => `  /api/${r}`).join('\n')}\n\n` +
+      `Each route must do ONE of these:\n` +
+      `  1) Call a known auth helper (verifyAuthToken, requireAdmin, etc)\n` +
+      `  2) Be added to PUBLIC_ROUTES (intentionally public)\n` +
+      `  3) Be added to KNOWN_BROKEN_STUBS with a TODO\n`
     ).toHaveLength(0);
   });
 
