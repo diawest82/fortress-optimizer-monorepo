@@ -1,28 +1,17 @@
 """
 Test Suite 4: End-to-End User Journey
 Tests the complete money path: register → optimize → check usage → hit limits.
-Run against a live or local server.
-Usage: pytest tests/test_e2e_user_journey.py --base-url http://localhost:8000
+
+Default: in-process FastAPI TestClient (CI-safe).
+Live mode: FORTRESS_TEST_URL=https://api.fortress-optimizer.com pytest ...
+
+Uses unified `client` fixture from conftest.py.
 """
 
-import os
 import pytest
-import httpx
-
-pytestmark = pytest.mark.skipif(
-    not os.environ.get("FORTRESS_TEST_URL"),
-    reason="Requires live server (set FORTRESS_TEST_URL)"
-)
-
-BASE_URL = os.getenv("FORTRESS_TEST_URL", "http://localhost:8000")
 
 
-@pytest.fixture(scope="module")
-def client():
-    return httpx.Client(base_url=BASE_URL, timeout=15.0)
-
-
-@pytest.fixture(scope="module")
+@pytest.fixture
 def registered_key(client):
     """Register a fresh API key for the test session"""
     resp = client.post("/api/keys/register", json={"name": "e2e-test", "tier": "free"})
@@ -32,21 +21,7 @@ def registered_key(client):
     return data["api_key"]
 
 
-@pytest.fixture(scope="module")
-def pro_key(client):
-    """Create a pro tier key directly in DB"""
-    import uuid, hashlib
-    from main import API_KEY_SECRET
-    from models import ApiKey
-    from conftest import _TestSession
-
-    raw_key = f"fk_{uuid.uuid4().hex}"
-    key_hash = hashlib.sha256(f"{API_KEY_SECRET}:{raw_key}".encode()).hexdigest()
-    db = _TestSession()
-    db.add(ApiKey(key_hash=key_hash, name="e2e-pro", tier="pro"))
-    db.commit()
-    db.close()
-    return raw_key
+# pro_key fixture is provided by conftest.py — see tests/conftest.py:pro_key
 
 
 def auth(key):
@@ -149,6 +124,13 @@ class TestStep4UsageTracking:
     """User checks their usage after making requests"""
 
     def test_usage_shows_requests(self, client, registered_key):
+        # Make a request first so usage tracking has something to show.
+        # (Was implicit in the original module-scoped fixtures.)
+        client.post(
+            "/api/optimize",
+            json={"prompt": "Usage tracking sample prompt with several words"},
+            headers=auth(registered_key),
+        )
         resp = client.get("/api/usage", headers=auth(registered_key))
         data = resp.json()
         assert data["requests"] > 0

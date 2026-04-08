@@ -1,40 +1,32 @@
 """
 Cross-product live smoke tests — verify every product can talk to the Fortress API.
 
-Run with:
-    FORTRESS_TEST_URL=http://localhost:8000 pytest tests/test_product_smoke.py -v
+Default: in-process FastAPI TestClient (CI-safe).
+Live mode: FORTRESS_TEST_URL=https://api.fortress-optimizer.com pytest ...
 
-Requires: httpx (pip install httpx)
+Tests reference an `http` fixture for backward compatibility — it's just an
+alias for the conftest `client` fixture.
 """
 
-import os
 import uuid
 
-import httpx
 import pytest
 
-pytestmark = pytest.mark.skipif(
-    not os.environ.get("FORTRESS_TEST_URL"),
-    reason="Requires live server — set FORTRESS_TEST_URL",
-)
-
-BASE_URL = os.environ.get("FORTRESS_TEST_URL", "https://api.fortress-optimizer.com")
 SAMPLE_PROMPT = (
     "Please help me write a Python function that calculates the fibonacci "
     "sequence using dynamic programming and memoization for optimal performance."
 )
 
 
-@pytest.fixture(scope="module")
-def http():
-    """Module-scoped httpx client."""
-    with httpx.Client(base_url=BASE_URL, timeout=30.0) as client:
-        yield client
+@pytest.fixture
+def http(client):
+    """Alias for the unified `client` fixture (TestClient or live httpx)."""
+    return client
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture
 def api_key(http):
-    """Register a fresh API key once per module."""
+    """Register a fresh API key for the test."""
     resp = http.post(
         "/api/keys/register",
         json={"name": f"smoke-test-{uuid.uuid4().hex[:8]}", "tier": "free"},
@@ -45,7 +37,7 @@ def api_key(http):
     return key
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture
 def auth(api_key):
     """Bearer auth headers."""
     return {"Authorization": f"Bearer {api_key}"}

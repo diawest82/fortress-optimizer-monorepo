@@ -2,30 +2,14 @@
 Test Suite 7: Cross-Product Consistency Tests
 Verifies that the same prompt produces identical results through
 different authentication methods and multiple sequential requests.
-Run against a live or local server.
+
+Default: in-process FastAPI TestClient (CI-safe).
+Live mode: FORTRESS_TEST_URL=https://api.fortress-optimizer.com pytest ...
+
+Uses unified `client` and `api_key` fixtures from conftest.py.
 """
 
-import os
 import pytest
-import httpx
-
-pytestmark = pytest.mark.skipif(
-    not os.environ.get("FORTRESS_TEST_URL"),
-    reason="Requires live server (set FORTRESS_TEST_URL)"
-)
-
-BASE_URL = os.getenv("FORTRESS_TEST_URL", "http://localhost:8000")
-
-
-@pytest.fixture(scope="module")
-def client():
-    return httpx.Client(base_url=BASE_URL, timeout=15.0)
-
-
-@pytest.fixture(scope="module")
-def api_key(client):
-    resp = client.post("/api/keys/register", json={"name": "consistency-test", "tier": "free"})
-    return resp.json()["api_key"]
 
 
 # ─── Same Prompt = Same Result ────────────────────────────────────────────────

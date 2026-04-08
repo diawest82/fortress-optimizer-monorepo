@@ -1,40 +1,17 @@
 """
 Test Suite: Security & Input Fuzzing
-Tests that the production API gracefully handles malicious/malformed inputs.
-Run against live server:
-    FORTRESS_TEST_URL=http://myp-zwp-lb-598798440.us-east-1.elb.amazonaws.com \
-    pytest tests/test_security.py -v
+Tests that the API gracefully handles malicious/malformed inputs.
+
+Default: runs against in-process TestClient (FastAPI), suitable for CI.
+Live mode: set FORTRESS_TEST_URL to point at a real server, e.g.
+    FORTRESS_TEST_URL=https://api.fortress-optimizer.com pytest tests/test_security.py -v
+
+Both modes use the unified `client` and `api_key` fixtures from conftest.py.
 """
 
-import os
 import json
 import pytest
-import httpx
-
-pytestmark = pytest.mark.skipif(
-    not os.environ.get("FORTRESS_TEST_URL"),
-    reason="Requires live server (set FORTRESS_TEST_URL)"
-)
-
-BASE_URL = os.getenv(
-    "FORTRESS_TEST_URL",
-    "http://myp-zwp-lb-598798440.us-east-1.elb.amazonaws.com",
-)
-
-
-@pytest.fixture(scope="module")
-def client():
-    return httpx.Client(base_url=BASE_URL, timeout=15.0)
-
-
-@pytest.fixture(scope="module")
-def api_key(client):
-    """Register a fresh API key for authenticated tests."""
-    resp = client.post("/api/keys/register", json={"name": "security-fuzz-test", "tier": "free"})
-    assert resp.status_code == 200, f"Key registration failed: {resp.text}"
-    key = resp.json()["api_key"]
-    assert key.startswith("fk_")
-    return key
+import httpx  # imported for exception types only — see except clauses below
 
 
 def auth(key):

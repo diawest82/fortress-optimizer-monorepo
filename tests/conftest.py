@@ -43,9 +43,37 @@ def _override_get_db():
         db.close()
 
 
+def _reset_main_module_state():
+    """Reset module-level rate-limit + tracking state in main.py.
+
+    Without this, the in-memory rate limiter, registration tracker, and
+    key-sharing detector accumulate state across the test session and
+    cause cascading 429s. Test isolation requires resetting them before
+    every test, regardless of which test file we're in.
+    """
+    import main
+    if hasattr(main, "_registration_tracker"):
+        main._registration_tracker.clear()
+    if hasattr(main, "rate_limiter"):
+        rl = main.rate_limiter
+        if hasattr(rl, "_minute_buckets"):
+            rl._minute_buckets.clear()
+        if hasattr(rl, "_day_buckets"):
+            rl._day_buckets.clear()
+    if hasattr(main, "key_sharing_detector") and hasattr(main.key_sharing_detector, "_tracking"):
+        main.key_sharing_detector._tracking.clear()
+
+
 @pytest.fixture(autouse=True)
 def _setup_test_db(request):
     """Create tables before each test, drop after. Only for tests/ directory."""
+    # Always reset rate-limit/tracking state, regardless of test file
+    _reset_main_module_state()
+
+    # Skip in live mode — when hitting a real server we don't touch the local DB
+    if os.environ.get("FORTRESS_TEST_URL"):
+        yield
+        return
     # Skip for backend/ tests and migration tests which have their own setup
     test_path = str(request.fspath)
     if os.sep + "backend" + os.sep in test_path or test_path.endswith("backend/test_api.py"):
@@ -85,8 +113,53 @@ def _setup_test_db(request):
 
 @pytest.fixture
 def client():
-    """FastAPI TestClient — no live server needed."""
-    return TestClient(app)
+    """HTTP client — defaults to FastAPI TestClient (no live server needed).
+
+    Default mode: returns TestClient(app). Tests run against the in-process
+    FastAPI app with an isolated in-memory SQLite database. Fast, no network,
+    safe for CI. This is what runs in backend-ci.yml and backend-deploy.yml.
+
+    Live mode: set FORTRESS_TEST_URL=https://api.example.com to make the
+    same tests hit a real server (httpx.Client). Used for manual post-deploy
+    smoke verification. Requires the live server to be running and reachable.
+
+    Test code uses the same `.get(path)` / `.post(path, json=...)` API in
+    both modes — TestClient is httpx-compatible.
+    """
+    live_url = os.environ.get("FORTRESS_TEST_URL")
+    if live_url:
+        import httpx
+        with httpx.Client(base_url=live_url, timeout=15.0) as c:
+            yield c
+    else:
+        yield TestClient(app)
+
+
+@pytest.fixture
+async def async_client():
+    """Async HTTP client — for concurrency / load tests.
+
+    Default mode: httpx.AsyncClient with ASGITransport bound to the
+    in-process FastAPI app. Real concurrency at the FastAPI layer (no
+    network), so concurrency-correctness tests like "50 simultaneous
+    requests should produce 50 unique request_ids" still run in CI.
+
+    Live mode: when FORTRESS_TEST_URL is set, hits the live server and
+    measures real network concurrency.
+
+    Note: this is `async` so tests using it must be `async def` and
+    decorated with `@pytest.mark.asyncio` (requires pytest-asyncio).
+    """
+    import httpx
+    live_url = os.environ.get("FORTRESS_TEST_URL")
+    if live_url:
+        async with httpx.AsyncClient(base_url=live_url, timeout=30.0) as c:
+            yield c
+    else:
+        from httpx import ASGITransport
+        transport = ASGITransport(app=app)
+        async with httpx.AsyncClient(transport=transport, base_url="http://testserver", timeout=30.0) as c:
+            yield c
 
 
 @pytest.fixture
