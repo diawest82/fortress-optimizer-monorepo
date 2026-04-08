@@ -1,13 +1,16 @@
 /**
- * Email Management API
- * Endpoints for viewing and managing received emails
+ * Email Management API — admin-only inbox of received customer emails
+ *
+ * History: this used to return ALL inbox emails to anyone who hit the URL.
+ * Caught by 83-auth-pattern-guard as a KNOWN_BROKEN_STUB on 2026-04-08.
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { requireAdmin } from '@/lib/admin-auth';
 
 /**
- * GET /api/emails
+ * GET /api/emails (admin-only)
  * Get all emails with optional filtering
  * Query params:
  *   - status: 'unread' | 'read' | 'replied' | 'archived'
@@ -15,6 +18,9 @@ import { prisma } from '@/lib/prisma';
  *   - isEnterprise: 'true' | 'false'
  */
 export async function GET(request: NextRequest) {
+  const auth = await requireAdmin(request);
+  if (!auth.ok) return auth.response;
+
   try {
     const searchParams = request.nextUrl.searchParams;
     const status = searchParams.get('status');

@@ -1,13 +1,22 @@
-// Email sequences management API
-// File: src/app/api/email/sequences/route.ts
+/**
+ * Email sequences management API (admin-only marketing automation)
+ *
+ * History: this used to allow anyone to read AND create marketing email
+ * sequences. Caught by 83-auth-pattern-guard as a KNOWN_BROKEN_STUB on
+ * 2026-04-08.
+ */
 
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
+import { requireAdmin } from '@/lib/admin-auth';
 
 const prisma = new PrismaClient();
 
-// Get all sequences
+// Get all sequences (admin-only)
 export async function GET(req: NextRequest) {
+  const auth = await requireAdmin(req);
+  if (!auth.ok) return auth.response;
+
   try {
     const sequences = await prisma.emailSequence.findMany({
       include: { emails: true },
@@ -22,8 +31,11 @@ export async function GET(req: NextRequest) {
   }
 }
 
-// Create new sequence
+// Create new sequence (admin-only)
 export async function POST(req: NextRequest) {
+  const auth = await requireAdmin(req);
+  if (!auth.ok) return auth.response;
+
   try {
     const { name, description, emails } = await req.json();
 

@@ -21,8 +21,11 @@ function getTierFeatures(tier: string) {
 
 export async function GET(req: NextRequest) {
   try {
-    // Try cookie auth first, then header fallback
-    let userId = null;
+    // Verify the signed JWT cookie. The previous code had a fallback to
+    // an `x-user-id` request header, which was fully spoofable — anyone
+    // could pass any user id and read/modify their subscription. Removed
+    // 2026-04-08 after 83-auth-pattern-guard caught it. Cookie-only now.
+    let userId: string | null = null;
     const cookieToken = req.cookies.get('fortress_auth_token')?.value;
     if (cookieToken) {
       try {
@@ -30,10 +33,7 @@ export async function GET(req: NextRequest) {
         const JWT_SECRET = process.env.JWT_SECRET || process.env.NEXTAUTH_SECRET || '';
         const decoded = jwt.default.verify(cookieToken, JWT_SECRET) as { id: string };
         userId = decoded.id;
-      } catch { /* fall through to header */ }
-    }
-    if (!userId) {
-      userId = req.headers.get('x-user-id');
+      } catch { /* invalid token */ }
     }
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -94,8 +94,11 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    // Try cookie auth first, then header fallback
-    let userId = null;
+    // Verify the signed JWT cookie. The previous code had a fallback to
+    // an `x-user-id` request header, which was fully spoofable — anyone
+    // could pass any user id and read/modify their subscription. Removed
+    // 2026-04-08 after 83-auth-pattern-guard caught it. Cookie-only now.
+    let userId: string | null = null;
     const cookieToken = req.cookies.get('fortress_auth_token')?.value;
     if (cookieToken) {
       try {
@@ -103,10 +106,7 @@ export async function POST(req: NextRequest) {
         const JWT_SECRET = process.env.JWT_SECRET || process.env.NEXTAUTH_SECRET || '';
         const decoded = jwt.default.verify(cookieToken, JWT_SECRET) as { id: string };
         userId = decoded.id;
-      } catch { /* fall through to header */ }
-    }
-    if (!userId) {
-      userId = req.headers.get('x-user-id');
+      } catch { /* invalid token */ }
     }
     if (!userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

@@ -9,12 +9,16 @@ import {
   getEnterpriseQueries,
   getEmails,
 } from '@/lib/email-storage';
+import { requireAdmin } from '@/lib/admin-auth';
 
 /**
- * GET /api/emails/stats/unread
+ * GET /api/emails/stats/unread (admin-only)
  * Get count of unread emails
  */
 export async function GET(request: NextRequest) {
+  const auth = await requireAdmin(request);
+  if (!auth.ok) return auth.response;
+
   try {
     const pathname = request.nextUrl.pathname;
 

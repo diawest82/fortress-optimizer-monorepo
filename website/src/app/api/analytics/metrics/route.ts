@@ -1,10 +1,20 @@
-// API route for getting analytics metrics
-// File: src/app/api/analytics/metrics/route.ts
+/**
+ * GET /api/analytics/metrics — admin-only business intelligence
+ *
+ * Returns conversion funnels, signups by source, event counts, traffic
+ * sources, and tool usage. This is admin-grade BI data — anyone hitting
+ * the URL used to scrape it freely until 2026-04-08, when
+ * 83-auth-pattern-guard caught the gap as a KNOWN_BROKEN_STUB.
+ */
 
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { requireAdmin } from '@/lib/admin-auth';
 
 export async function GET(req: NextRequest) {
+  const auth = await requireAdmin(req);
+  if (!auth.ok) return auth.response;
+
   try {
     const searchParams = req.nextUrl.searchParams;
     const days = parseInt(searchParams.get('days') || '7');

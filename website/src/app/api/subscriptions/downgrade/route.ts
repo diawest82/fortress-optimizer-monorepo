@@ -4,14 +4,15 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
+import { verifyAuthToken } from '@/lib/jwt-auth';
 
 export async function POST(req: NextRequest) {
-  try {
-    const authHeader = req.headers.get('authorization');
-    if (!authHeader?.startsWith('Bearer ')) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+  const auth = verifyAuthToken(req);
+  if (!auth) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
 
+  try {
     const { newTier } = await req.json();
     const validTiers = ['free', 'starter', 'growth'];
 

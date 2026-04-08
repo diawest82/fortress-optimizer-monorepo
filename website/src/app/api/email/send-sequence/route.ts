@@ -1,13 +1,22 @@
-// Email automation API
-// File: src/app/api/email/send-sequence/route.ts
+/**
+ * Email automation API — admin-only marketing sequence trigger
+ *
+ * History: this used to accept ANY {email, sequenceId} from anyone and
+ * blast email sequences via Resend. Open spam relay. Caught by
+ * 83-auth-pattern-guard as a KNOWN_BROKEN_STUB on 2026-04-08.
+ */
 
 import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 import { sendEmail } from '@/lib/email';
+import { requireAdmin } from '@/lib/admin-auth';
 
 const prisma = new PrismaClient();
 
 export async function POST(req: NextRequest) {
+  const auth = await requireAdmin(req);
+  if (!auth.ok) return auth.response;
+
   try {
     const { userId, email, sequenceId } = await req.json();
 
