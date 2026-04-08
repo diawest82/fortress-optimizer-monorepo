@@ -5,11 +5,15 @@
 
 import { NextResponse, NextRequest } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { requireAdmin } from '@/lib/admin-auth';
 
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ userId: string }> }
 ) {
+  const auth = await requireAdmin(request);
+  if (!auth.ok) return auth.response;
+
   try {
     const { userId } = await params;
 

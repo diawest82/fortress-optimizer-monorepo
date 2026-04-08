@@ -5,8 +5,9 @@
  * Includes caching and timeout to prevent portal hanging
  */
 
-import { NextResponse } from 'next/server';
+import { NextResponse, NextRequest } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { requireAdmin } from '@/lib/admin-auth';
 
 // Simple in-memory cache with 5-minute TTL
 interface KPIResult {
@@ -36,7 +37,12 @@ function setCachedKPIs(data: KPIResult): void {
   cacheTimestamp = Date.now();
 }
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  // Auth must run BEFORE the cache lookup — otherwise an unauthenticated
+  // request would be served stale admin data straight from memory.
+  const auth = await requireAdmin(request);
+  if (!auth.ok) return auth.response;
+
   try {
     // Check cache first - return immediately if cached
     const cached = getCachedKPIs();
