@@ -11,11 +11,8 @@ const UNIQUE = Date.now().toString(36);
 
 /**
  * Read the fortress_auth_token JWT from the Set-Cookie response header.
- *
- * Why: /api/auth/login intentionally does NOT return the token in the body —
- * it sets it as an httpOnly cookie. The previous helper read `data.token`
- * which was always empty, so every "authenticated" Stripe assertion was
- * silently degrading to unauthenticated. See feedback memory.
+ * Both /api/auth/login and /api/auth/signup set this; the response body
+ * never carries the token.
  */
 function extractAuthCookie(response: Response): string {
   const headers = response.headers as Headers & { getSetCookie?: () => string[] };
@@ -29,27 +26,26 @@ function extractAuthCookie(response: Response): string {
   return '';
 }
 
+/**
+ * Create a fresh test user via signup. Signup ITSELF authenticates the
+ * user — no follow-up login call needed (and it would risk tripping the
+ * per-IP login rate limiter).
+ */
 async function createAuthenticatedUser(): Promise<{ token: string; email: string }> {
   const email = `stripe-${UNIQUE}-${Math.random().toString(36).slice(2)}@test.fortress-optimizer.com`;
   const password = `SecureP@ss${UNIQUE}!`;
 
-  await fetch(`${BASE}/api/auth/signup`, {
+  const signupRes = await fetch(`${BASE}/api/auth/signup`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email, password, name: 'Stripe Test' }),
   });
-
-  const loginRes = await fetch(`${BASE}/api/auth/login`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email, password }),
-  });
-  if (!loginRes.ok) {
-    throw new Error(`Login failed for ${email}: ${loginRes.status} ${await loginRes.text()}`);
+  if (!signupRes.ok) {
+    throw new Error(`Signup failed for ${email}: ${signupRes.status} ${await signupRes.text()}`);
   }
-  const token = extractAuthCookie(loginRes);
+  const token = extractAuthCookie(signupRes);
   if (!token) {
-    throw new Error(`Login for ${email} succeeded but no fortress_auth_token cookie was returned`);
+    throw new Error(`Signup for ${email} succeeded but no fortress_auth_token cookie was returned`);
   }
   return { token, email };
 }

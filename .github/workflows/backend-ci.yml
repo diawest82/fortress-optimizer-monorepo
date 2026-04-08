@@ -7,12 +7,17 @@ on:
       - "shared-libs/**"
       - "tests/**"
       - "backend/requirements.txt"
+      - ".github/workflows/backend-ci.yml"
   push:
     branches: [main]
     paths:
       - "backend/**"
       - "shared-libs/**"
       - "tests/**"
+      - ".github/workflows/backend-ci.yml"
+  # Allow manual runs from the Actions tab — useful for verifying the
+  # --ignore list after edits to this workflow itself.
+  workflow_dispatch:
 
 jobs:
   test:

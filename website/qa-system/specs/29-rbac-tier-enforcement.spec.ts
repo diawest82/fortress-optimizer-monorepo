@@ -12,10 +12,10 @@ const UNIQUE = Date.now().toString(36);
 /**
  * Read the fortress_auth_token JWT from the Set-Cookie response header.
  *
- * Why: /api/auth/login intentionally does NOT return the token in the body —
- * it sets it as an httpOnly cookie. The previous helper read `data.token`
- * which was always empty, so every "authenticated" assertion in this file
- * was silently degrading to unauthenticated. See feedback memory.
+ * Why: /api/auth/login and /api/auth/signup both intentionally put the JWT
+ * in an httpOnly cookie, never the response body. The previous helper read
+ * `data.token` which was always empty, so every "authenticated" assertion
+ * silently degraded to unauthenticated.
  */
 function extractAuthCookie(response: Response): string {
   // Node 18+ exposes getSetCookie() which returns all Set-Cookie headers.
@@ -31,27 +31,35 @@ function extractAuthCookie(response: Response): string {
   return '';
 }
 
+/**
+ * Create a fresh test user via signup and return the auth cookie.
+ *
+ * Important: signup ITSELF authenticates the user — /api/auth/signup sets
+ * fortress_auth_token in the response. There is no need for a follow-up
+ * login call. Doing so just doubles the round-trip and risks tripping the
+ * per-IP login rate limiter (15 minute window after 5 failed attempts).
+ *
+ * History: previous version did signup + login. When login failed (e.g.
+ * because signup quietly returned 400 from password validation, or hit
+ * the rate limiter), 6 sequential createTestUser calls would lock out
+ * the test runner's IP for 15 minutes. The 2026-04-08 deploy run failed
+ * exactly this way.
+ */
 async function createTestUser(): Promise<{ email: string; password: string; token: string }> {
   const email = `rbac-${UNIQUE}-${Math.random().toString(36).slice(2)}@test.fortress-optimizer.com`;
   const password = `SecureP@ss${UNIQUE}!`;
 
-  await fetch(`${BASE}/api/auth/signup`, {
+  const signupRes = await fetch(`${BASE}/api/auth/signup`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email, password, name: 'RBAC Test' }),
   });
-
-  const loginRes = await fetch(`${BASE}/api/auth/login`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email, password }),
-  });
-  if (!loginRes.ok) {
-    throw new Error(`Login failed for ${email}: ${loginRes.status} ${await loginRes.text()}`);
+  if (!signupRes.ok) {
+    throw new Error(`Signup failed for ${email}: ${signupRes.status} ${await signupRes.text()}`);
   }
-  const token = extractAuthCookie(loginRes);
+  const token = extractAuthCookie(signupRes);
   if (!token) {
-    throw new Error(`Login for ${email} succeeded but no fortress_auth_token cookie was returned`);
+    throw new Error(`Signup for ${email} succeeded but no fortress_auth_token cookie was returned`);
   }
 
   return { email, password, token };
