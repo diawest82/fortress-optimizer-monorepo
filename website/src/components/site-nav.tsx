@@ -4,11 +4,14 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Menu, X } from 'lucide-react';
+import { useAuthContext } from '@/context/AuthContext';
 
 export function SiteNav() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const router = useRouter();
+  const { user } = useAuthContext();
+  const isAdmin = user?.role === 'admin';
 
   useEffect(() => {
     // Check auth via cookie (httpOnly cookie is set by server,
@@ -80,6 +83,7 @@ export function SiteNav() {
   const authenticatedItems = [
     { label: 'Referrals', href: '/refer' },
     { label: 'Account', href: '/account' },
+    ...(isAdmin ? [{ label: 'Admin', href: '/admin' }] : []),
   ];
 
   const unauthenticatedItems = [

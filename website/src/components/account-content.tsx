@@ -266,6 +266,8 @@ export default function AccountContent() {
     return null;
   }
 
+  const isAdmin = (user as any)?.role === "admin";
+
   const tabs = [
     { id: "overview", label: "Overview" },
     { id: "subscription", label: "Subscription" },
@@ -275,6 +277,7 @@ export default function AccountContent() {
     { id: "api-keys", label: "API Keys" },
     { id: "security", label: "Security" },
     { id: "settings", label: "Settings" },
+    ...(isAdmin ? [{ id: "admin", label: "Admin" }] : []),
   ];
 
   return (
@@ -670,6 +673,52 @@ export default function AccountContent() {
                     <p className="text-slate-400">Loading billing information...</p>
                   </div>
                 )}
+              </div>
+            )}
+
+            {activeTab === "admin" && isAdmin && (
+              <div className="space-y-6">
+                <h1 className="text-3xl font-bold text-white">Admin</h1>
+                <p className="text-slate-400">
+                  Platform administration. These tools are only visible to users with the admin role.
+                </p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <Link
+                    href="/admin"
+                    className="rounded-2xl border border-slate-800 bg-slate-900/50 p-6 hover:border-slate-600 transition"
+                  >
+                    <h3 className="font-semibold text-white mb-2">KPI Dashboard</h3>
+                    <p className="text-slate-400 text-sm">Real-time platform metrics: signups, optimizations, tickets</p>
+                  </Link>
+                  <Link
+                    href="/admin/users"
+                    className="rounded-2xl border border-slate-800 bg-slate-900/50 p-6 hover:border-slate-600 transition"
+                  >
+                    <h3 className="font-semibold text-white mb-2">User Management</h3>
+                    <p className="text-slate-400 text-sm">View, create, and manage all platform users</p>
+                  </Link>
+                  <Link
+                    href="/admin/emails"
+                    className="rounded-2xl border border-slate-800 bg-slate-900/50 p-6 hover:border-slate-600 transition"
+                  >
+                    <h3 className="font-semibold text-white mb-2">Inbound Emails</h3>
+                    <p className="text-slate-400 text-sm">Triaged customer email inbox with AI categorization</p>
+                  </Link>
+                  <Link
+                    href="/admin/notifications"
+                    className="rounded-2xl border border-slate-800 bg-slate-900/50 p-6 hover:border-slate-600 transition"
+                  >
+                    <h3 className="font-semibold text-white mb-2">Notifications</h3>
+                    <p className="text-slate-400 text-sm">System notifications and alerting</p>
+                  </Link>
+                  <Link
+                    href="/admin/settings"
+                    className="rounded-2xl border border-slate-800 bg-slate-900/50 p-6 hover:border-slate-600 transition"
+                  >
+                    <h3 className="font-semibold text-white mb-2">Platform Settings</h3>
+                    <p className="text-slate-400 text-sm">Enterprise threshold, auto-response, notification email</p>
+                  </Link>
+                </div>
               </div>
             )}
 

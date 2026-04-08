@@ -1,8 +1,9 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
+import { useAuthContext } from '@/context/AuthContext';
 
 export default function AdminLayout({
   children,
@@ -11,23 +12,24 @@ export default function AdminLayout({
 }) {
   const router = useRouter();
   const pathname = usePathname();
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const { user, loading } = useAuthContext();
 
   // Login and setup pages bypass auth check
   const isPublicAdminPage = pathname === '/admin/login' || pathname === '/admin/setup';
 
+  const isAdmin = (user as any)?.role === 'admin';
+
   useEffect(() => {
     if (isPublicAdminPage) return;
-
-    const token = localStorage.getItem('adminToken');
-    if (!token) {
-      router.push('/admin/login');
+    if (loading) return;
+    if (!user) {
+      router.push(`/auth/login?callbackUrl=${encodeURIComponent(pathname)}`);
       return;
     }
-    Promise.resolve().then(() => {
-      setIsAuthenticated(true);
-    });
-  }, [router, isPublicAdminPage]);
+    if (!isAdmin) {
+      router.push('/account');
+    }
+  }, [router, isPublicAdminPage, loading, user, isAdmin, pathname]);
 
   // Public admin pages render without nav
   if (isPublicAdminPage) {
@@ -35,7 +37,7 @@ export default function AdminLayout({
   }
 
   // Show nothing while checking auth (silent redirect)
-  if (!isAuthenticated) {
+  if (loading || !user || !isAdmin) {
     return null;
   }
 
@@ -82,10 +84,21 @@ export default function AdminLayout({
             >
               Notifications
             </Link>
+            <Link
+              href="/account"
+              className="text-sm text-slate-400 hover:text-white transition"
+            >
+              Exit Admin
+            </Link>
             <button
-              onClick={() => {
-                localStorage.removeItem('adminToken');
-                window.dispatchEvent(new Event('storage'));
+              onClick={async () => {
+                try {
+                  await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
+                } catch {
+                  // server-side cookie clear failed, fall through to client clear
+                }
+                document.cookie = 'fortress_logged_in=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+                document.cookie = 'fortress_csrf_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT';
                 router.push('/');
               }}
               className="text-sm text-slate-400 hover:text-white transition"
