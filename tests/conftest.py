@@ -9,6 +9,7 @@ import os
 import sys
 import pathlib
 import pytest
+import pytest_asyncio
 
 # Force test environment BEFORE any app imports
 os.environ.setdefault("DATABASE_URL", "sqlite:///./test_fortress_shared.db")
@@ -135,7 +136,7 @@ def client():
         yield TestClient(app)
 
 
-@pytest.fixture
+@pytest_asyncio.fixture
 async def async_client():
     """Async HTTP client — for concurrency / load tests.
 
@@ -147,8 +148,13 @@ async def async_client():
     Live mode: when FORTRESS_TEST_URL is set, hits the live server and
     measures real network concurrency.
 
-    Note: this is `async` so tests using it must be `async def` and
-    decorated with `@pytest.mark.asyncio` (requires pytest-asyncio).
+    Note: must use @pytest_asyncio.fixture, not @pytest.fixture, because
+    pytest-asyncio 0.21.x requires the explicit decorator for async
+    fixtures. With @pytest.fixture the yield turns into an async_generator
+    that the test sees as a non-awaitable object → "AttributeError:
+    'async_generator' object has no attribute 'post'".
+
+    Tests using it must be `async def` and decorated with `@pytest.mark.asyncio`.
     """
     import httpx
     live_url = os.environ.get("FORTRESS_TEST_URL")
