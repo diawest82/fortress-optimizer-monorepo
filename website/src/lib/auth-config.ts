@@ -139,7 +139,10 @@ export async function createUser(
         email,
         password: hashedPassword,
         name,
-        role: "admin", // Default role for new users
+        // role omitted — defaults to "viewer" via prisma/schema.prisma.
+        // Was hardcoded to "admin" until 2026-04-08, which made every
+        // signup automatically an admin. Admins must now be promoted
+        // explicitly via /api/admin/users.
       },
     });
 

@@ -66,13 +66,16 @@ export async function POST(request: NextRequest) {
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Create user
+    // Create user. Default role is 'viewer' (least privilege) — admins
+    // must be promoted explicitly via the request body. Was 'admin'
+    // until 2026-04-08, which combined with no auth on this endpoint
+    // (also fixed) meant anyone could create themselves an admin user.
     const user = await prisma.user.create({
       data: {
         email,
         name: name || email.split('@')[0],
         password: hashedPassword,
-        role: role || 'admin',
+        role: role || 'viewer',
       },
       select: {
         id: true,

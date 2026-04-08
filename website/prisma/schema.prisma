@@ -16,7 +16,7 @@ model User {
   email         String    @unique
   name          String?
   password      String
-  role          String    @default("admin") // admin, moderator, viewer
+  role          String    @default("viewer") // admin, moderator, viewer — default is least-privilege; admins must be promoted explicitly
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   
