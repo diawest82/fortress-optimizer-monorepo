@@ -16,10 +16,20 @@ class TestSentryConfig:
 
     def test_sentry_init_called_when_dsn_set(self, monkeypatch):
         monkeypatch.setenv("SENTRY_DSN", "https://examplePublicKey@o0.ingest.sentry.io/0")
-        from sentry_setup import init_sentry
-        # Should not raise
-        result = init_sentry()
+        # sentry-sdk is an optional dependency — mock it so init_sentry()
+        # exercises the happy path even when sentry-sdk isn't installed.
+        from unittest.mock import MagicMock
+        mock_sentry = MagicMock()
+        monkeypatch.setitem(sys.modules, "sentry_sdk", mock_sentry)
+        monkeypatch.setitem(sys.modules, "sentry_sdk.integrations.fastapi", MagicMock())
+        monkeypatch.setitem(sys.modules, "sentry_sdk.integrations.sqlalchemy", MagicMock())
+        # Force reimport to pick up the mock
+        import importlib
+        import sentry_setup
+        importlib.reload(sentry_setup)
+        result = sentry_setup.init_sentry()
         assert result is True
+        mock_sentry.init.assert_called_once()
 
     def test_sentry_not_init_when_dsn_empty(self, monkeypatch):
         monkeypatch.delenv("SENTRY_DSN", raising=False)

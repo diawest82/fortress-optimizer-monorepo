@@ -706,7 +706,8 @@ async def get_pricing():
     }
 
 
-# Simple IP-based rate limit for key registration (max 5 per hour per IP)
+# Simple IP-based rate limit for key registration (max per hour per IP)
+MAX_REGISTRATIONS_PER_HOUR = 5
 _registration_tracker: Dict[str, list] = defaultdict(list)
 
 
@@ -724,10 +725,10 @@ async def register_api_key(
     _registration_tracker[client_ip] = [
         t for t in _registration_tracker[client_ip] if t > hour_ago
     ]
-    if len(_registration_tracker[client_ip]) >= 5:
+    if len(_registration_tracker[client_ip]) >= MAX_REGISTRATIONS_PER_HOUR:
         raise HTTPException(
             status_code=429,
-            detail="Too many key registrations. Max 5 per hour.",
+            detail=f"Too many key registrations. Max {MAX_REGISTRATIONS_PER_HOUR} per hour.",
         )
     _registration_tracker[client_ip].append(now)
 

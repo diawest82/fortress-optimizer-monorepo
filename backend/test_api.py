@@ -51,8 +51,21 @@ client = TestClient(app)
 
 @pytest.fixture(autouse=True)
 def setup_teardown():
-    """Create tables before each test, drop after"""
+    """Create tables before each test, drop after. Also reset module-level state."""
     import pathlib
+    import main
+    # Reset in-memory rate limiter + registration tracker between tests
+    main._registration_tracker.clear()
+    main.MAX_REGISTRATIONS_PER_HOUR = 10000
+    if hasattr(main, "rate_limiter"):
+        rl = main.rate_limiter
+        if hasattr(rl, "_minute_buckets"):
+            rl._minute_buckets.clear()
+        if hasattr(rl, "_day_buckets"):
+            rl._day_buckets.clear()
+    if hasattr(main, "key_sharing_detector") and hasattr(main.key_sharing_detector, "_tracking"):
+        main.key_sharing_detector._tracking.clear()
+
     pathlib.Path("./test_fortress.db").unlink(missing_ok=True)
     # Dispose old connections so SQLite file is released
     test_engine.dispose()
@@ -367,7 +380,7 @@ class TestPricingEndpoint:
         assert client.get("/api/pricing").json()["tiers"]["free"]["price_monthly"] == 0
 
     def test_pricing_pro_tier_price(self):
-        assert client.get("/api/pricing").json()["tiers"]["pro"]["price_monthly"] == 9.99
+        assert client.get("/api/pricing").json()["tiers"]["pro"]["price_monthly"] == 15.0
 
     def test_pricing_team_tier_sliding_scale(self):
         team = client.get("/api/pricing").json()["tiers"]["team"]

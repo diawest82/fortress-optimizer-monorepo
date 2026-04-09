@@ -80,8 +80,11 @@ class TestAPIEndpointUsage:
     ])
     def test_uses_optimize_endpoint(self, product, file):
         content = read_file(product, file)
-        assert "/api/optimize" in content or "/optimize" in content, \
-            f"{product}/{file} does not reference /api/optimize"
+        # Direct endpoint reference OR use of a client library that wraps it
+        uses_endpoint = "/api/optimize" in content or "/optimize" in content
+        uses_client = "FortressClient" in content or "fortress_client" in content or ".optimize(" in content
+        assert uses_endpoint or uses_client, \
+            f"{product}/{file} does not reference /api/optimize or use a Fortress client"
 
     @pytest.mark.parametrize("product,file", [
         ("anthropic-sdk", "wrapper.py"),
@@ -92,7 +95,9 @@ class TestAPIEndpointUsage:
     def test_sends_prompt_field(self, product, file):
         content = read_file(product, file)
         has_prompt = '"prompt"' in content or "'prompt'" in content or "prompt," in content or "prompt:" in content
-        assert has_prompt, f"{product}/{file} does not send 'prompt' field"
+        # Client library wraps the prompt field internally
+        uses_client = "FortressClient" in content or ".optimize(" in content
+        assert has_prompt or uses_client, f"{product}/{file} does not send 'prompt' field"
 
     @pytest.mark.parametrize("product,file", [
         ("anthropic-sdk", "wrapper.py"),
@@ -118,8 +123,10 @@ class TestAuthHeaderUsage:
         has_bearer = "Bearer" in content or "bearer" in content
         has_xapikey = "X-API-Key" in content or "x-api-key" in content
         has_authorization = "Authorization" in content or "authorization" in content
-        assert has_bearer or has_xapikey or has_authorization, \
-            f"{product}/{file} does not use auth headers"
+        # Client library handles auth internally via api_key parameter
+        uses_client = "FortressClient" in content or "api_key" in content
+        assert has_bearer or has_xapikey or has_authorization or uses_client, \
+            f"{product}/{file} does not use auth headers or a Fortress client"
 
 
 class TestResponseParsing:

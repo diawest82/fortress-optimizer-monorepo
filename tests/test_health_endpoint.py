@@ -16,10 +16,11 @@ class TestHealthEndpoint:
         assert data["status"] == "healthy"
 
     def test_health_includes_version(self, client):
+        from main import app
         resp = client.get("/health")
         data = resp.json()
         assert "version" in data
-        assert data["version"] == "1.2.0"
+        assert data["version"] == app.version
 
     def test_health_includes_database_status(self, client):
         resp = client.get("/health")

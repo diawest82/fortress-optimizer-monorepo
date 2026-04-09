@@ -10,6 +10,12 @@ import pytest
 REPO_ROOT = pathlib.Path(__file__).parent.parent
 sys.path.insert(0, str(REPO_ROOT / "backend"))
 
+try:
+    import alembic  # noqa: F401
+    HAS_ALEMBIC = True
+except ImportError:
+    HAS_ALEMBIC = False
+
 
 class TestAlembicSetup:
     """Test that Alembic is properly configured."""
@@ -26,6 +32,7 @@ class TestAlembicSetup:
         assert len(py_files) >= 1, "No migration files found"
 
 
+@pytest.mark.skipif(not HAS_ALEMBIC, reason="alembic not installed")
 class TestMigrationUpgradeDowngrade:
     """Test that migrations can be applied and reverted."""
 

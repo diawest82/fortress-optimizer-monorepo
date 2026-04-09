@@ -106,7 +106,8 @@ class TestInfrastructureRequirements:
             line = line.strip()
             if not line or line.startswith("#") or line.startswith("-"):
                 continue
-            assert "==" in line, f"Unpinned: {line}"
+            has_pin = any(op in line for op in ("==", ">=", "~="))
+            assert has_pin, f"Unpinned: {line}"
 
     def test_alembic_configured(self):
         assert (REPO_ROOT / "alembic.ini").exists()

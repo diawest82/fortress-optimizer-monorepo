@@ -33,11 +33,19 @@ def _auth_headers(api_key):
 
 
 def _set_tokens(key, count):
-    """Set tokens_optimized for a key directly in DB."""
+    """Set monthly_tokens_used for a key directly in DB.
+
+    The optimize endpoint enforces the free-tier limit via
+    monthly_tokens_used (not the lifetime tokens_optimized counter).
+    We also set monthly_reset_at to now so the endpoint's "new month"
+    check doesn't wipe our value.
+    """
+    from datetime import datetime
     key_hash = _hash_key(key)
     db = database.SessionLocal()
     db_key = db.query(models.ApiKey).filter(models.ApiKey.key_hash == key_hash).first()
-    db_key.tokens_optimized = count
+    db_key.monthly_tokens_used = count
+    db_key.monthly_reset_at = datetime.utcnow()
     db.commit()
     db.close()
 

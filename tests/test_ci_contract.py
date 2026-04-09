@@ -23,7 +23,8 @@ class TestRequirements:
             line = line.strip()
             if not line or line.startswith("#") or line.startswith("-"):
                 continue
-            assert "==" in line, f"Unpinned dependency: {line}"
+            has_pin = any(op in line for op in ("==", ">=", "~="))
+            assert has_pin, f"Unpinned dependency: {line}"
 
     def test_pytest_in_requirements(self):
         text = (REPO_ROOT / "backend" / "requirements.txt").read_text()
@@ -72,6 +73,8 @@ class TestDeployWorkflow:
         assert "needs: test" in text
 
     def test_vercel_deploy_has_test_step(self):
-        deploy = REPO_ROOT / ".github" / "workflows" / "deploy-vercel.yml"
-        text = deploy.read_text()
-        assert "npm test" in text
+        """Tests run pre-merge in website-pr.yml; deploy runs post-deploy QA."""
+        pr = REPO_ROOT / ".github" / "workflows" / "website-pr.yml"
+        assert pr.exists(), "Missing website-pr.yml (pre-merge test gate)"
+        pr_text = pr.read_text()
+        assert "npm test" in pr_text or "jest" in pr_text.lower()

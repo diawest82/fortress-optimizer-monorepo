@@ -63,6 +63,9 @@ def _reset_main_module_state():
             rl._day_buckets.clear()
     if hasattr(main, "key_sharing_detector") and hasattr(main.key_sharing_detector, "_tracking"):
         main.key_sharing_detector._tracking.clear()
+    # Raise the per-IP registration cap so tests that create many keys
+    # in a single test (data-integrity, concurrency, load) don't 429.
+    main.MAX_REGISTRATIONS_PER_HOUR = 10000
 
 
 @pytest.fixture(autouse=True)
