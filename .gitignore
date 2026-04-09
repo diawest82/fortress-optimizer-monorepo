@@ -20,6 +20,8 @@
 !README.md
 !website/README.md
 !docs/**/*.md
+!products/*/README.md
+!shared-libs/README.md
 
 # Dependencies
 node_modules/

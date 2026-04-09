@@ -32,7 +32,11 @@ class TestAlembicSetup:
         assert len(py_files) >= 1, "No migration files found"
 
 
+_DB_URL = os.environ.get("DATABASE_URL", "")
+_IS_SQLITE = "sqlite" in _DB_URL
+
 @pytest.mark.skipif(not HAS_ALEMBIC, reason="alembic not installed")
+@pytest.mark.skipif(_IS_SQLITE, reason="ALTER COLUMN TYPE unsupported on SQLite")
 class TestMigrationUpgradeDowngrade:
     """Test that migrations can be applied and reverted."""
 
