@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import { apiClient } from '@/lib/api-client';
+import { apiClient, type UserProfile } from '@/lib/api-client';
 
 export function useApi() {
   const [loading, setLoading] = useState(false);
@@ -29,7 +29,7 @@ export function useApi() {
 }
 
 export function useAuth() {
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<UserProfile | null>(null);
   const { execute, loading, error } = useApi();
 
   const signup = useCallback(async (email: string, password: string, name?: string) => {
@@ -44,7 +44,9 @@ export function useAuth() {
   const login = useCallback(async (email: string, password: string) => {
     const result = await execute(() => apiClient.login(email, password));
     if (result) {
-      setUser({ email, id: result.user_id });
+      // Login response carries optional user; fall back to email-only stub
+      // until getProfile() runs and fills in the rest.
+      setUser({ email, id: result.user_id ?? '', ...(result.user ?? {}) });
       return result;
     }
     return null;

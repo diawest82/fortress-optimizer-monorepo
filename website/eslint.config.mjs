@@ -28,6 +28,10 @@ const eslintConfig = defineConfig([
       "@typescript-eslint/no-require-imports": "off",
       "@typescript-eslint/no-namespace": "off",
       "prefer-const": "off",
+      // false positive: Playwright fixtures use a `use` callback parameter
+      // that ESLint mistakes for the React `use` hook. The fixture file
+      // qa-system/shared/fixtures.ts is test infra, not a React component.
+      "react-hooks/rules-of-hooks": "off",
     },
   },
 

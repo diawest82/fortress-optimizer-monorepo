@@ -2,13 +2,18 @@
 
 import React, { createContext, useContext, ReactNode, useEffect } from 'react';
 import { useAuth } from '@/lib/hooks';
+import type {
+  UserProfile,
+  SignupResponse,
+  LoginResponse,
+} from '@/lib/api-client';
 
 interface AuthContextType {
-  user: any;
-  signup: (email: string, password: string, name?: string) => Promise<any>;
-  login: (email: string, password: string) => Promise<any>;
+  user: UserProfile | null;
+  signup: (email: string, password: string, name?: string) => Promise<SignupResponse | null>;
+  login: (email: string, password: string) => Promise<LoginResponse | null>;
   logout: () => void;
-  getProfile: () => Promise<any>;
+  getProfile: () => Promise<UserProfile | null>;
   loading: boolean;
   error: string | null;
 }

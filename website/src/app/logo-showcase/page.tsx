@@ -46,7 +46,7 @@ export default function LogoShowcase() {
           <div>
             <h3 className="text-lg font-semibold text-white">Monogram</h3>
             <p className="mt-2 text-sm text-slate-400">
-              Shield with "F" letter mark. Combines icon and typography in one
+              Shield with &ldquo;F&rdquo; letter mark. Combines icon and typography in one
               compact unit.
             </p>
             <p className="mt-3 text-xs text-emerald-300 uppercase tracking-wide">

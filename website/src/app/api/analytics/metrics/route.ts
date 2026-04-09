@@ -84,7 +84,7 @@ export async function GET(req: NextRequest) {
 
       for (const event of toolEvents) {
         const key = event.source || 'unknown';
-        const data = (event.eventData || {}) as Record<string, any>;
+        const data = (event.eventData || {}) as Record<string, unknown>;
         const tokensBefore = Number(data.tokensBefore ?? data.originalTokens ?? 0);
         const tokensAfter = Number(data.tokensAfter ?? data.optimizedTokens ?? 0);
         const tokensSaved = Number(

@@ -14,7 +14,7 @@ export default function AdminLayout({
   const pathname = usePathname();
   const { user, loading } = useAuthContext();
 
-  const isAdmin = (user as any)?.role === 'admin';
+  const isAdmin = user?.role === 'admin';
 
   useEffect(() => {
     if (loading) return;

@@ -20,10 +20,15 @@ function extractUserContext(request: NextRequest): AuthContext | null {
     const payload = verifyAuthToken(request);
     if (!payload) return null;
 
+    // The JWT payload type doesn't include `role` (it's not stored in the
+    // signed token — only id/email/name). Default to 'viewer' (least
+    // privilege) if no role is present. Was 'member' before 2026-04-08
+    // but 'member' is not a valid UserRole.
+    const payloadWithRole = payload as { role?: UserRole };
     return {
       userId: payload.id || '',
       email: payload.email || '',
-      role: ((payload as any).role as UserRole) || 'member',
+      role: payloadWithRole.role || 'viewer',
     };
   } catch {
     return null;

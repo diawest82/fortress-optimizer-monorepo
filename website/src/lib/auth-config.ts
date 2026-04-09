@@ -1,9 +1,8 @@
-import { NextAuthOptions, Session } from "next-auth";
+import { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
 import GitHubProvider from "next-auth/providers/github";
 import bcrypt from "bcryptjs";
-import { JWT } from "next-auth/jwt";
 import { prisma } from "@/lib/prisma";
 
 // Extend session type
@@ -16,6 +15,16 @@ declare module "next-auth" {
       image?: string | null;
       provider?: string;
     };
+  }
+}
+
+// Extend the JWT type so the callback below can read/write provider info.
+// Without this, the callback has to cast `token as any` which is a lint error.
+declare module "next-auth/jwt" {
+  interface JWT {
+    provider?: string;
+    providerAccountId?: string;
+    mfaEnabled?: boolean;
   }
 }
 
@@ -78,21 +87,21 @@ export const authConfig: NextAuthOptions = {
     async session({ session, token }) {
       if (session.user) {
         session.user.id = token.sub || "";
-        (session.user as any).provider = (token as any).provider;
+        session.user.provider = token.provider;
       }
       return session;
     },
-    async jwt({ token, user, account, profile }) {
+    async jwt({ token, user, account }) {
       if (user) {
         token.sub = user.id;
       }
       if (account) {
-        (token as any).provider = account.provider;
-        (token as any).providerAccountId = account.providerAccountId;
+        token.provider = account.provider;
+        token.providerAccountId = account.providerAccountId;
       }
       // Auto-enable MFA for OAuth users
       if (account && account.type === 'oauth') {
-        (token as any).mfaEnabled = true;
+        token.mfaEnabled = true;
       }
       return token;
     },

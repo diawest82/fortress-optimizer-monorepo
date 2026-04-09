@@ -206,7 +206,7 @@ export default function Dashboard() {
         <section className="rounded-3xl border border-blue-500/30 bg-gradient-to-r from-blue-950/40 to-purple-950/40 p-8 mb-8">
           <p className="text-xs uppercase tracking-[0.35em] text-blue-300 font-semibold">📊 Watch Your Savings Grow</p>
           <h1 className="mt-3 text-4xl font-bold text-white md:text-5xl">Real-Time Optimization Dashboard</h1>
-          <p className="mt-4 text-base text-slate-300 max-w-2xl">See exactly how much you're saving across all platforms. Every optimized token is money back in your pocket.</p>
+          <p className="mt-4 text-base text-slate-300 max-w-2xl">See exactly how much you&apos;re saving across all platforms. Every optimized token is money back in your pocket.</p>
         </section>
 
         {/* Demo Banner */}
@@ -354,7 +354,7 @@ export default function Dashboard() {
                   </div>
                 </div>
                 {selectedPlatform !== 'all' && (
-                  <p className="text-xs text-zinc-500 mt-4">Showing {PLATFORM_NAMES[selectedPlatform]} only. Click "All Platforms" to see the full breakdown.</p>
+                  <p className="text-xs text-zinc-500 mt-4">Showing {PLATFORM_NAMES[selectedPlatform]} only. Click &ldquo;All Platforms&rdquo; to see the full breakdown.</p>
                 )}
               </>
             ) : sortedToolSavings.length > 0 ? (

@@ -106,7 +106,7 @@ export default function ComparePage() {
       <section className={styles.comparison}>
         <h2>Feature Comparison</h2>
         <p className={styles.comparisonSubtitle}>
-          How Fortress stacks up against other "cost reduction" solutions
+          How Fortress stacks up against other &ldquo;cost reduction&rdquo; solutions
         </p>
 
         <div className={styles.comparisonTable}>

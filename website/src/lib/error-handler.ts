@@ -9,7 +9,7 @@ export interface ApiError {
   code: string;
   message: string;
   statusCode: number;
-  details?: Record<string, any>;
+  details?: Record<string, unknown>;
   timestamp: string;
 }
 
@@ -18,7 +18,7 @@ export class AppError extends Error {
     public code: string,
     public statusCode: number,
     message: string,
-    public details?: Record<string, any>
+    public details?: Record<string, unknown>
   ) {
     super(message);
     this.name = 'AppError';
@@ -32,7 +32,7 @@ export function createErrorResponse(
   statusCode: number,
   code: string,
   message: string,
-  details?: Record<string, any>
+  details?: Record<string, unknown>
 ): NextResponse<ApiError> {
   const isDevelopment = process.env.NODE_ENV === 'development';
 
@@ -69,7 +69,7 @@ export const ErrorResponses = {
       fields,
     }),
 
-  VALIDATION_FAILED: (details: Record<string, any>) =>
+  VALIDATION_FAILED: (details: Record<string, unknown>) =>
     createErrorResponse(400, 'VALIDATION_FAILED', 'Validation failed', details),
 
   // 401 - Unauthorized
@@ -160,13 +160,14 @@ export async function handleApiError(
 }
 
 /**
- * Safe error wrapper for API route handlers
+ * Safe error wrapper for API route handlers.
+ * Generic over arg/return types so the wrapped handler keeps its signature.
  */
-export function withErrorHandling<T extends (...args: any[]) => Promise<any>>(
-  handler: T,
+export function withErrorHandling<TArgs extends unknown[], TReturn>(
+  handler: (...args: TArgs) => Promise<TReturn>,
   endpoint?: string
 ) {
-  return async (...args: any[]) => {
+  return async (...args: TArgs): Promise<TReturn | NextResponse<ApiError>> => {
     try {
       return await handler(...args);
     } catch (error) {

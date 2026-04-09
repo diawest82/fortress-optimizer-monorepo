@@ -3,10 +3,21 @@
 
 import { sendEmail } from '@/lib/email';
 
+interface DailyMetrics {
+  newSignups: number;
+  totalSignups: number;
+  topChannel?: string;
+  activeUsers: number;
+  optimizationsCompleted: number;
+  paidUsers: number;
+  mrrAmount?: number;
+  churnedUsers: number;
+}
+
 /**
  * Generate daily metrics report
  */
-export async function generateDailyReport(metrics: any) {
+export async function generateDailyReport(metrics: DailyMetrics) {
   return `
 FORTRESS - DAILY METRICS REPORT
 ${new Date().toLocaleDateString()}
@@ -24,7 +35,7 @@ ${new Date().toLocaleDateString()}
 💰 REVENUE
 ├─ Paid Users: ${metrics.paidUsers}
 ├─ MRR: $${metrics.mrrAmount?.toFixed(2) || '0.00'}
-└─ ARR: $${(metrics.mrrAmount * 12)?.toFixed(2) || '0.00'}
+└─ ARR: $${((metrics.mrrAmount ?? 0) * 12).toFixed(2)}
 
 📉 CHURN
 ├─ Churned: ${metrics.churnedUsers}
@@ -33,10 +44,14 @@ ${new Date().toLocaleDateString()}
 `;
 }
 
+interface WeeklyMetric extends DailyMetrics {
+  date?: string;
+}
+
 /**
  * Generate weekly summary report
  */
-export async function generateWeeklySummary(weeklyMetrics: any[]) {
+export async function generateWeeklySummary(weeklyMetrics: WeeklyMetric[]) {
   const totalSignups = weeklyMetrics.reduce((sum, m) => sum + m.newSignups, 0);
   const avgActive = weeklyMetrics.reduce((sum, m) => sum + m.activeUsers, 0) / weeklyMetrics.length;
 

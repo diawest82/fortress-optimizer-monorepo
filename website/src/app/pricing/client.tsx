@@ -536,7 +536,7 @@ export default function PricingClient() {
             Ready to optimize your tokens?
           </h2>
           <p className="text-emerald-100">
-            Start free and upgrade when you're ready. No credit card required.
+            Start free and upgrade when you&apos;re ready. No credit card required.
           </p>
         </div>
         <Link

@@ -205,7 +205,7 @@ export async function trackFirstAction() {
 /**
  * Track feature usage
  */
-export async function trackFeatureUsage(feature: string, details?: Record<string, any>) {
+export async function trackFeatureUsage(feature: string, details?: Record<string, unknown>) {
   await trackEvent('feature_used', {
     feature,
     ...details,

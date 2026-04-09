@@ -1,6 +1,7 @@
 import ContactForm from '@/components/contact-form';
 import SupportChatbot from '@/components/support-chatbot';
 import SiteFooter from '@/components/site-footer';
+import Link from 'next/link';
 import { Mail, BookOpen, MessageSquare, Clock, MessageCircle } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
@@ -26,7 +27,7 @@ export default function Support() {
 
       {/* Quick Links */}
       <section className="grid md:grid-cols-4 gap-6">
-        <a
+        <Link
           href="/docs"
           className="rounded-2xl border border-blue-500/30 bg-blue-950/20 p-6 hover:border-blue-500/60 transition group"
         >
@@ -35,9 +36,9 @@ export default function Support() {
           <p className="text-sm text-blue-200">
             Comprehensive guides and API reference
           </p>
-        </a>
+        </Link>
 
-        <a
+        <Link
           href="/install"
           className="rounded-2xl border border-blue-500/30 bg-blue-950/20 p-6 hover:border-blue-500/60 transition group"
         >
@@ -46,7 +47,7 @@ export default function Support() {
           <p className="text-sm text-blue-200">
             Step-by-step setup for your platform
           </p>
-        </a>
+        </Link>
 
         <div className="rounded-2xl border border-blue-500/30 bg-blue-950/20 p-6">
           <Clock className="w-8 h-8 text-blue-400 mb-3" />

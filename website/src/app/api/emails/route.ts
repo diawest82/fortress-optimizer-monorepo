@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
     const limit = Math.min(parseInt(searchParams.get('limit') || '50'), 100);
     const offset = parseInt(searchParams.get('offset') || '0');
 
-    const filters: any = {};
+    const filters: { status?: string; category?: string; isEnterprise?: boolean } = {};
     if (status) filters.status = status;
     if (category) filters.category = category;
     if (isEnterprise !== null) filters.isEnterprise = isEnterprise === 'true';

@@ -21,8 +21,9 @@ export function AnalyticsDashboard() {
         const data = await response.json();
         
         // Calculate derived metrics
-        const totalSignups = data.signupsBySource.reduce((sum: number, s: any) => sum + s._count.id, 0);
-        const active = data.eventMetrics.find((e: any) => e.eventName === 'login')?._count.id || 0;
+        type GroupCount = { _count: { id: number }; eventName?: string };
+        const totalSignups = data.signupsBySource.reduce((sum: number, s: GroupCount) => sum + s._count.id, 0);
+        const active = data.eventMetrics.find((e: GroupCount) => e.eventName === 'login')?._count.id || 0;
 
         setMetrics({
           newSignups: totalSignups,

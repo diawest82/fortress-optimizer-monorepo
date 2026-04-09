@@ -45,7 +45,7 @@ export async function POST(req: NextRequest) {
         description,
         emails: {
           createMany: {
-            data: emails.map((email: any, idx: number) => ({
+            data: emails.map((email: { delayHours?: number; subject: string; htmlBody: string; plainBody?: string; variables?: string[] }, idx: number) => ({
               order: idx + 1,
               delayHours: email.delayHours || 0,
               subject: email.subject,

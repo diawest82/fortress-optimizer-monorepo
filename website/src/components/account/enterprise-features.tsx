@@ -94,7 +94,7 @@ export default function EnterpriseFeatures() {
         <div className="max-w-2xl">
           <h3 className="text-2xl font-bold text-white mb-2">Custom Pricing</h3>
           <p className="text-slate-400 mb-6">
-            Enterprise pricing is based on your organization's size, usage patterns, and requirements. We offer flexible annual contracts with volume discounts.
+            Enterprise pricing is based on your organization&apos;s size, usage patterns, and requirements. We offer flexible annual contracts with volume discounts.
           </p>
           <div className="grid md:grid-cols-2 gap-6 mb-8">
             {[

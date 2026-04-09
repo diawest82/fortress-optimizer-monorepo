@@ -2,13 +2,14 @@
 // File: src/app/api/analytics/track/route.ts
 
 import { NextRequest, NextResponse } from 'next/server';
+import { Prisma } from '@prisma/client';
 import prisma from '@/lib/prisma';
 
 interface TrackEventRequest {
   eventName: string;
   userId?: string;
   email?: string;
-  eventData?: Record<string, any>;
+  eventData?: Record<string, unknown>;
   source?: string;
   page?: string;
   referrer?: string;
@@ -23,13 +24,15 @@ export async function POST(req: NextRequest) {
     const clientIp = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'unknown';
     const userAgent = req.headers.get('user-agent') || 'unknown';
 
-    // Track event
+    // Track event. Prisma's Json input column expects InputJsonValue;
+    // we trust the client-provided eventData as serializable JSON since
+    // it's already gone through JSON.parse via req.json().
     const event = await prisma.event.create({
       data: {
         userId: data.userId,
         email: data.email,
         eventName: data.eventName,
-        eventData: data.eventData || {},
+        eventData: (data.eventData || {}) as Prisma.InputJsonValue,
         source: data.source || data.utm_source,
         page: data.page,
         referrer: data.referrer,

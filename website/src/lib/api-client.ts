@@ -1,6 +1,11 @@
 /**
  * API Client for Fortress Backend
- * Handles all HTTP communication with the Next.js backend
+ * Handles all HTTP communication with the Next.js backend.
+ *
+ * Response shapes mirror the actual route handlers in src/app/api/.
+ * Keep these in sync when route response payloads change. Adding a real
+ * type here is much better than `any` because it catches drift between
+ * client and server at compile time.
  */
 
 const API_BASE_URL = typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000';
@@ -9,6 +14,161 @@ interface ApiError {
   detail?: string;
   error?: string;
   status?: number;
+}
+
+// ─── Response shape interfaces ──────────────────────────────────────────
+
+export interface UserSummary {
+  id: string;
+  email: string;
+  name?: string | null;
+  role?: string;
+}
+
+export interface UserProfile extends UserSummary {
+  createdAt?: string;
+  // Legacy snake_case + dashboard convenience fields. The Prisma User model
+  // uses createdAt/tier; some response shapes also include them as
+  // created_at/tier for client-side convenience. Keep both supported.
+  created_at?: string;
+  tier?: string;
+}
+
+export interface LoginResponse {
+  user_id?: string;
+  user?: UserSummary;
+}
+
+export interface SignupResponse {
+  api_key: string;
+  user_id: string;
+}
+
+export interface MessageResponse {
+  message: string;
+}
+
+export interface EmailReply {
+  id: string;
+  status: 'draft' | 'sent' | 'scheduled';
+  createdAt: string;
+  user?: { id: string; name?: string | null; email: string } | null;
+}
+
+export interface EmailRecord {
+  id: string;
+  from: string;
+  to: string;
+  subject: string;
+  body: string;
+  html?: string | null;
+  timestamp: string;
+  status: 'unread' | 'read' | 'replied' | 'archived';
+  category?: string | null;
+  isEnterprise: boolean;
+  companySize?: number | null;
+  aiSummary?: string | null;
+  aiRecommendation?: string | null;
+  requiresHuman: boolean;
+  replies?: EmailReply[];
+}
+
+export interface EmailListResponse {
+  success: boolean;
+  count: number;
+  emails: EmailRecord[];
+}
+
+export interface AdminKpiResponse {
+  totalUsers?: number;
+  recentSignups?: number;
+  openTickets?: number;
+  enterpriseInquiries?: number;
+  totalOptimizations?: number;
+  tokensSaved?: number;
+  tokensProcessed?: number;
+  visitorAcquisitions?: number;
+  serviceInterruptions?: number;
+  packagesInstalled?: number;
+  lastUpdated: string;
+  isCached?: boolean;
+  isFallback?: boolean;
+}
+
+export interface ApiKeySummary {
+  id: string;
+  name: string;
+  masked?: string;
+  createdAt?: string;
+  lastUsedAt?: string | null;
+}
+
+export interface ApiKeyListResponse {
+  keys: ApiKeySummary[];
+  count: number;
+}
+
+export interface SubscriptionResponse {
+  id?: string;
+  tier: string;
+  status: string;
+  currentPeriodStart?: number;
+  currentPeriodEnd?: number;
+  cancelAtPeriodEnd?: boolean;
+  features?: string[];
+  stripeCustomerId?: string | null;
+  // Legacy / dashboard convenience fields populated by some response shapes
+  tokens_used?: number;
+  tokens_limit?: number;
+  tokens_saved?: number;
+  next_billing_date?: string;
+}
+
+export interface CheckoutResponse {
+  message?: string;
+  tier?: string;
+  status?: string;
+  renewalDate?: string;
+  url?: string;
+  sessionId?: string;
+}
+
+export interface OptimizeResponse {
+  originalTokens: number;
+  optimizedTokens: number;
+  tokensSaved?: number;
+  savingsPercent: number;
+  optimizedText: string;
+  provider?: string;
+  model?: string;
+  timestamp?: string;
+}
+
+export interface PricingTierConfig {
+  tokens_per_month: number | string;
+  price_monthly: number | string;
+  max_seats?: number | string;
+  features?: string[];
+  pricing_scale?: Record<string, { base?: number; per_seat: number }>;
+}
+
+export interface PricingResponse {
+  tiers: Record<string, PricingTierConfig>;
+  currency: string;
+  billing_cycle: string;
+}
+
+export interface HealthResponse {
+  status: 'healthy' | 'degraded' | 'ok';
+  timestamp: string;
+  version?: string;
+  database?: string;
+  redis?: string;
+  sentry?: string;
+}
+
+export interface ProfileUpdatePayload {
+  name?: string;
 }
 
 export class ApiClient {
@@ -110,24 +270,24 @@ export class ApiClient {
   }
 
   // Authentication Endpoints
-  async signup(email: string, password: string, name?: string): Promise<{ api_key: string; user_id: string }> {
+  async signup(email: string, password: string, name?: string): Promise<SignupResponse> {
     const response = await this.request(`${this.baseUrl}/api/auth/signup`, {
       method: 'POST',
       headers: this.getHeaders(),
       body: JSON.stringify({ email, password, name: name || email.split('@')[0] }),
     });
-    const data = await this.handleResponse<{ api_key: string; user_id: string }>(response);
+    const data = await this.handleResponse<SignupResponse>(response);
     this.setApiKey(data.api_key);
     return data;
   }
 
-  async login(email: string, password: string): Promise<{ user_id?: string; user?: any }> {
+  async login(email: string, password: string): Promise<LoginResponse> {
     const response = await this.request(`${this.baseUrl}/api/auth/login`, {
       method: 'POST',
       headers: this.getHeaders(),
       body: JSON.stringify({ email, password }),
     });
-    const data = await this.handleResponse<{ user?: any }>(response);
+    const data = await this.handleResponse<{ user?: UserSummary }>(response);
     // Token is now in httpOnly cookie only — not stored in localStorage
     return {
       user_id: data.user?.id,
@@ -136,81 +296,81 @@ export class ApiClient {
   }
 
   // Change Password
-  async changePassword(currentPassword: string, newPassword: string): Promise<{ message: string }> {
+  async changePassword(currentPassword: string, newPassword: string): Promise<MessageResponse> {
     const response = await this.request(`${this.baseUrl}/api/auth/change-password`, {
       method: 'POST',
       headers: this.getHeaders(),
       body: JSON.stringify({ currentPassword, newPassword }),
     });
-    return this.handleResponse<{ message: string }>(response);
+    return this.handleResponse<MessageResponse>(response);
   }
 
-  // ============ EMAIL MANAGEMENT ENDPOINTS ============
-  async getEmails(options?: { status?: string; category?: string; limit?: number }): Promise<any> {
+  // ============ EMAIL MANAGEMENT ENDPOINTS (admin-only) ============
+  async getEmails(options?: { status?: string; category?: string; limit?: number }): Promise<EmailListResponse> {
     const params = new URLSearchParams();
     if (options?.status) params.append('status', options.status);
     if (options?.category) params.append('category', options.category);
     if (options?.limit) params.append('limit', options.limit.toString());
-    
+
     const queryString = params.toString() ? `?${params.toString()}` : '';
     const response = await this.request(`${this.baseUrl}/api/emails${queryString}`, {
       method: 'GET',
       headers: this.getHeaders(),
     });
-    return this.handleResponse<any>(response);
+    return this.handleResponse<EmailListResponse>(response);
   }
 
-  async getEmail(emailId: string): Promise<any> {
+  async getEmail(emailId: string): Promise<{ success: boolean; email: EmailRecord }> {
     const response = await this.request(`${this.baseUrl}/api/emails/${emailId}`, {
       method: 'GET',
       headers: this.getHeaders(),
     });
-    return this.handleResponse<any>(response);
+    return this.handleResponse<{ success: boolean; email: EmailRecord }>(response);
   }
 
-  async replyToEmail(emailId: string, replyText: string): Promise<any> {
+  async replyToEmail(emailId: string, replyText: string): Promise<EmailReply> {
     const response = await this.request(`${this.baseUrl}/api/emails/${emailId}/replies`, {
       method: 'POST',
       headers: this.getHeaders(),
       body: JSON.stringify({ text: replyText }),
     });
-    return this.handleResponse<any>(response);
+    return this.handleResponse<EmailReply>(response);
   }
 
-  async getEnterpriseEmails(): Promise<any> {
+  async getEnterpriseEmails(): Promise<EmailListResponse> {
     const response = await this.request(`${this.baseUrl}/api/emails/enterprise`, {
       method: 'GET',
       headers: this.getHeaders(),
     });
-    return this.handleResponse<any>(response);
+    return this.handleResponse<EmailListResponse>(response);
   }
 
   // ============ ADMIN ENDPOINTS ============
-  async getAdminKPIs(): Promise<any> {
+  async getAdminKPIs(): Promise<AdminKpiResponse> {
     const response = await this.request(`${this.baseUrl}/api/admin/kpis`, {
       method: 'GET',
       headers: this.getHeaders(),
     });
-    return this.handleResponse<any>(response);
+    return this.handleResponse<AdminKpiResponse>(response);
   }
 
   // ============ User Profile Endpoints ============
-  async getProfile(): Promise<any> {
+  async getProfile(): Promise<UserProfile> {
     const response = await this.request(`${this.baseUrl}/api/users/profile`, {
       method: 'GET',
       headers: this.getHeaders(),
     });
-    return this.handleResponse<any>(response);
+    return this.handleResponse<UserProfile>(response);
   }
 
-  async updateProfile(data: any): Promise<any> {
+  async updateProfile(data: ProfileUpdatePayload): Promise<UserProfile> {
     const response = await this.request(`${this.baseUrl}/api/users/profile`, {
       method: 'POST',
       headers: this.getHeaders(),
       body: JSON.stringify(data),
       credentials: 'include',
     });
-    return this.handleResponse<any>(response);
+    return this.handleResponse<UserProfile>(response);
   }
 
   // ============ API Key Management ============
@@ -224,81 +384,81 @@ export class ApiClient {
     return data;
   }
 
-  async listApiKeys(): Promise<{ keys: any[]; count: number }> {
+  async listApiKeys(): Promise<ApiKeyListResponse> {
     const response = await this.request(`${this.baseUrl}/api/api-keys`, {
       method: 'GET',
       headers: this.getHeaders(),
     });
-    return this.handleResponse<{ keys: any[]; count: number }>(response);
+    return this.handleResponse<ApiKeyListResponse>(response);
   }
 
-  async deleteApiKey(keyId: string): Promise<{ message: string }> {
+  async deleteApiKey(keyId: string): Promise<MessageResponse> {
     const response = await this.request(`${this.baseUrl}/api/api-keys/${keyId}`, {
       method: 'DELETE',
       headers: this.getHeaders(),
     });
-    return this.handleResponse<{ message: string }>(response);
+    return this.handleResponse<MessageResponse>(response);
   }
 
   // ============ Subscription Management ============
-  async getCurrentSubscription(): Promise<any> {
+  async getCurrentSubscription(): Promise<SubscriptionResponse> {
     const response = await this.request(`${this.baseUrl}/api/subscriptions`, {
       method: 'GET',
       headers: this.getHeaders(),
     });
-    return this.handleResponse<any>(response);
+    return this.handleResponse<SubscriptionResponse>(response);
   }
 
-  async upgradeTier(newTier: string): Promise<any> {
+  async upgradeTier(newTier: string): Promise<CheckoutResponse> {
     const response = await this.request(`${this.baseUrl}/api/subscriptions/upgrade`, {
       method: 'POST',
       headers: this.getHeaders(),
       body: JSON.stringify({ newTier }),
     });
-    return this.handleResponse<any>(response);
+    return this.handleResponse<CheckoutResponse>(response);
   }
 
-  async downgradeTier(newTier: string): Promise<any> {
+  async downgradeTier(newTier: string): Promise<CheckoutResponse> {
     const response = await this.request(`${this.baseUrl}/api/subscriptions/downgrade`, {
       method: 'POST',
       headers: this.getHeaders(),
       body: JSON.stringify({ newTier }),
     });
-    return this.handleResponse<any>(response);
+    return this.handleResponse<CheckoutResponse>(response);
   }
 
-  async cancelSubscription(): Promise<any> {
+  async cancelSubscription(): Promise<CheckoutResponse> {
     const response = await this.request(`${this.baseUrl}/api/subscriptions/cancel`, {
       method: 'POST',
       headers: this.getHeaders(),
     });
-    return this.handleResponse<any>(response);
+    return this.handleResponse<CheckoutResponse>(response);
   }
 
   // ============ Optimization Engine ============
-  async optimize(text: string, provider: string, model: string): Promise<any> {
+  async optimize(text: string, provider: string, model: string): Promise<OptimizeResponse> {
     const response = await this.request(`${this.baseUrl}/api/optimize`, {
       method: 'POST',
       headers: this.getHeaders(),
       body: JSON.stringify({ text, provider, model }),
     });
-    return this.handleResponse<any>(response);
+    return this.handleResponse<OptimizeResponse>(response);
   }
 
   // ============ Pricing API ============
-  async getPricing(): Promise<any> {
+  async getPricing(): Promise<PricingResponse> {
     const response = await this.request(`${this.baseUrl}/api/pricing`, {
       method: 'GET',
     });
-    return this.handleResponse<any>(response);
+    return this.handleResponse<PricingResponse>(response);
   }
 
   // Health Check
-  async healthCheck(): Promise<any> {
+  async healthCheck(): Promise<HealthResponse> {
     const response = await this.request(`${this.baseUrl}/api/health`, {
       method: 'GET',
     });
-    return this.handleResponse<any>(response);
+    return this.handleResponse<HealthResponse>(response);
   }
 }
 

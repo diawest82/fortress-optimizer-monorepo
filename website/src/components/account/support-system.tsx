@@ -28,10 +28,17 @@ interface TicketDetail extends Ticket {
   responses_list: TicketResponse[];
 }
 
+interface CreateTicketPayload {
+  subject: string;
+  category: string;
+  priority: string;
+  description: string;
+}
+
 interface SupportSystemProps {
   userTier: string;
   tickets?: Ticket[];
-  onCreateTicket?: (data: any) => void;
+  onCreateTicket?: (data: CreateTicketPayload) => void;
 }
 
 export default function SupportSystem({

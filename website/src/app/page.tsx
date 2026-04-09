@@ -73,7 +73,7 @@ export default function Home() {
           <p className="text-xs uppercase tracking-[0.3em] text-cyan-300">Team visibility</p>
           <h2 className="text-3xl font-semibold text-white">See where every token goes</h2>
           <p className="max-w-2xl text-sm text-slate-400">
-            Track savings across your entire team — by member, platform, and project. Know exactly how much you're saving and where.
+            Track savings across your entire team — by member, platform, and project. Know exactly how much you&apos;re saving and where.
           </p>
         </div>
 

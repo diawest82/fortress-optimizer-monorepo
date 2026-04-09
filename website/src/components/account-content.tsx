@@ -26,6 +26,7 @@ interface SubscriptionData {
   tier: string;
   tokens_limit: number;
   tokens_used: number;
+  tokens_saved?: number;
   next_billing_date: string;
   status: string;
 }
@@ -266,7 +267,7 @@ export default function AccountContent() {
     return null;
   }
 
-  const isAdmin = (user as any)?.role === "admin";
+  const isAdmin = user?.role === "admin";
 
   const tabs = [
     { id: "overview", label: "Overview" },
@@ -375,7 +376,7 @@ export default function AccountContent() {
                 <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-6">
                   <p className="text-sm text-emerald-300 mb-2">Current Plan</p>
                   <h2 className="text-2xl font-bold text-white capitalize">{user.tier}</h2>
-                  <p className="text-slate-400 mt-1">Account created {new Date(user.created_at).toLocaleDateString()}</p>
+                  <p className="text-slate-400 mt-1">Account created {new Date(user.created_at ?? user.createdAt ?? Date.now()).toLocaleDateString()}</p>
                 </div>
 
                 {/* Savings Dashboard */}
@@ -386,11 +387,11 @@ export default function AccountContent() {
                   </div>
                   <div className="rounded-2xl border border-cyan-500/30 bg-cyan-500/10 p-4">
                     <p className="text-xs text-slate-400 mb-2">Tokens Saved</p>
-                    <p className="text-2xl font-bold text-cyan-400">{((subscription as any)?.tokens_saved || 0).toLocaleString()}</p>
+                    <p className="text-2xl font-bold text-cyan-400">{(subscription?.tokens_saved || 0).toLocaleString()}</p>
                   </div>
                   <div className="rounded-2xl border border-blue-500/30 bg-blue-500/10 p-4">
                     <p className="text-xs text-slate-400 mb-2">Est. Cost Saved</p>
-                    <p className="text-2xl font-bold text-blue-400">${(((subscription as any)?.tokens_saved || 0) / 1000 * 0.003).toFixed(2)}</p>
+                    <p className="text-2xl font-bold text-blue-400">${((subscription?.tokens_saved || 0) / 1000 * 0.003).toFixed(2)}</p>
                   </div>
                   <div className="rounded-2xl border border-slate-800 bg-slate-900/50 p-4">
                     <p className="text-xs text-slate-400 mb-2">API Keys</p>
@@ -748,7 +749,7 @@ export default function AccountContent() {
                         </label>
                         <input
                           type="text"
-                          value={user.name}
+                          value={user.name ?? ''}
                           disabled
                           className="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-slate-400"
                         />
