@@ -2,7 +2,6 @@ import { createUser } from "@/lib/auth-config";
 import { checkSignupRateLimit } from "@/lib/rate-limit";
 import { logSignupEvent, logSuspiciousActivity } from "@/lib/audit-log";
 import { validatePassword } from "@/lib/password-validation";
-import { ErrorResponses } from "@/lib/error-handler";
 import { setAuthTokenCookie, setCsrfTokenCookie } from "@/lib/secure-cookies";
 import { NextRequest, NextResponse } from "next/server";
 import jwt from "jsonwebtoken";
@@ -58,9 +57,23 @@ export async function POST(req: NextRequest) {
     // ============ PHASE 4: Validate password strength ============
     const passwordValidation = validatePassword(password);
     if (!passwordValidation.isValid) {
-      // Return structured error response with feedback
-      const errorResponse = ErrorResponses.INVALID_PASSWORD(passwordValidation.feedback);
-      return NextResponse.json(errorResponse.body, { status: errorResponse.status });
+      // PREVIOUSLY: this returned `NextResponse.json(errorResponse.body, ...)`
+      // where `errorResponse` was already a NextResponse — its `.body` is a
+      // ReadableStream, NOT a plain object. JSON.stringify of a stream is `{}`,
+      // so the actual feedback was getting silently dropped on the floor and
+      // clients saw `400 {}` with no clue what went wrong. The 2026-04-08
+      // qa-stripe-live failures took an hour to diagnose because of this.
+      //
+      // Fix: return the structured error directly with the feedback in the
+      // body, so consumers can actually see what's wrong.
+      return NextResponse.json(
+        {
+          code: 'INVALID_PASSWORD',
+          message: 'Password does not meet requirements',
+          feedback: passwordValidation.feedback,
+        },
+        { status: 400 }
+      );
     }
 
     // Log password strength score for analytics

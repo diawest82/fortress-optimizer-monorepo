@@ -26,7 +26,9 @@ const WEBSITE_DIR = join(__dirname, '..', '..');
  * burning through the 3-signup/hour rate limiter on every deploy run.
  */
 const STRIPE_TEST_EMAIL = 'stripe-test-fixed@test.fortress-optimizer.com';
-const STRIPE_TEST_PASSWORD = 'StripeTestP@ss123!';
+// NOTE: avoid sequential digits like '123' — password-validation.ts:90
+// rejects "Avoid sequential patterns" via regex /(?:012|123|234|...)/
+const STRIPE_TEST_PASSWORD = 'StripeFort!ssTest9q7';
 
 function extractAuthCookie(response: Response): string {
   const headers = response.headers as Headers & { getSetCookie?: () => string[] };

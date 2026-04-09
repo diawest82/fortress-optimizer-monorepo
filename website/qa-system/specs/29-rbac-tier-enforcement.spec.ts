@@ -51,7 +51,9 @@ function extractAuthCookie(response: Response): string {
  * production from the first successful signup.
  */
 const RBAC_TEST_EMAIL = 'rbac-test-fixed@test.fortress-optimizer.com';
-const RBAC_TEST_PASSWORD = 'RbacTestP@ss123!';
+// NOTE: avoid sequential digits like '123' — password-validation.ts:90
+// rejects "Avoid sequential patterns" via regex /(?:012|123|234|...)/
+const RBAC_TEST_PASSWORD = 'RbacFort!ssTest9q7';
 let _cachedUser: { email: string; password: string; token: string } | null = null;
 
 async function getTestUser(): Promise<{ email: string; password: string; token: string }> {
