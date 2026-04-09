@@ -1,8 +1,8 @@
 name: Website PR Checks
 
 # Fast quality gate that runs on every PR touching the website.
-# Blocking jobs: type-check, jest, build (on same-repo PRs only).
-# Advisory jobs (continue-on-error: true): lint, audit.
+# Blocking jobs: type-check, jest, build (on same-repo PRs only), lint.
+# Advisory jobs (continue-on-error: true): audit.
 #
 # History: this file consolidates two earlier workflows that lived at
 # website/.github/workflows/ci-cd.yml and ci-cd-unified.yml. Those files
@@ -62,16 +62,11 @@ jobs:
         run: npm test -- --ci
 
   # ──────────────────────────────────────────────────────────────────────
-  # ADVISORY: ESLint
-  # As of 2026-04-07 the website has 245 lint errors that pre-date this
-  # workflow. Lint runs but does not block PRs until cleanup is complete.
-  # When the error count hits 0, remove `continue-on-error: true` below
-  # to make this a blocking gate.
+  # ESLint — blocking since 2026-04-09 (245 errors cleaned to 0)
   # ──────────────────────────────────────────────────────────────────────
   lint:
-    name: Lint (advisory)
+    name: Lint
     runs-on: ubuntu-latest
-    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4

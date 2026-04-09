@@ -1,5 +1,5 @@
 {
-  "name": "@fortress-optimizer/openclaw-skill",
+  "name": "@diawest82/openclaw-skill",
   "version": "0.1.0",
   "description": "OpenClaw skill for automatic prompt optimization via Fortress Token Optimizer API",
   "main": "dist/index.js",

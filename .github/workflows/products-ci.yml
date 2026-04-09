@@ -1,0 +1,46 @@
+name: Product Tests
+
+# Runs Jest test suites for JS/TS product packages.
+# Each product runs independently via matrix strategy.
+# Triggers on PRs and pushes to main that touch product code.
+
+on:
+  pull_request:
+    paths:
+      - 'products/openclaw/**'
+      - 'products/vercel-ai-sdk/**'
+      - 'products/npm/**'
+      - '.github/workflows/products-ci.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'products/openclaw/**'
+      - 'products/vercel-ai-sdk/**'
+      - 'products/npm/**'
+      - '.github/workflows/products-ci.yml'
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: ${{ matrix.product }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        product: [openclaw, vercel-ai-sdk, npm]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: 'products/${{ matrix.product }}/package-lock.json'
+
+      - name: Install dependencies
+        working-directory: products/${{ matrix.product }}
+        run: npm ci
+
+      - name: Run tests
+        working-directory: products/${{ matrix.product }}
+        run: npm test
