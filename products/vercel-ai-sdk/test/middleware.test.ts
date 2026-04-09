@@ -119,7 +119,7 @@ describe('fortressMiddleware', () => {
 
       // The last user message text should be replaced
       const userMsg = result.prompt.find((m: any) => m.role === 'user');
-      const textPart = userMsg.content.find((p: any) => p.type === 'text');
+      const textPart = userMsg!.content.find((p: any) => p.type === 'text');
       expect(textPart.text).toBe(optimizedText);
     });
 
@@ -159,7 +159,7 @@ describe('fortressMiddleware', () => {
 
       // User message should be optimized
       const userMsg = result.prompt.find((m: any) => m.role === 'user');
-      const textPart = userMsg.content.find((p: any) => p.type === 'text');
+      const textPart = userMsg!.content.find((p: any) => p.type === 'text');
       expect(textPart.text).toBe(optimizedText);
     });
 
@@ -270,7 +270,7 @@ describe('fortressMiddleware', () => {
 
       // Should return original params unchanged
       const userMsg = result.prompt.find((m: any) => m.role === 'user');
-      const textPart = userMsg.content.find((p: any) => p.type === 'text');
+      const textPart = userMsg!.content.find((p: any) => p.type === 'text');
       expect(textPart.text).toBe('my important prompt');
     });
 
@@ -288,7 +288,7 @@ describe('fortressMiddleware', () => {
       const result = await middleware.transformParams!({ params } as any);
 
       const userMsg = result.prompt.find((m: any) => m.role === 'user');
-      const textPart = userMsg.content.find((p: any) => p.type === 'text');
+      const textPart = userMsg!.content.find((p: any) => p.type === 'text');
       expect(textPart.text).toBe('test prompt');
     });
 
@@ -354,7 +354,7 @@ describe('fortressMiddleware', () => {
       const result = await middleware.transformParams!({ params } as any);
 
       const userMsg = result.prompt.find((m: any) => m.role === 'user');
-      const textPart = userMsg.content.find((p: any) => p.type === 'text');
+      const textPart = userMsg!.content.find((p: any) => p.type === 'text');
       expect(textPart.text).toBe('some prompt');
     });
 

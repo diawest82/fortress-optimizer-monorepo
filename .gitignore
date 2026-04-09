@@ -21,6 +21,7 @@
 !website/README.md
 !docs/**/*.md
 !products/*/README.md
+!products/*/*.md
 !shared-libs/README.md
 
 # Dependencies

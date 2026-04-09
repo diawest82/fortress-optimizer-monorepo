@@ -50,7 +50,7 @@ describe('Build Verification', () => {
     });
 
     it('should have correct package name', () => {
-      expect(pkg.name).toBe('@fortress-optimizer/openclaw-skill');
+      expect(pkg.name).toBe('@diawest82/openclaw-skill');
     });
 
     it('should have build and test scripts', () => {
