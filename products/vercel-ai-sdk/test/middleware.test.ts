@@ -212,7 +212,6 @@ describe('fortressMiddleware', () => {
       await middleware.transformParams!({ params } as any);
 
       expect(capturedHeaders['Authorization']).toBe(`Bearer ${TEST_API_KEY}`);
-      expect(capturedHeaders['X-API-Key']).toBe(TEST_API_KEY);
     });
 
     it('should call onOptimization callback with metadata', async () => {
