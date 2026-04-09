@@ -28,7 +28,13 @@ export const rateLimitConfigs = {
     windowMs: 15 * 60 * 1000, // 15 minutes
   },
   signup: {
-    maxAttempts: 3,
+    // Raised from 3 to 15 on 2026-04-08. The previous 3/IP/hour was too
+    // tight for real-world traffic — corporate / shared IPs (NAT, VPN,
+    // CI runners) easily exceed 3 legitimate signups per hour, and the
+    // limiter is sliding-window so failed attempts extend the lockout
+    // indefinitely. 15/hour still rejects obvious abuse but accommodates
+    // shared IPs and the test runner.
+    maxAttempts: 15,
     windowMs: 60 * 60 * 1000, // 1 hour
   },
   passwordReset: {
