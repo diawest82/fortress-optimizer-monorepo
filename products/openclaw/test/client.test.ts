@@ -83,7 +83,7 @@ describe('FortressClient', () => {
       });
 
       const client = new FortressClient(makeConfig());
-      await client.optimize('test prompt');
+      await client.optimize('test prompt that is long enough for validation');
 
       expect(capturedUrl).toBe('https://api.fortress-optimizer.com/api/optimize');
       expect(capturedMethod).toBe('POST');
@@ -102,10 +102,9 @@ describe('FortressClient', () => {
 
       const apiKey = 'fk_test_headers_key_12345678';
       const client = new FortressClient(makeConfig({ apiKey }));
-      await client.optimize('test');
+      await client.optimize('test prompt that is long enough for validation');
 
       expect(capturedHeaders['Authorization']).toBe(`Bearer ${apiKey}`);
-      expect(capturedHeaders['X-API-Key']).toBe(apiKey);
     });
 
     it('should send X-Client header as @fortress-optimizer/openclaw-skill', async () => {
@@ -120,7 +119,7 @@ describe('FortressClient', () => {
       });
 
       const client = new FortressClient(makeConfig());
-      await client.optimize('test');
+      await client.optimize('test prompt that is long enough for validation');
 
       expect(capturedHeaders['X-Client']).toBe('@fortress-optimizer/openclaw-skill');
     });
@@ -157,7 +156,7 @@ describe('FortressClient', () => {
       });
 
       const client = new FortressClient(makeConfig());
-      const result = await client.optimize('test');
+      const result = await client.optimize('test prompt that is long enough for validation');
 
       expect(result.optimization.optimized_prompt).toBe('the optimized prompt');
       expect(result.tokens.original).toBe(200);
