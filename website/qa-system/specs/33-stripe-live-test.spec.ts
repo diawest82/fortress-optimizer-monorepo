@@ -99,7 +99,15 @@ test.describe('Stripe Live Test: Checkout & Subscriptions', () => {
           cancelUrl: `${BASE}/pricing`,
         }),
       });
-      expect(res.status).not.toBe(500);
+      // Always read the body so failure logs show the actual error message,
+      // not just "Expected: not 500". The previous bare assertion left us
+      // chasing a 500 with no context for ~30 minutes during the 2026-04-08
+      // session — fixed by logging the body before asserting.
+      const body = await res.text();
+      expect(
+        res.status,
+        `POST /api/subscriptions returned ${res.status}: ${body.slice(0, 500)}`
+      ).not.toBe(500);
     });
 
     test('POST /api/subscriptions rejects unauthenticated', async () => {
