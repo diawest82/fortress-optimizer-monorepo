@@ -1,5 +1,23 @@
 name: Backend CI
 
+# Path filter design intent (audited 2026-04-08):
+#
+# Triggers on changes that could affect the FastAPI backend or its tests:
+#   - backend/**           — the FastAPI app itself
+#   - shared-libs/**       — Python libs the backend imports
+#   - tests/**             — pytest test files
+#   - .github/workflows/backend-ci.yml — so workflow edits re-trigger
+#
+# Does NOT trigger on website/** changes. Reasoning:
+#   - All tests in tests/ use TestClient(app) against the in-process
+#     FastAPI app. They have zero dependency on website code.
+#   - A website PR cannot break a backend test by definition.
+#
+# Cross-validation gap (KNOWN, not yet fixed): after a backend DEPLOY
+# changes the API contract, no workflow re-validates the website against
+# the new backend. Goal would be a backend-deploy post-hook that triggers
+# a website integration smoke run. Not done yet — see follow-up todo.
+
 on:
   pull_request:
     paths:

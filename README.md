@@ -86,15 +86,23 @@ Full documentation available at [docs/](docs/) directory, including:
 
 ## 🧪 Testing
 
-Automated test suite included for verifying platform functionality:
+The test suite has two main surfaces. See the per-section commands below.
 
 ```bash
-# Run web automation tests
-node tests/fortress-web-automation-tests.js
+# Backend pytest (requires backend/requirements.txt installed)
+python3 -m pytest tests/ backend/ -v
 
-# Run comprehensive link testing
-node tests/comprehensive-link-tester.js
+# Website Playwright suite (qa-system + e2e)
+cd website && npx playwright test --project=qa-system
+
+# Website Jest unit tests
+cd website && npm test
 ```
+
+The legacy Puppeteer-based scripts that used to live in `tests/*.js` were
+moved to `tests/_archived/` on 2026-04-08 — see the README in that
+directory for context. The modern Playwright-based equivalents live under
+`website/qa-system/specs/`.
 
 ## 🛠️ Tech Stack
 
