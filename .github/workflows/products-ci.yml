@@ -34,12 +34,15 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-          cache: 'npm'
-          cache-dependency-path: 'products/${{ matrix.product }}/package-lock.json'
 
       - name: Install dependencies
         working-directory: products/${{ matrix.product }}
-        run: npm ci
+        run: |
+          if [ -f package-lock.json ]; then
+            npm ci
+          else
+            npm install
+          fi
 
       - name: Run tests
         working-directory: products/${{ matrix.product }}

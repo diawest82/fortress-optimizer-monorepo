@@ -20,9 +20,8 @@ describe('Install Simulation', () => {
     expect(nameMatch).not.toBeNull();
 
     const pkg = JSON.parse(fs.readFileSync(path.join(ROOT, 'package.json'), 'utf-8'));
-    // SKILL.md name: fortress-optimizer, package: @fortress-optimizer/openclaw-skill
-    // Both should contain "fortress-optimizer"
-    expect(pkg.name).toContain('fortress-optimizer');
+    // SKILL.md name: fortress-optimizer, package: @diawest82/openclaw-skill
+    expect(pkg.name).toContain('openclaw-skill');
     expect(nameMatch![1].trim()).toContain('fortress-optimizer');
   });
 
