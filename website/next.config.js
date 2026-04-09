@@ -1,6 +1,6 @@
 /** @type {import('next').NextConfig} */
 
-// Production requires DATABASE_URL and PRISMA_DATABASE_URL set via Vercel env vars
+// Production requires DATABASE_URL, PRISMA_DATABASE_URL, and STRIPE_SECRET_KEY set via Vercel env vars
 if (process.env.NODE_ENV === 'production') {
   if (!process.env.DATABASE_URL) {
     throw new Error('FATAL: DATABASE_URL not set in production environment');
