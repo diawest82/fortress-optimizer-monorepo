@@ -14,6 +14,7 @@ declare module "next-auth" {
       email?: string | null;
       image?: string | null;
       provider?: string;
+      role?: string;
     };
   }
 }
@@ -25,6 +26,7 @@ declare module "next-auth/jwt" {
     provider?: string;
     providerAccountId?: string;
     mfaEnabled?: boolean;
+    role?: string;
   }
 }
 
@@ -63,6 +65,7 @@ export const authConfig: NextAuthOptions = {
             id: user.id,
             email: user.email,
             name: user.name,
+            role: user.role,
           };
         } catch (error) {
           console.error("Auth error:", error);
@@ -88,12 +91,14 @@ export const authConfig: NextAuthOptions = {
       if (session.user) {
         session.user.id = token.sub || "";
         session.user.provider = token.provider;
+        session.user.role = token.role;
       }
       return session;
     },
     async jwt({ token, user, account }) {
       if (user) {
         token.sub = user.id;
+        token.role = (user as any).role;
       }
       if (account) {
         token.provider = account.provider;
