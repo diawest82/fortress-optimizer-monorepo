@@ -87,6 +87,59 @@ export const authConfig: NextAuthOptions = {
     error: "/auth/error",
   },
   callbacks: {
+    async signIn({ user, account, profile }) {
+      // OAuth sign-in: auto-create user in DB if they don't exist yet
+      if (account?.type === "oauth" && user.email) {
+        try {
+          const existing = await prisma.user.findUnique({
+            where: { email: user.email },
+          });
+          if (!existing) {
+            const newUser = await prisma.user.create({
+              data: {
+                email: user.email,
+                name: user.name || profile?.name || user.email.split("@")[0],
+                password: "", // OAuth users have no password
+              },
+            });
+            // Store the DB id so the jwt callback can use it
+            user.id = newUser.id;
+          } else {
+            user.id = existing.id;
+          }
+          // Link the OAuth account
+          const existingAccount = await prisma.account.findUnique({
+            where: {
+              provider_providerAccountId: {
+                provider: account.provider,
+                providerAccountId: account.providerAccountId,
+              },
+            },
+          });
+          if (!existingAccount) {
+            await prisma.account.create({
+              data: {
+                userId: user.id,
+                type: account.type,
+                provider: account.provider,
+                providerAccountId: account.providerAccountId,
+                refresh_token: account.refresh_token,
+                access_token: account.access_token,
+                expires_at: account.expires_at,
+                token_type: account.token_type,
+                scope: account.scope,
+                id_token: account.id_token,
+                session_state: account.session_state as string | undefined,
+              },
+            });
+          }
+        } catch (err) {
+          console.error("OAuth signIn callback error:", err);
+          return false;
+        }
+      }
+      return true;
+    },
     async session({ session, token }) {
       if (session.user) {
         session.user.id = token.sub || "";
@@ -100,12 +153,19 @@ export const authConfig: NextAuthOptions = {
         token.sub = user.id;
         token.role = (user as any).role;
       }
+      // For OAuth users, fetch role from DB (since authorize() isn't called)
+      if (account?.type === "oauth" && token.sub) {
+        const dbUser = await prisma.user.findUnique({
+          where: { id: token.sub },
+          select: { role: true },
+        });
+        token.role = dbUser?.role || "viewer";
+      }
       if (account) {
         token.provider = account.provider;
         token.providerAccountId = account.providerAccountId;
       }
-      // Auto-enable MFA for OAuth users
-      if (account && account.type === 'oauth') {
+      if (account && account.type === "oauth") {
         token.mfaEnabled = true;
       }
       return token;
