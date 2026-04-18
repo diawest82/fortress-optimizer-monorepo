@@ -1,184 +1,119 @@
-# Fortress Token Optimizer - npm Package
+# fortress-optimizer
 
-Official npm package for integrating Fortress Token Optimizer into your Node.js applications.
-
-## Installation
+Cut your LLM API costs by 10-20%. Drop-in prompt optimization for OpenAI, Anthropic, Gemini, and more.
 
 ```bash
-npm install @fortress-optimizer/core
+npm install fortress-optimizer
 ```
 
-## Quick Start
+## 3-Line Quick Start
 
 ```javascript
-const { FortressClient } = require('@fortress-optimizer/core');
+const { FortressClient } = require('fortress-optimizer');
 
 const client = new FortressClient(process.env.FORTRESS_API_KEY);
+const result = await client.optimize('Can you please help me write a detailed and comprehensive analysis of this data and provide insights');
+
+console.log(result.optimization.optimized_prompt);
+// → "Write a detailed analysis of this data and provide insights"
+
+console.log(`${result.tokens.savings_percentage}% fewer tokens`);
+// → "18% fewer tokens"
+```
+
+**50,000 tokens/month free. No credit card required.** Get a key at [fortress-optimizer.com](https://fortress-optimizer.com)
+
+## Why?
+
+Every token you send to GPT-4, Claude, or Gemini costs money. Most prompts contain filler words, redundant phrases, and unnecessary politeness that inflate token counts without improving results.
+
+Fortress compresses your prompts server-side before they reach the model — same meaning, fewer tokens, lower cost.
+
+## Real Savings
+
+| Level | Savings | Best For |
+|-------|---------|----------|
+| `conservative` | ~5% | Production prompts where every word matters |
+| `balanced` | ~15% | General use (default) |
+| `aggressive` | ~20% | Cost-sensitive batch processing |
+
+## Full API
+
+```javascript
+const client = new FortressClient('fk_your_key', {
+  baseUrl: 'https://api.fortress-optimizer.com',  // default
+  timeout: 10000,                                  // default
+});
 
 // Optimize a prompt
-const result = await client.optimize(
-  'Your prompt here that could be optimized',
-  'balanced',  // 'conservative', 'balanced', or 'aggressive'
-  'openai'     // LLM provider
-);
+const result = await client.optimize(prompt, 'balanced', 'openai');
+// result.optimization.optimized_prompt — the optimized text
+// result.tokens.original — original token count
+// result.tokens.optimized — optimized token count
+// result.tokens.savings — tokens saved
+// result.tokens.savings_percentage — percentage saved
 
-console.log(`Saved ${result.tokens.savings} tokens!`);
-console.log(`Optimized: ${result.optimization.optimized_prompt}`);
+// Check your usage
+const usage = await client.getUsage();
+// usage.tokens_remaining, usage.tier, usage.reset_date
+
+// List supported providers
+const providers = await client.getProviders();
+
+// Health check
+const isUp = await client.healthCheck();
 ```
 
-## Features
+## Batch Optimization
 
-- ✅ Real-time token optimization
-- ✅ Support for all major LLM providers (OpenAI, Anthropic, Azure, Gemini, Groq, Ollama)
-- ✅ Three optimization levels (conservative, balanced, aggressive)
-- ✅ Token usage tracking
-- ✅ Rate limiting and authentication
-- ✅ TypeScript support
-
-## API Reference
-
-### `FortressClient`
-
-#### Constructor
-```javascript
-new FortressClient(apiKey, options?)
-```
-
-**Parameters:**
-- `apiKey` (string): Your Fortress API key
-- `options` (object, optional):
-  - `baseUrl` (string): API endpoint (default: `https://api.fortress-optimizer.com`)
-  - `timeout` (number): Request timeout in ms (default: 10000)
-
-#### `optimize(prompt, level, provider)`
-
-Optimize a prompt for token efficiency.
-
-**Parameters:**
-- `prompt` (string): The prompt to optimize (max 50,000 characters)
-- `level` (string): 'conservative', 'balanced', or 'aggressive'
-- `provider` (string): LLM provider name
-
-**Returns:** Promise<OptimizationResult>
-
-```javascript
-{
-  request_id: "opt_1707892834.123",
-  status: "success",
-  optimization: {
-    optimized_prompt: "Your optimized prompt...",
-    technique: "deduplication+compression"
-  },
-  tokens: {
-    original: 150,
-    optimized: 120,
-    savings: 30,
-    savings_percentage: 20.0
-  },
-  timestamp: "2026-02-13T14:30:45.123Z"
-}
-```
-
-#### `getUsage()`
-
-Get token usage for your API key.
-
-**Returns:** Promise<UsageStats>
-
-```javascript
-{
-  tokens_used_this_month: 25000,
-  tokens_limit: 50000,
-  tokens_remaining: 25000,
-  percentage_used: 50,
-  reset_date: "2026-03-13T00:00:00Z"
-}
-```
-
-#### `getProviders()`
-
-Get list of supported LLM providers.
-
-**Returns:** Promise<string[]>
-
-#### `healthCheck()`
-
-Check API availability.
-
-**Returns:** Promise<boolean>
-
-## Pricing
-
-- **FREE**: 50,000 tokens/month
-- **PRO**: $9.99/month (unlimited)
-- **TEAM**: $99/month (collaboration features)
-- **ENTERPRISE**: Custom pricing
-
-See [fortress-optimizer.com/pricing](https://fortress-optimizer.com/pricing) for details.
-
-## Examples
-
-### Basic Usage
-```javascript
-const client = new FortressClient(process.env.FORTRESS_API_KEY);
-
-const result = await client.optimize(
-  'Can you explain quantum computing in detail with examples?',
-  'balanced',
-  'openai'
-);
-
-console.log(result);
-```
-
-### Batch Optimization
 ```javascript
 const prompts = [
-  'First prompt...',
-  'Second prompt...',
-  'Third prompt...'
+  'Please analyze this data and provide your insights',
+  'Can you help me understand what this code does in detail',
+  'I would like you to summarize the key points of this document',
 ];
 
 const results = await Promise.all(
   prompts.map(p => client.optimize(p, 'balanced', 'openai'))
 );
 
-results.forEach((r, i) => {
-  console.log(`Prompt ${i}: ${r.tokens.savings_percentage}% saved`);
-});
+const totalSaved = results.reduce((sum, r) => sum + r.tokens.savings, 0);
+console.log(`Saved ${totalSaved} tokens across ${results.length} prompts`);
 ```
 
-### Error Handling
+## Error Handling
+
 ```javascript
 try {
   const result = await client.optimize(prompt, 'balanced', 'openai');
 } catch (error) {
   if (error.response?.status === 429) {
-    console.log('Rate limited - wait before retrying');
+    console.log('Rate limited — wait before retrying');
   } else if (error.response?.status === 401) {
     console.log('Invalid API key');
-  } else {
-    console.log('Optimization failed:', error.message);
   }
 }
 ```
 
-## Getting an API Key
+## Providers
 
-1. Sign up at [fortress-optimizer.com](https://fortress-optimizer.com)
-2. Navigate to API Keys
-3. Create a new key
-4. Use in your application
+OpenAI, Anthropic, Azure, Google Gemini, Groq, Ollama — pass the provider name and the optimizer tailors compression to each tokenizer.
 
-```bash
-export FORTRESS_API_KEY="your-api-key-here"
-```
+## Pricing
 
-## Support
+| Plan | Price | Tokens |
+|------|-------|--------|
+| Free | $0 | 50,000/month |
+| Pro | $15/month | Unlimited |
+| Teams | From $60/month | Unlimited + team management |
+| Enterprise | Custom | Dedicated support + SLAs |
 
-- 📖 Documentation: [docs.fortress-optimizer.com](https://docs.fortress-optimizer.com)
-- 💬 Community: [Discord](https://discord.gg/fortress)
-- 📧 Email: support@fortress-optimizer.com
+## Links
+
+- [Website](https://fortress-optimizer.com)
+- [API Docs](https://docs.fortress-optimizer.com)
+- [VS Code Extension](https://marketplace.visualstudio.com/items?itemName=fortress-optimizer.fortress-token-optimizer)
+- [Python Package](https://pypi.org/project/fortress-optimizer/)
 
 ## License
 

@@ -1,8 +1,38 @@
 [build-system]
-requires = ["setuptools>=45", "wheel", "setuptools_scm[toml]>=6.2"]
+requires = ["setuptools>=45", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "fortress-shared-libs"
-version = "1.0.0"
-description = "Shared libraries for Fortress Token Optimizer"
+name = "fortress-optimizer"
+version = "1.0.1"
+description = "Cut your LLM API costs by 10-20%. Drop-in prompt optimization for Python."
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.8"
+authors = [
+    {name = "Fortress Optimizer", email = "support@fortress-optimizer.com"},
+]
+keywords = ["tokens", "optimization", "llm", "openai", "anthropic", "prompt-engineering", "cost-reduction"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Libraries",
+]
+dependencies = [
+    "requests>=2.28.0",
+]
+
+[project.urls]
+Homepage = "https://fortress-optimizer.com"
+Documentation = "https://fortress-optimizer.com/docs"
+Repository = "https://github.com/diawest82/fortress-optimizer-monorepo"
+
+[tool.setuptools.packages.find]
+include = ["fortress_optimizer*"]

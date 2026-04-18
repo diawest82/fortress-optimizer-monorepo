@@ -1,7 +1,7 @@
 {
-  "name": "@fortress-optimizer/core",
-  "version": "1.0.0",
-  "description": "Fortress Token Optimizer - npm package for token optimization",
+  "name": "fortress-optimizer",
+  "version": "1.0.1",
+  "description": "Cut your LLM API costs by 10-20%. Drop-in prompt optimization for OpenAI, Anthropic, Gemini, and more.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
