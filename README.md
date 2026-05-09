@@ -4,6 +4,8 @@
 
 Fortress compresses your prompts server-side — removing filler words, deduplicating redundant phrases, and tightening phrasing — so you send fewer tokens without changing meaning.
 
+> 📖 **Read the deep-dive**: [How I Built an API That Cuts LLM Token Costs by 11-22%](https://dev.to/diallo_west_9848dddc9ba5a/how-i-built-an-api-that-cuts-llm-token-costs-by-11-22-1l10) — real benchmarks across 5 prompt types, with cost projections at scale.
+
 ## Quick Start
 
 ```bash
@@ -112,6 +114,7 @@ fortress-optimizer-monorepo/
 - **npm**: [npmjs.com/package/fortress-optimizer](https://www.npmjs.com/package/fortress-optimizer)
 - **PyPI**: [pypi.org/project/fortress-optimizer](https://pypi.org/project/fortress-optimizer/)
 - **VS Code**: [Marketplace](https://marketplace.visualstudio.com/items?itemName=fortress-optimizer.fortress-token-optimizer)
+- **Blog**: [dev.to/diallo_west_9848dddc9ba5a](https://dev.to/diallo_west_9848dddc9ba5a/how-i-built-an-api-that-cuts-llm-token-costs-by-11-22-1l10)
 - **Docs**: [docs.fortress-optimizer.com](https://docs.fortress-optimizer.com)
 
 ## License
