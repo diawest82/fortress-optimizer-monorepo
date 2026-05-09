@@ -35,6 +35,18 @@ export default function Home() {
                 🎯 View Install Guides
               </Link>
             </div>
+            <p className="mt-4 text-sm text-slate-400">
+              📖 Read the deep-dive:{" "}
+              <a
+                href="https://dev.to/diallo_west_9848dddc9ba5a/how-i-built-an-api-that-cuts-llm-token-costs-by-11-22-1l10"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-300 hover:text-blue-200 underline"
+              >
+                How I Built an API That Cuts LLM Token Costs by 11-22%
+              </a>
+              {" "}— real benchmarks across 5 prompt types
+            </p>
           </div>
           
           {/* Stats */}
