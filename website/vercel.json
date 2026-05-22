@@ -10,13 +10,6 @@
   "installCommand": "npm install",
   "framework": "nextjs",
   "public": false,
-  "env": {
-    "STRIPE_SECRET_KEY": "Stripe secret key for payment processing",
-    "DATABASE_URL": "PostgreSQL database connection string",
-    "STRIPE_WEBHOOK_SECRET": "Stripe webhook secret for payment events",
-    "NEXT_PUBLIC_API_URL": "Backend API URL for frontend requests",
-    "NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY": "Stripe publishable key for frontend"
-  },
   "rewrites": [
     {
       "source": "/api/(.*)",
