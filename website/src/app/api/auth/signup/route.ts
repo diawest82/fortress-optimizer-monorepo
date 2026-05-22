@@ -54,6 +54,27 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Validate name: reject HTML/JS injection attempts.
+    // Legitimate names don't contain <, >, or quote chars. React escapes on
+    // render, but defense-in-depth: keep the stored value clean so downstream
+    // consumers (emails, exports, admin UIs) can't be tricked into rendering it.
+    if (typeof name !== 'string' || name.length > 100) {
+      return NextResponse.json(
+        { error: "Name must be a string under 100 characters" },
+        { status: 400 }
+      );
+    }
+    if (/[<>"`]|javascript:|data:|on\w+=/i.test(name)) {
+      await logSuspiciousActivity(email, clientIp, userAgent, 'XSS_ATTEMPT_NAME', {
+        endpoint: '/api/auth/signup',
+        nameSample: name.slice(0, 50),
+      });
+      return NextResponse.json(
+        { error: "Name contains invalid characters" },
+        { status: 400 }
+      );
+    }
+
     // ============ PHASE 4: Validate password strength ============
     const passwordValidation = validatePassword(password);
     if (!passwordValidation.isValid) {
