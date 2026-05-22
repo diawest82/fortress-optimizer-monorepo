@@ -10,45 +10,93 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// Admin Users
+// Users
 model User {
   id            String    @id @default(cuid())
   email         String    @unique
   name          String?
-  password      String
+  password      String?   // Null for OAuth-only users
+  image         String?   // Avatar URL from OAuth provider
+  emailVerified DateTime? // Set when email is verified (OAuth auto-verifies)
   role          String    @default("viewer") // admin, moderator, viewer — default is least-privilege; admins must be promoted explicitly
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
-  
+
   // Subscription
   tier          String    @default("free") // free, starter, teams, enterprise
   subscriptionStatus String @default("active") // active, cancelled, suspended
   stripeCustomerId String?
   stripeSubscriptionId String?
   billingCycleDay Int       @default(1) // Day of month for billing
-  
+
   // Team Management (for Teams tier)
   teamId        String?
   team          Team?     @relation("TeamMembers", fields: [teamId], references: [id])
   managedTeams  Team[]    @relation("TeamOwner") // Teams this user owns
-  
+
   // Enterprise Features
   accountManager String? // Dedicated account manager email/name
   slaEnabled    Boolean   @default(false)
   supportLevel  String    @default("community") // community, email, priority, 24/7
-  
+
+  // OAuth — NextAuth adapter relations
+  accounts      Account[]
+  sessions      Session[]
+
   // Referral relations
   referralCodesCreated ReferralCode[] @relation("ReferralCodesCreated")
   referralsCreated     Referral[]     @relation("ReferralsCreated")
   referralsReceived    Referral[]     @relation("ReferralsReceived")
-  
+
   // Relations
   emailReplies  EmailReply[]
   supportTickets SupportTicket[] @relation("TicketCreator")
   supportTicketsAssigned SupportTicket[] @relation("TicketAssignee")
   passwordResetTokens PasswordResetToken[]
-  
+
   @@map("users")
+}
+
+// NextAuth — OAuth account linking
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String  // "oauth" | "credentials"
+  provider          String  // "github" | "google" | "credentials"
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+// NextAuth — Session tracking
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+// NextAuth — Email verification tokens
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
 }
 
 // Password Reset Tokens

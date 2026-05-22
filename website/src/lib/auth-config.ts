@@ -134,8 +134,7 @@ export const authConfig: NextAuthOptions = {
             });
           }
         } catch (err) {
-          console.error("OAuth signIn callback error:", err);
-          return false;
+          console.error("OAuth signIn callback error (allowing login):", err);
         }
       }
       return true;
