@@ -1,6 +1,6 @@
 /**
  * Stripe Webhook Handler
- * POST /api/webhook/stripe
+ * POST /api/webhooks/stripe
  *
  * Handles Stripe events:
  * - checkout.session.completed

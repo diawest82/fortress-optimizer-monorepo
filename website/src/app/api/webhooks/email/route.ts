@@ -8,7 +8,7 @@ import { prisma } from '@/lib/prisma';
 import { analyzeEmail } from '@/lib/email-processing';
 
 /**
- * POST /api/webhook/email
+ * POST /api/webhooks/email
  * Receives incoming emails from email service
  */
 export async function POST(request: NextRequest) {
@@ -91,7 +91,7 @@ export async function POST(request: NextRequest) {
 }
 
 /**
- * GET /api/webhook/email
+ * GET /api/webhooks/email
  * Health check for webhook
  */
 export async function GET() {
