@@ -64,7 +64,8 @@ export async function POST(req: NextRequest) {
         where: { email },
       });
 
-      if (!user) {
+      if (!user || !user.password) {
+        // No user OR OAuth-only user (no password set)
         throw new Error("Invalid credentials");
       }
 

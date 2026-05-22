@@ -48,7 +48,8 @@ export const authConfig: NextAuthOptions = {
             where: { email: credentials.email },
           });
 
-          if (!user) {
+          if (!user || !user.password) {
+            // OAuth-only users have no password to compare against
             throw new Error("Invalid credentials");
           }
 

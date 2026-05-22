@@ -51,6 +51,14 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // OAuth-only users have no password to change
+    if (!user.password) {
+      return NextResponse.json(
+        { error: 'No password set on this account. Sign in with your OAuth provider.' },
+        { status: 400 }
+      );
+    }
+
     // Verify current password
     const isPasswordValid = await bcrypt.compare(currentPassword, user.password);
     if (!isPasswordValid) {
