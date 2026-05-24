@@ -3,23 +3,38 @@
  * Tests for input validation, error handling, and form processing
  */
 
+import { isValidEmail } from '@/lib/email-validation';
+
 describe('Form Validation', () => {
   describe('email validation', () => {
     it('should validate valid email addresses', () => {
       const emails = ['test@example.com', 'user.name@domain.co.uk', 'info+tag@site.org'];
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      
       emails.forEach(email => {
-        expect(emailRegex.test(email)).toBe(true);
+        expect(isValidEmail(email)).toBe(true);
       });
     });
 
     it('should reject invalid email addresses', () => {
       const emails = ['notanemail', '@nodomain.com', 'missing@domain'];
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      
       emails.forEach(email => {
-        expect(emailRegex.test(email)).toBe(false);
+        expect(isValidEmail(email)).toBe(false);
+      });
+    });
+
+    it('should reject injection-looking emails', () => {
+      const emails = [
+        "x'OR'1'='1@test.com",
+        'admin"@test.com',
+        '<script>@test.com',
+        'a;b@test.com',
+        '`whoami`@test.com',
+        'a..b@test.com',     // consecutive dots
+        '.a@test.com',        // leading dot
+        'a.@test.com',        // trailing dot
+        'a' + 'a'.repeat(65) + '@test.com',  // local part > 64 chars
+      ];
+      emails.forEach(email => {
+        expect(isValidEmail(email)).toBe(false);
       });
     });
   });

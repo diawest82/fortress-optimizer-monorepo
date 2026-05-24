@@ -2,6 +2,7 @@ import { createUser } from "@/lib/auth-config";
 import { checkSignupRateLimit } from "@/lib/rate-limit";
 import { logSignupEvent, logSuspiciousActivity } from "@/lib/audit-log";
 import { validatePassword } from "@/lib/password-validation";
+import { validateEmail } from "@/lib/email-validation";
 import { setAuthTokenCookie, setCsrfTokenCookie } from "@/lib/secure-cookies";
 import { NextRequest, NextResponse } from "next/server";
 import jwt from "jsonwebtoken";
@@ -45,11 +46,18 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Validate email format
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
+    // Validate email (strict — rejects apostrophes, quotes, brackets, etc.
+    // that would look like injection payloads even though Prisma uses
+    // parameterized queries).
+    const emailValidation = validateEmail(email);
+    if (!emailValidation.valid) {
+      if (/['"`<>;&\\]/.test(typeof email === 'string' ? email : '')) {
+        await logSuspiciousActivity(String(email).slice(0, 60), clientIp, userAgent, 'INJECTION_ATTEMPT_EMAIL', {
+          endpoint: '/api/auth/signup',
+        });
+      }
       return NextResponse.json(
-        { error: "Invalid email format" },
+        { error: emailValidation.reason },
         { status: 400 }
       );
     }

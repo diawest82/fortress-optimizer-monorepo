@@ -4,6 +4,7 @@ import { useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAuthContext } from '@/context/AuthContext';
+import { isValidEmail } from '@/lib/email-validation';
 
 function SignUpContent() {
   const router = useRouter();
@@ -31,11 +32,11 @@ function SignUpContent() {
     let isValid = true;
 
     // Email validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const looksLikeEmail = (e: string) => isValidEmail(e);
     if (!formData.email) {
       errors.email = 'Email is required';
       isValid = false;
-    } else if (!emailRegex.test(formData.email)) {
+    } else if (!looksLikeEmail(formData.email)) {
       errors.email = 'Please enter a valid email';
       isValid = false;
     }

@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { useAuthContext } from '@/context/AuthContext';
+import { isValidEmail } from '@/lib/email-validation';
 
 export default function TeamSignUpClient() {
   const router = useRouter();
@@ -28,9 +29,8 @@ export default function TeamSignUpClient() {
     const errors = { email: '', password: '', firstName: '', lastName: '', teamName: '' };
     let isValid = true;
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!formData.email) { errors.email = 'Email is required'; isValid = false; }
-    else if (!emailRegex.test(formData.email)) { errors.email = 'Please enter a valid email'; isValid = false; }
+    else if (!isValidEmail(formData.email)) { errors.email = 'Please enter a valid email'; isValid = false; }
 
     if (!formData.password) { errors.password = 'Password is required'; isValid = false; }
     else if (formData.password.length < 8) { errors.password = 'Password must be at least 8 characters'; isValid = false; }
