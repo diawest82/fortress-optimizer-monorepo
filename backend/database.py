@@ -6,11 +6,20 @@ SQLAlchemy connection and session management for PostgreSQL (AWS RDS)
 import os
 import logging
 from contextlib import contextmanager
+from datetime import datetime, timezone
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base, Session
 
 logger = logging.getLogger(__name__)
+
+
+def utcnow() -> datetime:
+    """Naive UTC timestamp. Behaviorally identical to the deprecated
+    datetime.utcnow(), but built from an explicit timezone-aware value so it
+    doesn't emit a DeprecationWarning. Returns naive (tzinfo stripped) to match
+    the naive DateTime columns used throughout the schema."""
+    return datetime.now(timezone.utc).replace(tzinfo=None)
 
 # Database URL from environment, fallback to local dev
 DATABASE_URL = os.getenv(

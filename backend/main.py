@@ -9,7 +9,7 @@ from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field, field_validator
 from typing import Optional, Literal, List, Dict
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from collections import defaultdict
 from sqlalchemy.orm import Session
 import hashlib
@@ -29,8 +29,11 @@ from shared_libs.fortress_types import (
     PROVIDERS,
     PRICING_TIERS,
 )
-from database import get_db, init_db, engine, Base
-from models import ApiKey, OptimizationLog
+from sqlalchemy import func, case
+from sqlalchemy.exc import IntegrityError
+from database import get_db, init_db, engine, Base, utcnow
+from models import ApiKey, OptimizationLog, UsageEvent
+from meter_pricing import estimate_cost_microdollars, PRICING_VERSION
 from cleanup import run_cleanup
 from extension_routes import router as extension_router
 
@@ -290,12 +293,38 @@ if not _is_production:
 # ============================================================================
 
 
+class AttributionMeta(BaseModel):
+    """Optional cost-attribution metadata for metering."""
+
+    feature: Optional[str] = Field(None, min_length=1, max_length=100)
+    customer_id: Optional[str] = Field(None, min_length=1, max_length=100)
+    workflow: Optional[str] = Field(None, min_length=1, max_length=100)
+    environment: Optional[str] = Field(None, min_length=1, max_length=50)
+    tags: Optional[Dict[str, str]] = None
+
+    @field_validator("tags")
+    @classmethod
+    def validate_tags(cls, v):
+        if v is None:
+            return v
+        if len(v) > 5:
+            raise ValueError("tags: maximum 5 entries")
+        for k, val in v.items():
+            if not (1 <= len(k) <= 40):
+                raise ValueError("tags: keys must be 1-40 chars")
+            if not (0 <= len(val) <= 100):
+                raise ValueError("tags: values must be <= 100 chars")
+        return v
+
+
 class OptimizeRequest(BaseModel):
     """Request to optimize a prompt"""
 
     prompt: str = Field(..., min_length=1, max_length=50000)
     level: Literal["conservative", "balanced", "aggressive"] = "balanced"
     provider: str = Field("openai", description="LLM provider")
+    model: Optional[str] = Field(None, max_length=100)  # for cost estimation
+    attribution: Optional[AttributionMeta] = None
 
     @field_validator("prompt")
     @classmethod
@@ -303,6 +332,16 @@ class OptimizeRequest(BaseModel):
         if "\x00" in v:
             raise ValueError("Prompt must not contain null bytes")
         return v
+
+
+class CostInfo(BaseModel):
+    """Estimated cost for an optimize call (input-token cost)."""
+
+    estimated: bool
+    original_cost_usd: Optional[float] = None
+    optimized_cost_usd: Optional[float] = None
+    savings_usd: Optional[float] = None
+    pricing_version: Optional[str] = None
 
 
 class OptimizeResponse(BaseModel):
@@ -314,6 +353,19 @@ class OptimizeResponse(BaseModel):
     tokens: Optional[dict] = None
     timestamp: datetime
     technique: Optional[str] = None
+    cost: Optional[CostInfo] = None  # null when unpriceable or model not given
+
+
+class TrackUsageRequest(BaseModel):
+    """Report LLM usage that did not pass through Fortress optimize."""
+
+    provider: str = Field(..., min_length=1, max_length=50)
+    model: Optional[str] = Field(None, max_length=100)
+    input_tokens: int = Field(0, ge=0, le=100_000_000)
+    output_tokens: int = Field(0, ge=0, le=100_000_000)
+    attribution: Optional[AttributionMeta] = None
+    occurred_at: Optional[datetime] = None  # default: now (UTC)
+    idempotency_key: Optional[str] = Field(None, min_length=1, max_length=64)
 
 
 class HealthResponse(BaseModel):
@@ -369,8 +421,8 @@ async def verify_api_key(
     if len(api_key) < 10:
         raise HTTPException(status_code=401, detail="Invalid API key format")
 
-    # Validate key must start with fk_ prefix
-    if not api_key.startswith("fk_"):
+    # Validate key prefix: fk_ (standard), fkt_ (team seat), fkr_ (read-only)
+    if not api_key.startswith(("fk_", "fkt_", "fkr_")):
         raise HTTPException(status_code=401, detail="Invalid API key format")
 
     # Check against database
@@ -393,6 +445,65 @@ async def verify_api_key(
         )
 
     return api_key
+
+
+# ============================================================================
+# Metering helpers
+# ============================================================================
+
+# group_by dimensions allowed on /api/meter/report ("day" maps to bucket_date)
+_REPORT_DIMENSIONS = {
+    "feature": UsageEvent.feature,
+    "customer_id": UsageEvent.customer_id,
+    "workflow": UsageEvent.workflow,
+    "provider": UsageEvent.provider,
+    "model": UsageEvent.model,
+    "day": UsageEvent.bucket_date,
+    "event_type": UsageEvent.event_type,
+}
+
+# exact-match filters reusable across report/events
+_EVENT_FILTERS = {
+    "feature": UsageEvent.feature,
+    "customer_id": UsageEvent.customer_id,
+    "workflow": UsageEvent.workflow,
+    "provider": UsageEvent.provider,
+    "model": UsageEvent.model,
+    "event_type": UsageEvent.event_type,
+}
+
+
+def _micro_to_usd(micro: Optional[int]) -> Optional[float]:
+    """Convert integer micro-dollars to a USD float (6 dp). None stays None."""
+    if micro is None:
+        return None
+    return round(micro / 1_000_000, 6)
+
+
+def _serialize_usage_event(ev: UsageEvent) -> dict:
+    """Public representation of a UsageEvent — never exposes key_hash, id,
+    idempotency_key, or raw micro-dollar integers."""
+    return {
+        "event_id": ev.event_id,
+        "event_type": ev.event_type,
+        "request_id": ev.request_id,
+        "feature": ev.feature,
+        "customer_id": ev.customer_id,
+        "workflow": ev.workflow,
+        "environment": ev.environment,
+        "tags": ev.tags,
+        "provider": ev.provider,
+        "model": ev.model,
+        "input_tokens": ev.input_tokens,
+        "output_tokens": ev.output_tokens,
+        "tokens_saved": ev.tokens_saved,
+        "cost_estimated": ev.cost_estimated,
+        "cost_usd": _micro_to_usd(ev.cost_microdollars),
+        "cost_saved_usd": _micro_to_usd(ev.cost_saved_microdollars),
+        "pricing_version": ev.pricing_version,
+        "occurred_at": ev.occurred_at,
+        "created_at": ev.created_at,
+    }
 
 
 # ============================================================================
@@ -438,7 +549,7 @@ async def health_check(db: Session = Depends(get_db)):
 
     response_data = HealthResponse(
         status=status,
-        timestamp=datetime.utcnow(),
+        timestamp=utcnow(),
         version="1.5.0",
         database=db_status,
     )
@@ -506,7 +617,7 @@ async def optimize(
         db_key = db.query(ApiKey).filter(ApiKey.key_hash == key_hash).first()
         if db_key:
             # Reset monthly counter if a new month has started
-            now = datetime.utcnow()
+            now = utcnow()
             if db_key.monthly_reset_at is None or now.month != db_key.monthly_reset_at.month or now.year != db_key.monthly_reset_at.year:
                 db_key.monthly_tokens_used = 0
                 db_key.monthly_reset_at = now
@@ -535,9 +646,9 @@ async def optimize(
             db_key.tokens_saved += result.savings
             db_key.monthly_tokens_used += result.original_tokens
             db_key.requests += 1
-            db_key.last_used_at = datetime.utcnow()
+            db_key.last_used_at = utcnow()
             if not db_key.first_used_at:
-                db_key.first_used_at = datetime.utcnow()
+                db_key.first_used_at = utcnow()
 
         # Write audit log (technique truncated to fit VARCHAR(100) column)
         log_entry = OptimizationLog(
@@ -552,6 +663,58 @@ async def optimize(
             provider=request.provider,
         )
         db.add(log_entry)
+
+        # Metering: estimate cost ONLY when model is explicitly provided
+        # (provider defaults to "openai", so estimating from a defaulted provider
+        # would fabricate costs the caller never implied). Record one usage event
+        # in the same commit as the audit log.
+        cost_info = None
+        ev_cost_estimated = False
+        ev_cost_microdollars = None
+        ev_cost_saved_microdollars = None
+        ev_pricing_version = None
+        if request.model:
+            orig_est = estimate_cost_microdollars(request.provider, request.model, result.original_tokens, 0)
+            if orig_est is not None:
+                opt_est = estimate_cost_microdollars(request.provider, request.model, result.optimized_tokens, 0)
+                save_est = estimate_cost_microdollars(request.provider, request.model, result.savings, 0)
+                ev_cost_estimated = True
+                ev_cost_microdollars = orig_est["total_microdollars"]
+                ev_cost_saved_microdollars = save_est["total_microdollars"]
+                ev_pricing_version = PRICING_VERSION
+                cost_info = CostInfo(
+                    estimated=True,
+                    original_cost_usd=_micro_to_usd(orig_est["total_microdollars"]),
+                    optimized_cost_usd=_micro_to_usd(opt_est["total_microdollars"]),
+                    savings_usd=_micro_to_usd(save_est["total_microdollars"]),
+                    pricing_version=PRICING_VERSION,
+                )
+
+        attr = request.attribution
+        ev_occurred = utcnow()
+        usage_event = UsageEvent(
+            event_id=f"ue_{uuid.uuid4().hex[:12]}",
+            key_hash=key_hash,
+            event_type="optimize",
+            request_id=request_id,
+            feature=attr.feature if attr else None,
+            customer_id=attr.customer_id if attr else None,
+            workflow=attr.workflow if attr else None,
+            environment=attr.environment if attr else None,
+            tags=attr.tags if attr else None,
+            provider=request.provider,
+            model=request.model,
+            input_tokens=result.original_tokens,
+            output_tokens=0,
+            tokens_saved=result.savings,
+            cost_estimated=ev_cost_estimated,
+            cost_microdollars=ev_cost_microdollars,
+            cost_saved_microdollars=ev_cost_saved_microdollars,
+            pricing_version=ev_pricing_version,
+            occurred_at=ev_occurred,
+            bucket_date=ev_occurred.strftime("%Y-%m-%d"),
+        )
+        db.add(usage_event)
         db.commit()
 
         logger.info(
@@ -587,8 +750,9 @@ async def optimize(
                 "savings": result.savings,
                 "savings_percentage": round(result.savings_percentage, 2),
             },
-            timestamp=datetime.utcnow(),
+            timestamp=utcnow(),
             technique=result.technique_used,
+            cost=cost_info,
         )
 
         # Add rate limit headers
@@ -609,6 +773,256 @@ async def optimize(
         import traceback
         logger.error(f"Optimization error: {str(e)}\n{traceback.format_exc()}")
         raise HTTPException(status_code=500, detail="Internal server error")
+
+
+# ============================================================================
+# Metering endpoints (cost attribution)
+# ============================================================================
+
+
+@app.post("/api/meter/track")
+async def meter_track(
+    request: TrackUsageRequest,
+    api_key: str = Depends(verify_api_key),
+    db: Session = Depends(get_db),
+):
+    """Record externally-incurred LLM usage for cost attribution."""
+    # Read-only keys may not write usage
+    if api_key.startswith("fkr_"):
+        raise HTTPException(status_code=403, detail="Read-only keys cannot track usage")
+
+    if request.input_tokens + request.output_tokens == 0:
+        raise HTTPException(
+            status_code=422,
+            detail="At least one of input_tokens or output_tokens must be > 0",
+        )
+
+    now = utcnow()
+    occurred = request.occurred_at or now
+    # Normalize aware datetimes to naive UTC
+    if occurred.tzinfo is not None:
+        occurred = occurred.astimezone(timezone.utc).replace(tzinfo=None)
+    if occurred > now + timedelta(minutes=5):
+        raise HTTPException(status_code=422, detail="occurred_at cannot be in the future")
+    if occurred < now - timedelta(days=90):
+        raise HTTPException(status_code=422, detail="occurred_at cannot be older than 90 days")
+
+    key_hash = _hash_key(api_key)
+
+    # Idempotency: return the existing event if this key already used this idempotency_key
+    if request.idempotency_key:
+        existing = db.query(UsageEvent).filter(
+            UsageEvent.key_hash == key_hash,
+            UsageEvent.idempotency_key == request.idempotency_key,
+        ).first()
+        if existing is not None:
+            return _track_response(existing, duplicate=True)
+
+    est = estimate_cost_microdollars(
+        request.provider, request.model, request.input_tokens, request.output_tokens
+    )
+    attr = request.attribution
+    event = UsageEvent(
+        event_id=f"ue_{uuid.uuid4().hex[:12]}",
+        key_hash=key_hash,
+        event_type="external",
+        request_id=None,
+        feature=attr.feature if attr else None,
+        customer_id=attr.customer_id if attr else None,
+        workflow=attr.workflow if attr else None,
+        environment=attr.environment if attr else None,
+        tags=attr.tags if attr else None,
+        provider=request.provider,
+        model=request.model,
+        input_tokens=request.input_tokens,
+        output_tokens=request.output_tokens,
+        tokens_saved=0,
+        cost_estimated=est is not None,
+        cost_microdollars=est["total_microdollars"] if est else None,
+        cost_saved_microdollars=None,
+        pricing_version=PRICING_VERSION if est else None,
+        idempotency_key=request.idempotency_key,
+        occurred_at=occurred,
+        bucket_date=occurred.strftime("%Y-%m-%d"),
+    )
+    db.add(event)
+    try:
+        db.commit()
+    except IntegrityError:
+        # Concurrent insert with the same (key_hash, idempotency_key) — return the winner
+        db.rollback()
+        existing = db.query(UsageEvent).filter(
+            UsageEvent.key_hash == key_hash,
+            UsageEvent.idempotency_key == request.idempotency_key,
+        ).first()
+        if existing is not None:
+            return _track_response(existing, duplicate=True)
+        raise
+    db.refresh(event)
+
+    logger.info("meter_track", extra={
+        "event": "meter_track",
+        "key_hash": key_hash[:12],
+        "tokens": request.input_tokens + request.output_tokens,
+    })
+    return _track_response(event, duplicate=False)
+
+
+def _track_response(event: UsageEvent, duplicate: bool) -> dict:
+    return {
+        "event_id": event.event_id,
+        "status": "recorded",
+        "duplicate": duplicate,
+        "cost": {
+            "estimated": event.cost_estimated,
+            "cost_usd": _micro_to_usd(event.cost_microdollars),
+            "pricing_version": event.pricing_version,
+        },
+        "occurred_at": jsonable_encoder(event.occurred_at),
+        "timestamp": jsonable_encoder(utcnow()),
+    }
+
+
+@app.get("/api/meter/report")
+async def meter_report(
+    group_by: str = "feature",
+    start: Optional[str] = None,
+    end: Optional[str] = None,
+    feature: Optional[str] = None,
+    customer_id: Optional[str] = None,
+    workflow: Optional[str] = None,
+    provider: Optional[str] = None,
+    model: Optional[str] = None,
+    event_type: Optional[str] = None,
+    api_key: str = Depends(verify_api_key),
+    db: Session = Depends(get_db),
+):
+    """Aggregated cost-attribution report, grouped by up to 3 dimensions."""
+    dims = [d.strip() for d in group_by.split(",") if d.strip()]
+    if not dims:
+        dims = ["feature"]
+    if len(dims) > 3:
+        raise HTTPException(status_code=422, detail="group_by: maximum 3 dimensions")
+    for d in dims:
+        if d not in _REPORT_DIMENSIONS:
+            raise HTTPException(status_code=422, detail=f"Invalid group_by dimension: {d}")
+
+    today = utcnow().strftime("%Y-%m-%d")
+    start_date = start or (utcnow() - timedelta(days=30)).strftime("%Y-%m-%d")
+    end_date = end or today
+    if start_date > end_date:
+        raise HTTPException(status_code=422, detail="start cannot be after end")
+
+    key_hash = _hash_key(api_key)
+    exact = {
+        "feature": feature, "customer_id": customer_id, "workflow": workflow,
+        "provider": provider, "model": model, "event_type": event_type,
+    }
+
+    def _base_filters(q):
+        q = q.filter(
+            UsageEvent.key_hash == key_hash,
+            UsageEvent.bucket_date >= start_date,
+            UsageEvent.bucket_date <= end_date,
+        )
+        for name, val in exact.items():
+            if val is not None:
+                q = q.filter(_EVENT_FILTERS[name] == val)
+        return q
+
+    cost_sum = func.coalesce(func.sum(UsageEvent.cost_microdollars), 0)
+    saved_sum = func.coalesce(func.sum(UsageEvent.cost_saved_microdollars), 0)
+    unpriced = func.sum(case((UsageEvent.cost_estimated == False, 1), else_=0))  # noqa: E712
+    aggregates = [
+        func.count().label("events"),
+        func.coalesce(func.sum(UsageEvent.input_tokens), 0).label("input_tokens"),
+        func.coalesce(func.sum(UsageEvent.output_tokens), 0).label("output_tokens"),
+        func.coalesce(func.sum(UsageEvent.tokens_saved), 0).label("tokens_saved"),
+        cost_sum.label("cost_microdollars"),
+        saved_sum.label("cost_saved_microdollars"),
+        unpriced.label("unpriced_events"),
+    ]
+
+    # Totals (no grouping)
+    totals_row = _base_filters(db.query(*aggregates)).one()
+    totals = {
+        "events": totals_row.events,
+        "input_tokens": int(totals_row.input_tokens),
+        "output_tokens": int(totals_row.output_tokens),
+        "tokens_saved": int(totals_row.tokens_saved),
+        "cost_usd": _micro_to_usd(int(totals_row.cost_microdollars)),
+        "cost_saved_usd": _micro_to_usd(int(totals_row.cost_saved_microdollars)),
+        "unpriced_events": int(totals_row.unpriced_events or 0),
+    }
+
+    # Grouped query
+    group_cols = [_REPORT_DIMENSIONS[d].label(f"g_{i}") for i, d in enumerate(dims)]
+    grouped_q = _base_filters(db.query(*group_cols, *aggregates))
+    grouped_q = grouped_q.group_by(*group_cols).order_by(
+        cost_sum.desc(), func.count().desc()
+    ).limit(1000)
+
+    groups = []
+    for row in grouped_q.all():
+        key = {dims[i]: getattr(row, f"g_{i}") for i in range(len(dims))}
+        groups.append({
+            "key": key,
+            "events": row.events,
+            "input_tokens": int(row.input_tokens),
+            "output_tokens": int(row.output_tokens),
+            "tokens_saved": int(row.tokens_saved),
+            "cost_usd": _micro_to_usd(int(row.cost_microdollars)),
+            "cost_saved_usd": _micro_to_usd(int(row.cost_saved_microdollars)),
+            "unpriced_events": int(row.unpriced_events or 0),
+        })
+
+    return {
+        "start": start_date,
+        "end": end_date,
+        "group_by": dims,
+        "totals": totals,
+        "groups": groups,
+    }
+
+
+@app.get("/api/meter/events")
+async def meter_events(
+    limit: int = 50,
+    offset: int = 0,
+    feature: Optional[str] = None,
+    customer_id: Optional[str] = None,
+    workflow: Optional[str] = None,
+    provider: Optional[str] = None,
+    event_type: Optional[str] = None,
+    api_key: str = Depends(verify_api_key),
+    db: Session = Depends(get_db),
+):
+    """Raw paginated usage events for the authenticated key."""
+    if not (1 <= limit <= 200):
+        raise HTTPException(status_code=422, detail="limit must be between 1 and 200")
+    if offset < 0:
+        raise HTTPException(status_code=422, detail="offset must be >= 0")
+
+    key_hash = _hash_key(api_key)
+    exact = {
+        "feature": feature, "customer_id": customer_id, "workflow": workflow,
+        "provider": provider, "event_type": event_type,
+    }
+
+    q = db.query(UsageEvent).filter(UsageEvent.key_hash == key_hash)
+    for name, val in exact.items():
+        if val is not None:
+            q = q.filter(_EVENT_FILTERS[name] == val)
+
+    total = q.count()
+    rows = q.order_by(UsageEvent.created_at.desc(), UsageEvent.id.desc()).limit(limit).offset(offset).all()
+
+    return {
+        "events": [jsonable_encoder(_serialize_usage_event(ev)) for ev in rows],
+        "limit": limit,
+        "offset": offset,
+        "total": total,
+    }
 
 
 @app.get("/api/usage")
@@ -639,7 +1053,7 @@ async def get_usage(
         "tokens_limit": "unlimited" if is_unlimited else token_limit,
         "tokens_remaining": "unlimited" if is_unlimited else max(0, token_limit - db_key.tokens_optimized),
         "rate_limit": rate_info,
-        "reset_date": (datetime.utcnow().replace(day=1) + timedelta(days=32)).replace(day=1).isoformat(),
+        "reset_date": (utcnow().replace(day=1) + timedelta(days=32)).replace(day=1).isoformat(),
         "security": {
             "unique_ips_today": sharing_stats["unique_ips"],
             "unique_clients_today": sharing_stats["unique_user_agents"],
@@ -841,7 +1255,7 @@ async def http_exception_handler(request: Request, exc: HTTPException):
             "status": "error",
             "error": exc.detail,
             "request_id": request_id,
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": utcnow().isoformat(),
         },
     )
 
@@ -865,7 +1279,7 @@ async def general_exception_handler(request: Request, exc: Exception):
             "status": "error",
             "error": "Internal server error",
             "request_id": request_id,
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": utcnow().isoformat(),
         },
     )
 

@@ -3,8 +3,6 @@ Fortress Token Optimizer - SQLAlchemy Models
 Persistent storage for API keys, usage tracking, and optimization audit logs.
 """
 
-from datetime import datetime
-
 from sqlalchemy import (
     Column,
     String,
@@ -13,8 +11,9 @@ from sqlalchemy import (
     DateTime,
     Boolean,
     Index,
+    JSON,
 )
-from database import Base
+from database import Base, utcnow
 
 
 class ApiKey(Base):
@@ -27,7 +26,7 @@ class ApiKey(Base):
     name = Column(String(100), nullable=False)
     tier = Column(String(20), nullable=False, default="free")
     is_active = Column(Boolean, nullable=False, default=True)
-    created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+    created_at = Column(DateTime, nullable=False, default=utcnow)
 
     # Usage counters (updated in-place for fast reads)
     tokens_optimized = Column(Integer, nullable=False, default=0)
@@ -56,8 +55,56 @@ class OptimizationLog(Base):
     technique = Column(String(255), nullable=False)
     level = Column(String(20), nullable=False)
     provider = Column(String(50), nullable=False)
-    created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+    created_at = Column(DateTime, nullable=False, default=utcnow)
 
     __table_args__ = (
         Index("ix_opt_logs_key_created", "key_hash", "created_at"),
+    )
+
+
+class UsageEvent(Base):
+    """Metering event: one row per optimize call or externally-tracked LLM usage."""
+
+    __tablename__ = "usage_events"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    event_id = Column(String(50), unique=True, index=True, nullable=False)  # "ue_<12hex>"
+    key_hash = Column(String(64), index=True, nullable=False)               # matches ApiKey.key_hash
+    event_type = Column(String(20), nullable=False)                         # "optimize" | "external"
+    request_id = Column(String(50), nullable=True)                          # links to OptimizationLog.request_id for optimize events
+
+    # Attribution dimensions (all nullable — un-attributed events are valid)
+    feature = Column(String(100), nullable=True)
+    customer_id = Column(String(100), nullable=True)
+    workflow = Column(String(100), nullable=True)
+    environment = Column(String(50), nullable=True)
+    tags = Column(JSON, nullable=True)                                      # dict[str, str], max 5 entries
+
+    # Usage
+    provider = Column(String(50), nullable=False)
+    model = Column(String(100), nullable=True)
+    input_tokens = Column(Integer, nullable=False, default=0)
+    output_tokens = Column(Integer, nullable=False, default=0)
+    tokens_saved = Column(Integer, nullable=False, default=0)               # optimize events only; 0 for external
+
+    # Cost (micro-dollars; integer, no float money)
+    cost_estimated = Column(Boolean, nullable=False, default=False)
+    cost_microdollars = Column(Integer, nullable=True)                      # input + output cost combined
+    cost_saved_microdollars = Column(Integer, nullable=True)               # optimize events only
+    pricing_version = Column(String(20), nullable=True)                     # e.g. "2026-06.1"; NULL when not estimated
+
+    # Idempotency (track endpoint only)
+    idempotency_key = Column(String(64), nullable=True)
+
+    # Time
+    occurred_at = Column(DateTime, nullable=False)                          # caller-supplied for /track (default now); now for optimize
+    created_at = Column(DateTime, nullable=False, default=utcnow)
+    bucket_date = Column(String(10), nullable=False)                        # UTC "YYYY-MM-DD" of occurred_at
+
+    __table_args__ = (
+        Index("ix_usage_events_key_created", "key_hash", "created_at"),
+        Index("ix_usage_events_key_bucket", "key_hash", "bucket_date"),
+        Index("ix_usage_events_key_feature", "key_hash", "feature"),
+        Index("ix_usage_events_key_customer", "key_hash", "customer_id"),
+        Index("uq_usage_events_key_idem", "key_hash", "idempotency_key", unique=True),
     )
