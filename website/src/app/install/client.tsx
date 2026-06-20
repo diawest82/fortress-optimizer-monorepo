@@ -16,7 +16,7 @@ export default function Install() {
     {
       id: 'npm',
       title: 'npm Package',
-      subtitle: 'The largest user base - JavaScript/TypeScript projects',
+      subtitle: 'JavaScript / TypeScript projects',
       icon: '📦',
       docsUrl: '/docs/installation/npm',
       steps: [
@@ -26,9 +26,21 @@ export default function Install() {
       ],
     },
     {
+      id: 'mcp',
+      title: 'MCP Server',
+      subtitle: 'Agent-native — call Fortress as a tool from Claude Desktop, Cursor, and other MCP hosts',
+      icon: '🔌',
+      docsUrl: '/docs/installation/mcp',
+      steps: [
+        { cmd: 'npx -y @fortress-optimizer/mcp-server', desc: 'Run the MCP server (speaks MCP over stdio)' },
+        { cmd: '{\n  "mcpServers": {\n    "fortress": {\n      "command": "npx",\n      "args": ["-y", "@fortress-optimizer/mcp-server"],\n      "env": { "FORTRESS_API_KEY": "fk_..." }\n    }\n  }\n}', desc: 'Add to your MCP client config' },
+        { cmd: 'Ask your agent to optimize a prompt — it calls optimize_prompt automatically', desc: 'No key? It auto-registers a free one' },
+      ],
+    },
+    {
       id: 'copilot',
       title: 'GitHub Copilot',
-      subtitle: 'VS Code extension - Huge developer audience',
+      subtitle: 'GitHub Copilot in VS Code',
       icon: '🤖',
       docsUrl: '/docs/installation/copilot',
       steps: [
@@ -40,7 +52,7 @@ export default function Install() {
     {
       id: 'slack',
       title: 'Slack Bot',
-      subtitle: 'Team collaboration - 750M+ Slack users',
+      subtitle: 'Optimize prompts from Slack',
       icon: '💬',
       docsUrl: '/docs/installation/slack',
       steps: [
@@ -52,7 +64,7 @@ export default function Install() {
     {
       id: 'vscode',
       title: 'VS Code',
-      subtitle: 'The most popular code editor - 20M+ users',
+      subtitle: 'Direct VS Code editor integration',
       icon: '⚙️',
       docsUrl: '/docs/installation/vscode',
       steps: [
@@ -137,16 +149,16 @@ export default function Install() {
           <h2 className="text-2xl font-bold mb-6">11+ More Platforms</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {[
-              { name: 'Neovim', user: '2.5M', docs: '/docs/installation/neovim' },
-              { name: 'Sublime Text', user: '2M', docs: '/docs/installation/sublime' },
-              { name: 'JetBrains IDEs', user: '10M', docs: '/docs/installation/jetbrains' },
-              { name: 'Make.com / Zapier', user: '4.5M', docs: '/docs/installation/make-zapier' },
-              { name: 'Claude Desktop', user: '400K', docs: '/docs/installation/claude-desktop' },
-              { name: 'Anthropic SDK', user: '100K+', docs: '/docs/installation/anthropic-sdk' },
-              { name: 'LangChain', user: '1M+', docs: '/docs/installation/langchain' },
-              { name: 'Vercel AI SDK', user: '500K+', docs: '/docs/installation/vercel-ai-sdk' },
-              { name: 'Cursor', user: '2M+', docs: '/docs/installation/cursor' },
-              { name: 'OpenClaw CLI', user: 'New', docs: '/docs/installation/openclaw' },
+              { name: 'Neovim', docs: '/docs/installation/neovim' },
+              { name: 'Sublime Text', docs: '/docs/installation/sublime' },
+              { name: 'JetBrains IDEs', docs: '/docs/installation/jetbrains' },
+              { name: 'Make.com / Zapier', docs: '/docs/installation/make-zapier' },
+              { name: 'Claude Desktop', docs: '/docs/installation/claude-desktop' },
+              { name: 'Anthropic SDK', docs: '/docs/installation/anthropic-sdk' },
+              { name: 'LangChain', docs: '/docs/installation/langchain' },
+              { name: 'Vercel AI SDK', docs: '/docs/installation/vercel-ai-sdk' },
+              { name: 'Cursor', docs: '/docs/installation/cursor' },
+              { name: 'OpenClaw CLI', docs: '/docs/installation/openclaw' },
             ].map((platform, idx) => (
               <a
                 key={idx}
@@ -154,7 +166,6 @@ export default function Install() {
                 className="bg-zinc-950 border border-zinc-800 rounded-lg p-4 text-center hover:border-blue-500 transition block"
               >
                 <p className="font-semibold text-sm mb-1">{platform.name}</p>
-                <p className="text-xs text-zinc-400">{platform.user} users</p>
                 <p className="text-xs text-blue-400 mt-2">Install Guide →</p>
               </a>
             ))}

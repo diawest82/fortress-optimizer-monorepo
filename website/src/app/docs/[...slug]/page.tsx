@@ -4,6 +4,47 @@ import Link from 'next/link';
 
 // Import documentation content
 const docContent: Record<string, string> = {
+  'installation/mcp': `# MCP Server
+
+Connect Fortress as a [Model Context Protocol](https://modelcontextprotocol.io) tool so an agent host — Claude Desktop, Cursor, or any MCP runtime — can optimize prompts inline and cut LLM token costs by 10-20%.
+
+## Configure
+
+Add Fortress to your MCP client config:
+
+\`\`\`json
+{
+  "mcpServers": {
+    "fortress": {
+      "command": "npx",
+      "args": ["-y", "@fortress-optimizer/mcp-server"],
+      "env": { "FORTRESS_API_KEY": "fk_..." }
+    }
+  }
+}
+\`\`\`
+
+\`FORTRESS_API_KEY\` is optional. If it is not set, the server **auto-registers a free key** on first run (50,000 tokens/month, no signup) and logs it to stderr — set that value as \`FORTRESS_API_KEY\` to reuse the same key.
+
+## Tools
+
+- **optimize_prompt(prompt, level?, provider?, model?)** — optimize a prompt; returns the shorter prompt plus measured token savings. \`level\` is \`conservative\`, \`balanced\`, or \`aggressive\`.
+- **get_usage()** — current key usage, tier, and remaining monthly quota.
+- **register_key(name?)** — create a new free key.
+
+## Verify from the CLI
+
+\`\`\`bash
+FORTRESS_API_KEY=fk_... npx -y @fortress-optimizer/mcp-server
+\`\`\`
+
+The server speaks MCP over stdio; your agent host manages the connection.
+
+## See also
+
+- [For Agents](/for-agents) — the autonomous-integration guide
+- [API reference](/docs/api-reference)
+`,
   'getting-started': `# Getting Started
 
 Welcome to Fortress Token Optimizer! This guide will help you get up and running in minutes.

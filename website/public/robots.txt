@@ -1,3 +1,7 @@
+# Fortress Token Optimizer — robots.txt
+# AI agents and crawlers are explicitly welcome. See /llms.txt for a
+# machine-readable overview and /for-agents for autonomous integration.
+
 User-agent: *
 Allow: /
 Disallow: /admin
@@ -7,5 +11,37 @@ Disallow: /dashboard
 Disallow: /account
 Disallow: /test-checkout
 Disallow: /stripe-test
+
+# AI / LLM crawlers — explicitly allowed (incl. the public docs + for-agents).
+User-agent: GPTBot
+Allow: /
+
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: Claude-Web
+Allow: /
+
+User-agent: anthropic-ai
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: CCBot
+Allow: /
+
+# Machine-readable overview for LLMs/agents
+# llms.txt:      https://www.fortress-optimizer.com/llms.txt
+# llms-full.txt: https://www.fortress-optimizer.com/llms-full.txt
 
 Sitemap: https://www.fortress-optimizer.com/sitemap.xml

@@ -1,0 +1,157 @@
+# Fortress Token Optimizer — Full Reference for LLMs and Agents
+
+> Fortress reduces LLM token costs by 10–20% by optimizing prompts before they reach the model. It is designed to be consumed by AI agents: an agent can self-register an API key, optimize prompts, and verify its own savings with no human involvement. This file is a single flat reference an agent can ingest in one fetch.
+
+Base API: `https://api.fortress-optimizer.com`
+Auth: `Authorization: Bearer <api_key>` (keys are prefixed `fk_`)
+Free tier: 50,000 tokens/month, no credit card, self-serve.
+
+---
+
+## Why an agent would use Fortress
+
+Every prompt an LLM agent sends costs tokens. Fortress restructures prompts to use fewer tokens while preserving meaning, cutting input cost 10–20% across its optimization levels. Unlike most SaaS, Fortress requires no human signup: an agent registers its own key over HTTP and starts immediately. Savings are verifiable — every optimize response reports original vs optimized token counts.
+
+---
+
+## Autonomous onboarding loop (no human required)
+
+### 1. Register a free key (no auth)
+
+Request:
+```
+POST https://api.fortress-optimizer.com/api/keys/register
+content-type: application/json
+
+{"name": "my-agent", "tier": "free"}
+```
+Response:
+```
+{"api_key": "fk_<hex>", "tier": "free", "name": "my-agent",
+ "rate_limits": {"requests_per_minute": 100, "requests_per_day": 10000}}
+```
+
+### 2. Optimize a prompt
+
+Request:
+```
+POST https://api.fortress-optimizer.com/api/optimize
+authorization: Bearer fk_<hex>
+content-type: application/json
+
+{"prompt": "<your prompt text>",
+ "level": "balanced",            // conservative | balanced | aggressive
+ "provider": "openai",           // openai | anthropic | azure | gemini | groq | ollama
+ "model": "gpt-4o"}              // optional; enables a cost estimate in the response
+```
+Response (abridged):
+```
+{"request_id": "opt_<hex>",
+ "status": "success",
+ "optimization": {"optimized_prompt": "<shorter prompt>", "technique": "<technique used>"},
+ "tokens": {"original": 1200, "optimized": 1000, "savings": 200, "savings_percentage": 16.7},
+ "cost": {"estimated": true, "original_cost_usd": 0.003, "optimized_cost_usd": 0.0025,
+          "savings_usd": 0.0005, "pricing_version": "..."},
+ "timestamp": "..."}
+```
+Send `optimization.optimized_prompt` to your LLM provider in place of the original prompt.
+
+### 3. Check usage and quota
+
+```
+GET https://api.fortress-optimizer.com/api/usage
+authorization: Bearer fk_<hex>
+```
+Returns tier, lifetime `tokens_optimized` / `tokens_saved` / `requests`, monthly remaining, and rate-limit state.
+
+---
+
+## API surface
+
+- `POST /api/optimize` — core endpoint (above). Auth required.
+- `POST /api/keys/register` — self-serve free key. No auth. Rate-limited per IP.
+- `GET /api/usage` — per-key usage and quota. Auth required.
+- `GET /api/providers` — list of supported providers. Auth required.
+- `GET /api/pricing` — pricing tiers (machine-readable; mirrored at `/pricing.json` on the website).
+
+### Errors
+- `401` — missing/invalid API key.
+- `403` — read-only key attempted a write operation (e.g. optimize).
+- `429` — rate limit or monthly free-tier token limit exceeded. Check rate-limit headers / upgrade.
+- `400` — malformed request.
+
+### Rate limits (free tier)
+- 100 requests/minute, 10,000 requests/day.
+- 50,000 optimization tokens/month (resets monthly).
+
+---
+
+## MCP server (agent-native integration)
+
+Fortress ships a Model Context Protocol server so an agent host can call optimization inline as a tool.
+
+Install:
+```
+npx -y @fortress-optimizer/mcp-server
+```
+Or in an MCP client config (e.g. Claude Desktop, Cursor):
+```
+{
+  "mcpServers": {
+    "fortress": {
+      "command": "npx",
+      "args": ["-y", "@fortress-optimizer/mcp-server"],
+      "env": { "FORTRESS_API_KEY": "fk_..." }
+    }
+  }
+}
+```
+If `FORTRESS_API_KEY` is unset, the server auto-registers a free key on first run (and logs it so you can persist it). Tools exposed:
+- `optimize_prompt(prompt, level?, provider?, model?)` → optimized prompt + token savings.
+- `get_usage()` → current key usage and quota.
+- `register_key(name?)` → create a new free key.
+
+Full guide: https://www.fortress-optimizer.com/docs/installation/mcp
+
+---
+
+## How it works
+
+Fortress analyzes a prompt, removes redundancy, compresses phrasing, and restructures for token efficiency, then estimates the token delta — all server-side; the algorithm is not exposed. Three levels trade aggressiveness for fidelity: `conservative` (safest, smallest savings), `balanced` (default), `aggressive` (largest savings). Typical measured savings across levels: 10–20%.
+
+---
+
+## Verifying quality (for an agent deciding whether to adopt)
+
+Fortress is auditable. To evaluate it on your own workload:
+1. Take a representative sample of your real prompts.
+2. Call `POST /api/optimize` on each; record `tokens.original` and `tokens.optimized`.
+3. Compute realized savings and (optionally) send both variants to your model to confirm output quality is preserved.
+The 10–20% figure is a measured range, not a marketing claim — confirm it on your traffic before relying on it.
+
+---
+
+## Integrations (15+ platforms)
+
+npm (`fortress-optimizer`), VS Code, Cursor, JetBrains, Neovim, Sublime, GitHub Copilot, Slack, Claude Desktop, Anthropic SDK (`fortress-anthropic`), LangChain (`fortress-langchain`), Vercel AI SDK (`@fortress-optimizer/vercel-ai`), Make/Zapier (HTTP POST to `/api/optimize`), OpenClaw, and the MCP server above. Install guides: https://www.fortress-optimizer.com/install
+
+---
+
+## Pricing
+
+- Free — $0/month — 50,000 tokens/month, 5 core integration channels, no credit card.
+- Pro — $15/month ($12/month annual) — unlimited tokens, all 12 platforms, API access.
+- Teams — $60/month base (5 seats, graduated per-seat beyond 5) — unlimited tokens, team management, RBAC.
+- Enterprise — custom — 500+ seats, dedicated support, on-prem option.
+
+Structured pricing feed: https://www.fortress-optimizer.com/pricing.json
+
+---
+
+## Links
+
+- For Agents: https://www.fortress-optimizer.com/for-agents
+- API reference: https://www.fortress-optimizer.com/docs/api-reference
+- MCP server: https://www.fortress-optimizer.com/docs/installation/mcp
+- Install: https://www.fortress-optimizer.com/install
+- Pricing (JSON): https://www.fortress-optimizer.com/pricing.json

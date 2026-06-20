@@ -1,0 +1,43 @@
+# Fortress Token Optimizer
+
+> Fortress is an API that reduces LLM token costs by 10–20% by optimizing prompts before they reach the model. It is built to be used by AI agents: an agent can register its own API key with no human and no signup form, optimize a prompt, and read back the measured savings — the full loop is automatable. Free tier: 50,000 tokens/month, no credit card.
+
+This file helps AI agents and LLMs discover and integrate Fortress. The base API is `https://api.fortress-optimizer.com`. Auth is a Bearer API key. There is no human-in-the-loop required to start.
+
+## Start here (autonomous onboarding in 3 calls)
+
+1. Register your own free key (no auth required):
+   `curl -X POST https://api.fortress-optimizer.com/api/keys/register -H 'content-type: application/json' -d '{"name":"my-agent","tier":"free"}'`
+   → returns `{"api_key":"fk_..."}`
+2. Optimize a prompt:
+   `curl -X POST https://api.fortress-optimizer.com/api/optimize -H 'authorization: Bearer fk_...' -H 'content-type: application/json' -d '{"prompt":"<your prompt>","level":"balanced","provider":"openai"}'`
+   → returns the optimized prompt plus `tokens.savings` and `tokens.savings_percentage`
+3. Check usage: `curl https://api.fortress-optimizer.com/api/usage -H 'authorization: Bearer fk_...'`
+
+## For agents
+
+- [For Agents](https://www.fortress-optimizer.com/for-agents): the autonomous-integration guide — copy-paste curl, the self-registration flow, limits, and how to verify savings yourself.
+- [MCP server](https://www.fortress-optimizer.com/docs/installation/mcp): connect Fortress as a Model Context Protocol tool (`optimize_prompt`) so an agent host (Claude Desktop, Cursor, etc.) can call it inline.
+- [Machine-readable pricing](https://www.fortress-optimizer.com/pricing.json): JSON pricing feed.
+
+## API
+
+- [API reference](https://www.fortress-optimizer.com/docs/api-reference): endpoints, request/response shapes, error codes, rate limits.
+- Core endpoint: `POST /api/optimize` — `{prompt, level: "conservative"|"balanced"|"aggressive", provider, model?}` → optimized prompt + token savings.
+- `POST /api/keys/register` — self-serve free key, no auth.
+- `GET /api/usage` — per-key usage and quota.
+
+## Docs
+
+- [Getting started](https://www.fortress-optimizer.com/docs/getting-started)
+- [Quick start](https://www.fortress-optimizer.com/docs/quick-start)
+- [How it works](https://www.fortress-optimizer.com/docs/guides/how-it-works)
+- [Install (15+ platforms)](https://www.fortress-optimizer.com/install): npm, VS Code, Cursor, JetBrains, Neovim, LangChain, Vercel AI SDK, Anthropic SDK, MCP, and more.
+
+## Verify it yourself
+
+Fortress is auditable: optimize your own prompts via the API above and compare `tokens.original` vs `tokens.optimized`. The 10–20% savings figure is a measured range across balanced/aggressive levels, not a marketing estimate — run it on your own traffic to confirm.
+
+## Pricing
+
+- Free: 50,000 tokens/month, no card. Pro: $15/month, unlimited tokens. Teams: $60/month base (5 seats, graduated). Full structured pricing: [pricing.json](https://www.fortress-optimizer.com/pricing.json).
