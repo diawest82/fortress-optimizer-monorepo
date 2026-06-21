@@ -28,8 +28,9 @@ def http(client):
 def api_key(http):
     """Register a fresh API key for the test."""
     resp = http.post(
-        "/api/keys/register",
-        json={"name": f"smoke-test-{uuid.uuid4().hex[:8]}", "tier": "free"},
+        "/api/keys/provision",
+        json={"name": f"smoke-test-{uuid.uuid4().hex[:8]}", "tier": "free", "account_id": f"acct_{uuid.uuid4().hex}"},
+        headers={"X-Provision-Secret": "test-provision-secret"},
     )
     assert resp.status_code == 200, f"Key registration failed: {resp.text}"
     key = resp.json()["api_key"]
@@ -76,8 +77,9 @@ class TestKeyRegistration:
 
     def test_register_key_returns_fk_prefix(self, http):
         resp = http.post(
-            "/api/keys/register",
-            json={"name": f"test-{uuid.uuid4().hex[:8]}", "tier": "free"},
+            "/api/keys/provision",
+            json={"name": f"test-{uuid.uuid4().hex[:8]}", "tier": "free", "account_id": f"acct_{uuid.uuid4().hex}"},
+            headers={"X-Provision-Secret": "test-provision-secret"},
         )
         assert resp.status_code == 200
         key = resp.json()["api_key"]
@@ -86,8 +88,9 @@ class TestKeyRegistration:
 
     def test_register_key_response_shape(self, http):
         resp = http.post(
-            "/api/keys/register",
-            json={"name": f"test-{uuid.uuid4().hex[:8]}", "tier": "free"},
+            "/api/keys/provision",
+            json={"name": f"test-{uuid.uuid4().hex[:8]}", "tier": "free", "account_id": f"acct_{uuid.uuid4().hex}"},
+            headers={"X-Provision-Secret": "test-provision-secret"},
         )
         data = resp.json()
         assert "api_key" in data
@@ -175,8 +178,9 @@ class TestKeyRotation:
     def test_rotate_returns_new_key(self, http):
         # Register a throwaway key
         reg = http.post(
-            "/api/keys/register",
-            json={"name": f"rotate-test-{uuid.uuid4().hex[:8]}", "tier": "free"},
+            "/api/keys/provision",
+            json={"name": f"rotate-test-{uuid.uuid4().hex[:8]}", "tier": "free", "account_id": f"acct_{uuid.uuid4().hex}"},
+            headers={"X-Provision-Secret": "test-provision-secret"},
         )
         old_key = reg.json()["api_key"]
         old_auth = {"Authorization": f"Bearer {old_key}"}
@@ -189,8 +193,9 @@ class TestKeyRotation:
 
     def test_old_key_invalid_after_rotation(self, http):
         reg = http.post(
-            "/api/keys/register",
-            json={"name": f"rotate-old-{uuid.uuid4().hex[:8]}", "tier": "free"},
+            "/api/keys/provision",
+            json={"name": f"rotate-old-{uuid.uuid4().hex[:8]}", "tier": "free", "account_id": f"acct_{uuid.uuid4().hex}"},
+            headers={"X-Provision-Secret": "test-provision-secret"},
         )
         old_key = reg.json()["api_key"]
         old_auth = {"Authorization": f"Bearer {old_key}"}
@@ -207,8 +212,9 @@ class TestKeyDeactivation:
 
     def test_deactivate_key(self, http):
         reg = http.post(
-            "/api/keys/register",
-            json={"name": f"deactivate-{uuid.uuid4().hex[:8]}", "tier": "free"},
+            "/api/keys/provision",
+            json={"name": f"deactivate-{uuid.uuid4().hex[:8]}", "tier": "free", "account_id": f"acct_{uuid.uuid4().hex}"},
+            headers={"X-Provision-Secret": "test-provision-secret"},
         )
         key = reg.json()["api_key"]
         key_auth = {"Authorization": f"Bearer {key}"}
@@ -218,8 +224,9 @@ class TestKeyDeactivation:
 
     def test_deactivated_key_returns_401(self, http):
         reg = http.post(
-            "/api/keys/register",
-            json={"name": f"deact-check-{uuid.uuid4().hex[:8]}", "tier": "free"},
+            "/api/keys/provision",
+            json={"name": f"deact-check-{uuid.uuid4().hex[:8]}", "tier": "free", "account_id": f"acct_{uuid.uuid4().hex}"},
+            headers={"X-Provision-Secret": "test-provision-secret"},
         )
         key = reg.json()["api_key"]
         key_auth = {"Authorization": f"Bearer {key}"}

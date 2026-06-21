@@ -97,7 +97,7 @@ def test_report_start_after_end_422(client, auth_headers):
 
 def test_report_key_isolation(client, auth_headers):
     _track(client, auth_headers)
-    key_b = client.post("/api/keys/register", json={"name": "b", "tier": "free"}).json()["api_key"]
+    key_b = client.post("/api/keys/provision", json={"name": "b", "tier": "free", "account_id": "acct_mr_b"}, headers={"X-Provision-Secret": "test-provision-secret"}).json()["api_key"]
     headers_b = {"Authorization": f"Bearer {key_b}"}
     assert client.get("/api/meter/report", headers=headers_b).json()["totals"]["events"] == 0
 

@@ -24,13 +24,12 @@ Add Fortress to your MCP client config:
 }
 \`\`\`
 
-\`FORTRESS_API_KEY\` is optional. If it is not set, the server **auto-registers a free key** on first run (50,000 tokens/month, no signup) and logs it to stderr — set that value as \`FORTRESS_API_KEY\` to reuse the same key.
+\`FORTRESS_API_KEY\` is required. Sign in with Google or GitHub at [www.fortress-optimizer.com](https://www.fortress-optimizer.com) and claim your one free API key (10,000 tokens/month), then set it as \`FORTRESS_API_KEY\`. There is no anonymous key minting — each free key is tied to an authenticated account. For more usage, upgrade to Pro.
 
 ## Tools
 
 - **optimize_prompt(prompt, level?, provider?, model?)** — optimize a prompt; returns the shorter prompt plus measured token savings. \`level\` is \`conservative\`, \`balanced\`, or \`aggressive\`.
 - **get_usage()** — current key usage, tier, and remaining monthly quota.
-- **register_key(name?)** — create a new free key.
 
 ## Verify from the CLI
 
@@ -57,7 +56,7 @@ Fortress Token Optimizer is an intelligent token optimization platform that help
 
 ### 1. Get an API Key
 
-Sign up at [www.fortress-optimizer.com](https://www.fortress-optimizer.com) and generate your API key from the dashboard.
+Sign in with Google or GitHub at [www.fortress-optimizer.com](https://www.fortress-optimizer.com) and claim your one free API key (10,000 tokens/month, no credit card). Agents authenticate with this key via \`Authorization: Bearer <key>\` (set it as \`FORTRESS_API_KEY\`). For more usage, upgrade to Pro.
 
 ### 2. Choose Your Platform
 
@@ -117,7 +116,7 @@ Your savings depend on your usage. Typical examples:
 
 ## Pricing
 
-- **Free**: 50K tokens/month, 5 core platforms — $0
+- **Free**: 10K tokens/month, 5 core platforms — $0 (one free key per Google/GitHub account)
 - **Pro**: Unlimited tokens, all 12 platforms — $15/month ($12/month annual)
 - **Teams**: Unlimited tokens, team management — starting at $60/month (5 seats)
 - **Enterprise**: Custom pricing — [contact sales](mailto:sales@fortress-optimizer.com)
@@ -146,15 +145,17 @@ Get Fortress Token Optimizer running in just 5 minutes.
 ## Step 1: Create Account (1 min)
 
 1. Go to [fortress-optimizer.com](https://fortress-optimizer.com)
-2. Click "Sign Up"
-3. Create account with email/password
+2. Click "Sign In"
+3. Sign in with Google or GitHub
 
-## Step 2: Generate API Key (1 min)
+## Step 2: Claim Your Free API Key (1 min)
 
-1. Log in to your dashboard
+1. After signing in, open your dashboard
 2. Go to Settings → API Keys
-3. Click "Generate New Key"
+3. Claim your one free API key (10,000 tokens/month — one per account)
 4. Copy your API key (keep it secret!)
+
+For more than the free trial, upgrade to Pro.
 
 ## Step 3: Install Fortress (2 min)
 
@@ -188,7 +189,7 @@ Once installed:
 
 ## Pricing
 
-- **Free**: 50K tokens/month, 5 core platforms
+- **Free**: 10K tokens/month, 5 core platforms (one free key per account)
 - **Pro**: $15/mo - Unlimited tokens, all 12 platforms
 - **Teams**: Starting at $60/mo - Unlimited tokens, team management
 - **Enterprise**: Coming soon - Custom pricing, 500+ seats
@@ -686,6 +687,8 @@ All requests require an API key:
 Authorization: Bearer YOUR_API_KEY
 \`\`\`
 
+Get a key by signing in with Google or GitHub at [www.fortress-optimizer.com](https://www.fortress-optimizer.com) and claiming your one free API key (10,000 tokens/month). There is no anonymous key minting — each free key is tied to an authenticated account. For more usage, upgrade to Pro.
+
 ## Endpoints
 
 ### POST /optimize
@@ -768,7 +771,7 @@ All tiers share the same per-key rate limits:
 
 Token limits by tier:
 
-- **Free:** 50,000 tokens/month
+- **Free:** 10,000 tokens/month
 - **Pro:** Unlimited tokens
 - **Teams:** Unlimited tokens (per seat)
 - **Enterprise:** Custom limits

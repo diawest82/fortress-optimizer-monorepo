@@ -15,7 +15,7 @@ class TestSimultaneousKeyRegistration:
         lock = threading.Lock()
 
         def register(i):
-            resp = client.post("/api/keys/register", json={"name": f"concurrent-{i}"})
+            resp = client.post("/api/keys/provision", json={"name": f"concurrent-{i}", "account_id": f"acct_concurrent_{i}"}, headers={"X-Provision-Secret": "test-provision-secret"})
             with lock:
                 if resp.status_code == 200:
                     keys.append(resp.json()["api_key"])
@@ -34,7 +34,7 @@ class TestSimultaneousKeyRegistration:
         lock = threading.Lock()
 
         def register(i):
-            resp = client.post("/api/keys/register", json={"name": f"batch-{i}"})
+            resp = client.post("/api/keys/provision", json={"name": f"batch-{i}", "account_id": f"acct_batch_{i}"}, headers={"X-Provision-Secret": "test-provision-secret"})
             with lock:
                 statuses.append(resp.status_code)
 
@@ -54,7 +54,7 @@ class TestSimultaneousUsageTracking:
         # Create 5 keys
         keys = []
         for i in range(5):
-            resp = client.post("/api/keys/register", json={"name": f"usage-{i}"})
+            resp = client.post("/api/keys/provision", json={"name": f"usage-{i}", "account_id": f"acct_usage_{i}"}, headers={"X-Provision-Secret": "test-provision-secret"})
             keys.append(resp.json()["api_key"])
 
         results = []
@@ -81,7 +81,7 @@ class TestSimultaneousOptimization:
     def test_concurrent_optimize_calls(self, client):
         keys = []
         for i in range(3):
-            resp = client.post("/api/keys/register", json={"name": f"opt-{i}"})
+            resp = client.post("/api/keys/provision", json={"name": f"opt-{i}", "account_id": f"acct_opt_{i}"}, headers={"X-Provision-Secret": "test-provision-secret"})
             keys.append(resp.json()["api_key"])
 
         results = []
@@ -110,8 +110,8 @@ class TestKeyIsolation:
     """Test that API keys don't interfere with each other."""
 
     def test_usage_isolated_per_key(self, client):
-        key1 = client.post("/api/keys/register", json={"name": "iso-1"}).json()["api_key"]
-        key2 = client.post("/api/keys/register", json={"name": "iso-2"}).json()["api_key"]
+        key1 = client.post("/api/keys/provision", json={"name": "iso-1", "account_id": "acct_iso_1"}, headers={"X-Provision-Secret": "test-provision-secret"}).json()["api_key"]
+        key2 = client.post("/api/keys/provision", json={"name": "iso-2", "account_id": "acct_iso_2"}, headers={"X-Provision-Secret": "test-provision-secret"}).json()["api_key"]
 
         # Only key1 makes an optimize call
         client.post(

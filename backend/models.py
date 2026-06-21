@@ -25,6 +25,9 @@ class ApiKey(Base):
     key_hash = Column(String(64), unique=True, nullable=False, index=True)
     name = Column(String(100), nullable=False)
     tier = Column(String(20), nullable=False, default="free")
+    # OAuth account that provisioned this key (Google/GitHub account id from the
+    # website). Nullable because pre-existing/admin-minted keys have no account.
+    account_id = Column(String(255), nullable=True, index=True)
     is_active = Column(Boolean, nullable=False, default=True)
     created_at = Column(DateTime, nullable=False, default=utcnow)
 
@@ -38,6 +41,21 @@ class ApiKey(Base):
     # Monthly quota tracking
     monthly_tokens_used = Column(Integer, nullable=False, default=0)
     monthly_reset_at = Column(DateTime, nullable=True)
+
+    __table_args__ = (
+        # At most ONE active free key per OAuth account. Partial unique index:
+        # only rows where tier='free' AND is_active AND account_id IS NOT NULL
+        # participate, so paid keys and legacy NULL-account keys are unaffected.
+        # Supported by both PostgreSQL and SQLite (partial indexes); the
+        # provision endpoint also pre-checks and returns 409 on duplicate.
+        Index(
+            "uq_api_keys_free_account",
+            "account_id",
+            unique=True,
+            sqlite_where=(tier == "free") & (is_active == True) & (account_id.isnot(None)),
+            postgresql_where=(tier == "free") & (is_active == True) & (account_id.isnot(None)),
+        ),
+    )
 
 
 class OptimizationLog(Base):

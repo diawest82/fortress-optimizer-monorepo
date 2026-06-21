@@ -10,6 +10,10 @@ import pytest
 # Force SQLite BEFORE any app imports
 os.environ["DATABASE_URL"] = "sqlite:///./test_fortress.db"
 os.environ["API_KEY_SECRET"] = "test-secret-key"
+os.environ["PROVISION_SECRET"] = "test-provision-secret"
+
+PROVISION_SECRET = "test-provision-secret"
+PROVISION_HEADERS = {"X-Provision-Secret": PROVISION_SECRET}
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
@@ -54,9 +58,9 @@ def setup_teardown():
     """Create tables before each test, drop after. Also reset module-level state."""
     import pathlib
     import main
-    # Reset in-memory rate limiter + registration tracker between tests
-    main._registration_tracker.clear()
-    main.MAX_REGISTRATIONS_PER_HOUR = 10000
+    # Reset in-memory rate limiter + free-provision counter between tests
+    if hasattr(main, "_free_provision_counts"):
+        main._free_provision_counts.clear()
     if hasattr(main, "rate_limiter"):
         rl = main.rate_limiter
         if hasattr(rl, "_minute_buckets"):
@@ -77,17 +81,27 @@ def setup_teardown():
 
 
 def register_key(name="test", tier="free"):
+    """Provision a key via the server-to-server /api/keys/provision endpoint.
+
+    Each call uses a unique account_id so free keys never collide on the
+    one-active-free-key-per-account constraint.
+    """
+    import uuid
+    account_id = f"acct_{uuid.uuid4().hex}"
     if tier != "free":
-        # Non-free tiers can't be self-registered; insert directly into DB
-        import uuid
+        # Non-free tiers inserted directly into DB for legacy helper callers.
         raw_key = f"fk_{uuid.uuid4().hex}"
         key_hash = _hash_key(raw_key)
         db = TestSession()
-        db.add(models.ApiKey(key_hash=key_hash, name=name, tier=tier))
+        db.add(models.ApiKey(key_hash=key_hash, name=name, tier=tier, account_id=account_id))
         db.commit()
         db.close()
         return raw_key
-    resp = client.post("/api/keys/register", json={"name": name, "tier": tier})
+    resp = client.post(
+        "/api/keys/provision",
+        json={"name": name, "tier": tier, "account_id": account_id},
+        headers=PROVISION_HEADERS,
+    )
     assert resp.status_code == 200
     return resp.json()["api_key"]
 
@@ -121,56 +135,111 @@ class TestHealthEndpoint:
         assert client.get("/health").status_code == 200
 
 
-# ─── Key Registration ────────────────────────────────────────────────────────
+# ─── Key Provisioning (server-to-server; replaces anonymous registration) ─────
 
 
-class TestKeyRegistration:
-    def test_register_returns_api_key(self):
-        resp = client.post("/api/keys/register", json={"name": "test-key", "tier": "free"})
+def _provision(name="test-key", tier="free", account_id=None, with_secret=True):
+    import uuid
+    body = {"name": name, "tier": tier, "account_id": account_id or f"acct_{uuid.uuid4().hex}"}
+    headers = PROVISION_HEADERS if with_secret else {}
+    return client.post("/api/keys/provision", json=body, headers=headers)
+
+
+class TestKeyProvisioning:
+    def test_provision_returns_api_key(self):
+        resp = _provision(name="test-key", tier="free")
         assert resp.status_code == 200
         assert resp.json()["api_key"].startswith("fk_")
 
-    def test_register_echoes_tier(self):
-        resp = client.post("/api/keys/register", json={"name": "k", "tier": "free"})
+    def test_provision_echoes_tier(self):
+        resp = _provision(name="k", tier="free")
         assert resp.json()["tier"] == "free"
 
-    def test_register_echoes_name(self):
-        resp = client.post("/api/keys/register", json={"name": "my-key"})
-        assert resp.json()["name"] == "my-key"
+    def test_provision_echoes_account_id(self):
+        resp = _provision(name="k", tier="free", account_id="acct_echo")
+        assert resp.json()["account_id"] == "acct_echo"
 
-    def test_register_includes_rate_limits(self):
-        data = client.post("/api/keys/register", json={"name": "t"}).json()
-        assert data["rate_limits"]["requests_per_minute"] == 100
-        assert data["rate_limits"]["requests_per_day"] == 10000
+    def test_provision_default_tier_is_free(self):
+        import uuid
+        resp = client.post(
+            "/api/keys/provision",
+            json={"name": "t", "account_id": f"acct_{uuid.uuid4().hex}"},
+            headers=PROVISION_HEADERS,
+        )
+        assert resp.json()["tier"] == "free"
 
-    def test_register_default_tier_is_free(self):
-        assert client.post("/api/keys/register", json={"name": "t"}).json()["tier"] == "free"
-
-    def test_register_only_free_tier(self):
-        resp = client.post("/api/keys/register", json={"name": "k-free", "tier": "free"})
-        assert resp.status_code == 200
-
-    def test_register_paid_tiers_rejected(self):
+    def test_provision_supports_paid_tiers(self):
         for tier in ["pro", "team", "enterprise"]:
-            resp = client.post("/api/keys/register", json={"name": f"k-{tier}", "tier": tier})
-            assert resp.status_code == 422
+            resp = _provision(name=f"k-{tier}", tier=tier)
+            assert resp.status_code == 200
+            assert resp.json()["tier"] == tier
 
-    def test_register_invalid_tier(self):
-        assert client.post("/api/keys/register", json={"name": "t", "tier": "bad"}).status_code == 422
+    def test_provision_requires_secret(self):
+        resp = _provision(name="no-secret", tier="free", with_secret=False)
+        assert resp.status_code == 403
 
-    def test_register_missing_name(self):
-        assert client.post("/api/keys/register", json={"tier": "free"}).status_code == 422
+    def test_provision_wrong_secret_rejected(self):
+        import uuid
+        resp = client.post(
+            "/api/keys/provision",
+            json={"name": "bad", "tier": "free", "account_id": f"acct_{uuid.uuid4().hex}"},
+            headers={"X-Provision-Secret": "wrong-secret"},
+        )
+        assert resp.status_code == 403
 
-    def test_register_empty_name(self):
-        assert client.post("/api/keys/register", json={"name": ""}).status_code == 422
+    def test_provision_duplicate_free_key_409(self):
+        acct = "acct_dup"
+        first = _provision(name="first", tier="free", account_id=acct)
+        assert first.status_code == 200
+        second = _provision(name="second", tier="free", account_id=acct)
+        assert second.status_code == 409
+        body = second.json()
+        # Custom HTTPException handler surfaces detail under "error".
+        assert "free key already provisioned" in (body.get("error") or body.get("detail") or "")
 
-    def test_register_name_too_long(self):
-        assert client.post("/api/keys/register", json={"name": "x" * 101}).status_code == 422
+    def test_provision_invalid_tier(self):
+        import uuid
+        resp = client.post(
+            "/api/keys/provision",
+            json={"name": "t", "tier": "bad", "account_id": f"acct_{uuid.uuid4().hex}"},
+            headers=PROVISION_HEADERS,
+        )
+        assert resp.status_code == 422
 
-    def test_register_unique_keys(self):
+    def test_provision_missing_name(self):
+        import uuid
+        resp = client.post(
+            "/api/keys/provision",
+            json={"tier": "free", "account_id": f"acct_{uuid.uuid4().hex}"},
+            headers=PROVISION_HEADERS,
+        )
+        assert resp.status_code == 422
+
+    def test_provision_missing_account_id(self):
+        resp = client.post(
+            "/api/keys/provision",
+            json={"name": "no-acct", "tier": "free"},
+            headers=PROVISION_HEADERS,
+        )
+        assert resp.status_code == 422
+
+    def test_provision_empty_name(self):
+        resp = _provision(name="", tier="free")
+        assert resp.status_code == 422
+
+    def test_provision_name_too_long(self):
+        resp = _provision(name="x" * 101, tier="free")
+        assert resp.status_code == 422
+
+    def test_provision_unique_keys(self):
         k1 = register_key("t1")
         k2 = register_key("t2")
         assert k1 != k2
+
+    def test_register_endpoint_removed(self):
+        # The anonymous registration endpoint must no longer exist.
+        resp = client.post("/api/keys/register", json={"name": "x", "tier": "free"})
+        assert resp.status_code in (404, 405)
 
 
 # ─── Authentication ───────────────────────────────────────────────────────────
@@ -315,7 +384,7 @@ class TestUsageEndpoint:
 
     def test_usage_free_tier_limit(self):
         key = register_key(tier="free")
-        assert client.get("/api/usage", headers=auth_headers(key)).json()["tokens_limit"] == 50000
+        assert client.get("/api/usage", headers=auth_headers(key)).json()["tokens_limit"] == 10000
 
     def test_usage_pro_tier_unlimited(self):
         key = register_key(tier="pro")

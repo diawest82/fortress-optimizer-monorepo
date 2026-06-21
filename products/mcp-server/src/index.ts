@@ -5,8 +5,10 @@
  * Exposes Fortress as Model Context Protocol tools so an agent host (Claude
  * Desktop, Cursor, etc.) can optimize prompts inline to cut LLM token costs.
  *
- * Auth: set FORTRESS_API_KEY (an fk_ key). If unset, the server auto-registers
- * a free key on first run and logs it to stderr so you can persist it.
+ * Auth: set FORTRESS_API_KEY (an fk_ key). There is no anonymous key minting.
+ * Get a free key (one per Google/GitHub account) by signing in at
+ * https://www.fortress-optimizer.com, or use your paid key, then set
+ * FORTRESS_API_KEY to it.
  *
  * NOTE: stdout is the MCP transport — all logging MUST go to stderr.
  */
@@ -15,48 +17,29 @@ import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { z } from 'zod';
 
 const API_BASE = process.env.FORTRESS_API_URL || 'https://api.fortress-optimizer.com';
-let apiKey: string | undefined = process.env.FORTRESS_API_KEY;
+const apiKey: string | undefined = process.env.FORTRESS_API_KEY;
 
 const log = (...args: unknown[]) => console.error('[fortress-mcp]', ...args);
 
-interface RegisterResponse {
-  api_key: string;
-  tier: string;
-}
+const MISSING_KEY_MESSAGE =
+  'FORTRESS_API_KEY is not set. Sign in with Google or GitHub at ' +
+  'https://www.fortress-optimizer.com to claim your free key (one per account), ' +
+  'or use your paid key, then set FORTRESS_API_KEY to that value and restart this server.';
 
-async function registerFreeKey(name = 'fortress-mcp'): Promise<string> {
-  const res = await fetch(`${API_BASE}/api/keys/register`, {
-    method: 'POST',
-    headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ name, tier: 'free' }),
-  });
-  if (!res.ok) {
-    throw new Error(`register failed: ${res.status} ${await res.text()}`);
-  }
-  const data = (await res.json()) as RegisterResponse;
-  return data.api_key;
-}
-
-/** Resolve a usable API key, auto-registering a free one if none was provided. */
-async function ensureApiKey(): Promise<string> {
-  if (apiKey) return apiKey;
-  log('FORTRESS_API_KEY not set — registering a free key…');
-  apiKey = await registerFreeKey();
-  log(
-    `Registered free key: ${apiKey}\n` +
-      '  Set FORTRESS_API_KEY to this value to reuse it across runs ' +
-      '(otherwise a new free key is created each start).',
-  );
-  return apiKey;
+/** A tool result that tells the user how to obtain and set an API key. */
+function missingKeyResult() {
+  return {
+    content: [{ type: 'text' as const, text: MISSING_KEY_MESSAGE }],
+    isError: true as const,
+  };
 }
 
 async function authedFetch(path: string, init: RequestInit = {}): Promise<Response> {
-  const key = await ensureApiKey();
   return fetch(`${API_BASE}${path}`, {
     ...init,
     headers: {
       'content-type': 'application/json',
-      authorization: `Bearer ${key}`,
+      authorization: `Bearer ${apiKey}`,
       ...(init.headers || {}),
     },
   });
@@ -87,6 +70,7 @@ server.registerTool(
     },
   },
   async ({ prompt, level, provider, model }) => {
+    if (!apiKey) return missingKeyResult();
     try {
       const res = await authedFetch('/api/optimize', {
         method: 'POST',
@@ -138,6 +122,7 @@ server.registerTool(
     inputSchema: {},
   },
   async () => {
+    if (!apiKey) return missingKeyResult();
     try {
       const res = await authedFetch('/api/usage');
       if (!res.ok) {
@@ -160,34 +145,17 @@ server.registerTool(
   },
 );
 
-server.registerTool(
-  'register_key',
-  {
-    title: 'Register a Fortress API key',
-    description:
-      'Create a new free Fortress API key (50,000 tokens/month, no signup). Returns the key; set it as FORTRESS_API_KEY to reuse.',
-    inputSchema: {
-      name: z.string().optional().describe('A label for the key. Default: fortress-mcp.'),
-    },
-  },
-  async ({ name }) => {
-    try {
-      const key = await registerFreeKey(name || 'fortress-mcp');
-      apiKey = apiKey || key; // adopt it for this session if we had none
-      return { content: [{ type: 'text', text: key }] };
-    } catch (err) {
-      return {
-        content: [{ type: 'text', text: `Register error: ${(err as Error).message}` }],
-        isError: true,
-      };
-    }
-  },
-);
-
 async function main(): Promise<void> {
   const transport = new StdioServerTransport();
   await server.connect(transport);
-  log(`ready (api: ${API_BASE}, key: ${apiKey ? 'provided' : 'will auto-register on first use'})`);
+  if (!apiKey) {
+    log(
+      'ready, but FORTRESS_API_KEY is not set — tools will fail until you set it. ' +
+        'Get a free key (one per Google/GitHub account) at https://www.fortress-optimizer.com.',
+    );
+  } else {
+    log(`ready (api: ${API_BASE}, key: provided)`);
+  }
 }
 
 main().catch((err) => {

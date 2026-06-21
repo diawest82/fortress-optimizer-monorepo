@@ -5,6 +5,7 @@ Uses FastAPI TestClient (no live server required).
 
 import threading
 import pytest
+from conftest import provision_key
 
 
 class TestApiKeyUniqueness:
@@ -13,14 +14,13 @@ class TestApiKeyUniqueness:
     def test_sequential_keys_are_unique(self, client):
         keys = set()
         for i in range(20):
-            resp = client.post("/api/keys/register", json={"name": f"unique-{i}"})
-            assert resp.status_code == 200
-            keys.add(resp.json()["api_key"])
+            key = provision_key(client, name=f"unique-{i}")
+            keys.add(key)
         assert len(keys) == 20
 
     def test_same_name_produces_different_keys(self, client):
-        k1 = client.post("/api/keys/register", json={"name": "samename"}).json()["api_key"]
-        k2 = client.post("/api/keys/register", json={"name": "samename"}).json()["api_key"]
+        k1 = provision_key(client, name="samename")
+        k2 = provision_key(client, name="samename")
         assert k1 != k2
 
 
@@ -28,8 +28,8 @@ class TestUserDataIsolation:
     """Test that keys cannot access each other's data."""
 
     def test_usage_isolated_between_keys(self, client):
-        key_a = client.post("/api/keys/register", json={"name": "user-a"}).json()["api_key"]
-        key_b = client.post("/api/keys/register", json={"name": "user-b"}).json()["api_key"]
+        key_a = provision_key(client, name="user-a")
+        key_b = provision_key(client, name="user-b")
 
         # key_a optimizes
         client.post(
@@ -86,7 +86,7 @@ class TestConcurrentWriteSafety:
     """Test that concurrent writes don't corrupt data."""
 
     def test_concurrent_optimizations_count_correctly(self, client):
-        key = client.post("/api/keys/register", json={"name": "write-safety"}).json()["api_key"]
+        key = provision_key(client, name="write-safety")
 
         lock = threading.Lock()
         errors = []
@@ -117,16 +117,16 @@ class TestTierConsistency:
     """Test that tier data remains consistent."""
 
     def test_registered_tier_matches_usage_tier(self, client):
-        # Self-service only allows free tier
-        key = client.post(
-            "/api/keys/register", json={"name": "tier-free", "tier": "free"}
-        ).json()["api_key"]
+        key = provision_key(client, name="tier-free", tier="free")
         usage = client.get("/api/usage", headers={"Authorization": f"Bearer {key}"}).json()
         assert usage["tier"] == "free"
 
-    def test_paid_tier_registration_rejected(self, client):
+    def test_paid_tier_provisioning_matches_usage_tier(self, client):
+        # Provisioning (server-to-server, with secret) supports paid tiers, and
+        # the stored tier is reflected on /api/usage.
         for tier in ["pro", "team", "enterprise"]:
-            resp = client.post(
-                "/api/keys/register", json={"name": f"tier-{tier}", "tier": tier}
-            )
-            assert resp.status_code == 422, f"Tier {tier} should be rejected"
+            key = provision_key(client, name=f"tier-{tier}", tier=tier)
+            usage = client.get(
+                "/api/usage", headers={"Authorization": f"Bearer {key}"}
+            ).json()
+            assert usage["tier"] == tier, f"Tier {tier} should be reflected"

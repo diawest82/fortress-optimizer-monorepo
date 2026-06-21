@@ -68,8 +68,9 @@ class TestInputSanitization:
 
     def test_xss_in_key_name(self, client):
         resp = client.post(
-            "/api/keys/register",
-            json={"name": "<script>alert('xss')</script>"},
+            "/api/keys/provision",
+            json={"name": "<script>alert('xss')</script>", "account_id": "acct_xss"},
+            headers={"X-Provision-Secret": "test-provision-secret"},
         )
         # Should either accept (sanitized storage) or reject
         assert resp.status_code in [200, 422]
@@ -147,11 +148,11 @@ class TestKeyHashSecurity:
     """Test that API keys are properly hashed."""
 
     def test_key_starts_with_prefix(self, client):
-        resp = client.post("/api/keys/register", json={"name": "hash-test"})
+        resp = client.post("/api/keys/provision", json={"name": "hash-test", "account_id": "acct_hash"}, headers={"X-Provision-Secret": "test-provision-secret"})
         key = resp.json()["api_key"]
         assert key.startswith("fk_")
 
     def test_key_is_long_enough(self, client):
-        resp = client.post("/api/keys/register", json={"name": "length-test"})
+        resp = client.post("/api/keys/provision", json={"name": "length-test", "account_id": "acct_length"}, headers={"X-Provision-Secret": "test-provision-secret"})
         key = resp.json()["api_key"]
         assert len(key) >= 20, "API key should be sufficiently long"

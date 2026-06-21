@@ -179,8 +179,8 @@ class TestMultiKeyIsolation:
     """Different keys should get same optimization but independent usage tracking"""
 
     def test_two_keys_same_optimization(self, client):
-        key1_resp = client.post("/api/keys/register", json={"name": "iso-1", "tier": "free"})
-        key2_resp = client.post("/api/keys/register", json={"name": "iso-2", "tier": "free"})
+        key1_resp = client.post("/api/keys/provision", json={"name": "iso-1", "tier": "free", "account_id": "acct_cpc_iso_1"}, headers={"X-Provision-Secret": "test-provision-secret"})
+        key2_resp = client.post("/api/keys/provision", json={"name": "iso-2", "tier": "free", "account_id": "acct_cpc_iso_2"}, headers={"X-Provision-Secret": "test-provision-secret"})
         key1 = key1_resp.json()["api_key"]
         key2 = key2_resp.json()["api_key"]
 
@@ -200,8 +200,8 @@ class TestMultiKeyIsolation:
                 == resp2.json()["optimization"]["optimized_prompt"])
 
     def test_usage_isolated_between_keys(self, client):
-        key1_resp = client.post("/api/keys/register", json={"name": "usage-iso-1"})
-        key2_resp = client.post("/api/keys/register", json={"name": "usage-iso-2"})
+        key1_resp = client.post("/api/keys/provision", json={"name": "usage-iso-1", "account_id": "acct_cpc_uiso_1"}, headers={"X-Provision-Secret": "test-provision-secret"})
+        key2_resp = client.post("/api/keys/provision", json={"name": "usage-iso-2", "account_id": "acct_cpc_uiso_2"}, headers={"X-Provision-Secret": "test-provision-secret"})
         key1 = key1_resp.json()["api_key"]
         key2 = key2_resp.json()["api_key"]
 

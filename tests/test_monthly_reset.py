@@ -11,7 +11,7 @@ class TestMonthlyTokenFields:
     """Test that usage endpoint has monthly tracking fields."""
 
     def test_model_has_tokens_optimized(self, client):
-        resp = client.post("/api/keys/register", json={"name": "monthly-test"})
+        resp = client.post("/api/keys/provision", json={"name": "monthly-test", "account_id": "acct_mr_monthly"}, headers={"X-Provision-Secret": "test-provision-secret"})
         assert resp.status_code == 200
         key = resp.json()["api_key"]
 
@@ -20,7 +20,7 @@ class TestMonthlyTokenFields:
         assert "tokens_optimized" in data
 
     def test_model_has_reset_date(self, client):
-        resp = client.post("/api/keys/register", json={"name": "reset-test"})
+        resp = client.post("/api/keys/provision", json={"name": "reset-test", "account_id": "acct_mr_reset"}, headers={"X-Provision-Secret": "test-provision-secret"})
         key = resp.json()["api_key"]
 
         resp = client.get("/api/usage", headers={"Authorization": f"Bearer {key}"})
@@ -28,7 +28,7 @@ class TestMonthlyTokenFields:
         assert "reset_date" in data
 
     def test_new_key_starts_at_zero(self, client):
-        resp = client.post("/api/keys/register", json={"name": "zero-test"})
+        resp = client.post("/api/keys/provision", json={"name": "zero-test", "account_id": "acct_mr_zero"}, headers={"X-Provision-Secret": "test-provision-secret"})
         key = resp.json()["api_key"]
 
         resp = client.get("/api/usage", headers={"Authorization": f"Bearer {key}"})

@@ -8,13 +8,14 @@ Live mode: FORTRESS_TEST_URL=https://api.fortress-optimizer.com pytest ...
 Uses unified `client` fixture from conftest.py.
 """
 
+import uuid
 import pytest
 
 
 @pytest.fixture
 def registered_key(client):
     """Register a fresh API key for the test session"""
-    resp = client.post("/api/keys/register", json={"name": "e2e-test", "tier": "free"})
+    resp = client.post("/api/keys/provision", json={"name": "e2e-test", "tier": "free", "account_id": f"acct_e2e_{uuid.uuid4().hex}"}, headers={"X-Provision-Secret": "test-provision-secret"})
     assert resp.status_code == 200
     data = resp.json()
     assert data["api_key"].startswith("fk_")
@@ -141,15 +142,15 @@ class TestStep4UsageTracking:
         data = resp.json()
         assert data["tier"] == "free"
 
-    def test_free_tier_has_50k_limit(self, client, registered_key):
+    def test_free_tier_has_10k_limit(self, client, registered_key):
         resp = client.get("/api/usage", headers=auth(registered_key))
         data = resp.json()
-        assert data["tokens_limit"] == 50000
+        assert data["tokens_limit"] == 10000
 
     def test_tokens_remaining_calculated(self, client, registered_key):
         resp = client.get("/api/usage", headers=auth(registered_key))
         data = resp.json()
-        expected_remaining = max(0, 50000 - data["tokens_optimized"])
+        expected_remaining = max(0, 10000 - data["tokens_optimized"])
         assert data["tokens_remaining"] == expected_remaining
 
 

@@ -95,7 +95,7 @@ def test_attribution_validation_rejects_oversize(client, auth_headers):
 def test_optimize_event_isolated_per_key(client, auth_headers):
     _optimize(client, auth_headers)
     # second, independent key
-    key_b = client.post("/api/keys/register", json={"name": "b", "tier": "free"}).json()["api_key"]
+    key_b = client.post("/api/keys/provision", json={"name": "b", "tier": "free", "account_id": "acct_attr_b"}, headers={"X-Provision-Secret": "test-provision-secret"}).json()["api_key"]
     headers_b = {"Authorization": f"Bearer {key_b}"}
     ev_b = client.get("/api/meter/events", headers=headers_b).json()
     assert ev_b["total"] == 0

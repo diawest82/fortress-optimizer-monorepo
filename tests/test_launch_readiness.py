@@ -28,7 +28,7 @@ class TestAPIContract:
         assert "pro" in data["tiers"]
 
     def test_key_registration(self, client):
-        resp = client.post("/api/keys/register", json={"name": "launch-test"})
+        resp = client.post("/api/keys/provision", json={"name": "launch-test", "account_id": "acct_launch"}, headers={"X-Provision-Secret": "test-provision-secret"})
         assert resp.status_code == 200
         assert "api_key" in resp.json()
         assert resp.json()["api_key"].startswith("fk_")
@@ -126,7 +126,7 @@ class TestMonthlyQuotaReady:
     def test_free_tier_has_token_limit(self, client):
         resp = client.get("/api/pricing")
         free = resp.json()["tiers"]["free"]
-        assert free["tokens_per_month"] == 50000
+        assert free["tokens_per_month"] == 10000
 
     def test_usage_shows_monthly_fields(self, client, api_key):
         resp = client.get("/api/usage", headers={"Authorization": f"Bearer {api_key}"})

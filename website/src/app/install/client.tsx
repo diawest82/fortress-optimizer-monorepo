@@ -34,7 +34,7 @@ export default function Install() {
       steps: [
         { cmd: 'npx -y @fortress-optimizer/mcp-server', desc: 'Run the MCP server (speaks MCP over stdio)' },
         { cmd: '{\n  "mcpServers": {\n    "fortress": {\n      "command": "npx",\n      "args": ["-y", "@fortress-optimizer/mcp-server"],\n      "env": { "FORTRESS_API_KEY": "fk_..." }\n    }\n  }\n}', desc: 'Add to your MCP client config' },
-        { cmd: 'Ask your agent to optimize a prompt — it calls optimize_prompt automatically', desc: 'No key? It auto-registers a free one' },
+        { cmd: 'Ask your agent to optimize a prompt — it calls optimize_prompt automatically', desc: 'Set FORTRESS_API_KEY to your free key — sign in with Google or GitHub to claim it' },
       ],
     },
     {

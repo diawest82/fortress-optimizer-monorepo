@@ -47,8 +47,9 @@ class TestConcurrentLoad:
 
         def register(i):
             r = client.post(
-                "/api/keys/register",
-                json={"name": f"load-test-key-{i}"},
+                "/api/keys/provision",
+                json={"name": f"load-test-key-{i}", "account_id": f"acct_loadprod_{i}"},
+                headers={"X-Provision-Secret": "test-provision-secret"},
             )
             results.append(r.status_code)
 

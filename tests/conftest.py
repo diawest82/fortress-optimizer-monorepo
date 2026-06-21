@@ -16,6 +16,12 @@ os.environ.setdefault("DATABASE_URL", "sqlite:///./test_fortress_shared.db")
 os.environ.setdefault("API_KEY_SECRET", "test-secret-key-for-ci")
 os.environ.pop("FORTRESS_ENV", None)
 
+# Shared secret for the server-to-server /api/keys/provision endpoint.
+# Anonymous key minting no longer exists; every test key is provisioned with
+# this secret + a unique account_id (see provision_key()).
+TEST_PROVISION_SECRET = "test-provision-secret"
+os.environ.setdefault("PROVISION_SECRET", TEST_PROVISION_SECRET)
+
 # Add backend to path
 BACKEND_DIR = str(pathlib.Path(__file__).parent.parent / "backend")
 if BACKEND_DIR not in sys.path:
@@ -55,6 +61,10 @@ def _reset_main_module_state():
     import main
     if hasattr(main, "_registration_tracker"):
         main._registration_tracker.clear()
+    # Reset the global free-provision daily counter so the ceiling doesn't
+    # accumulate across tests in the session.
+    if hasattr(main, "_free_provision_counts"):
+        main._free_provision_counts.clear()
     if hasattr(main, "rate_limiter"):
         rl = main.rate_limiter
         if hasattr(rl, "_minute_buckets"):
@@ -63,9 +73,6 @@ def _reset_main_module_state():
             rl._day_buckets.clear()
     if hasattr(main, "key_sharing_detector") and hasattr(main.key_sharing_detector, "_tracking"):
         main.key_sharing_detector._tracking.clear()
-    # Raise the per-IP registration cap so tests that create many keys
-    # in a single test (data-integrity, concurrency, load) don't 429.
-    main.MAX_REGISTRATIONS_PER_HOUR = 10000
 
 
 @pytest.fixture(autouse=True)
@@ -171,25 +178,53 @@ async def async_client():
             yield c
 
 
-@pytest.fixture
-def api_key(client):
-    """Register and return a fresh API key."""
-    resp = client.post("/api/keys/register", json={"name": "test-key", "tier": "free"})
-    assert resp.status_code == 200
+import uuid as _uuid
+
+
+def _fresh_account_id() -> str:
+    """A unique OAuth-style account id, so each provisioned free key lands on
+    its own account and never trips the one-free-key-per-account constraint."""
+    return f"acct_{_uuid.uuid4().hex}"
+
+
+def provision_key(client, name="test-key", tier="free", account_id=None):
+    """Provision an API key via the server-to-server /api/keys/provision
+    endpoint (the only key-minting path now). Returns the raw fk_ key.
+
+    Each call uses a fresh unique account_id by default so free keys don't
+    collide on the one-active-free-key-per-account rule.
+    """
+    body = {
+        "name": name,
+        "tier": tier,
+        "account_id": account_id or _fresh_account_id(),
+    }
+    resp = client.post(
+        "/api/keys/provision",
+        json=body,
+        headers={"X-Provision-Secret": TEST_PROVISION_SECRET},
+    )
+    assert resp.status_code == 200, f"provision failed: {resp.status_code} {resp.text}"
     return resp.json()["api_key"]
 
 
 @pytest.fixture
+def api_key(client):
+    """Provision and return a fresh free-tier API key (unique account)."""
+    return provision_key(client, name="test-key", tier="free")
+
+
+@pytest.fixture
 def pro_key(client):
-    """Create a pro-tier API key directly in DB (bypasses self-service free-only restriction)."""
-    import uuid, hashlib
+    """Create a pro-tier API key directly in DB."""
+    import hashlib
     from main import API_KEY_SECRET
     from models import ApiKey
 
-    raw_key = f"fk_{uuid.uuid4().hex}"
+    raw_key = f"fk_{_uuid.uuid4().hex}"
     key_hash = hashlib.sha256(f"{API_KEY_SECRET}:{raw_key}".encode()).hexdigest()
     db = _TestSession()
-    db.add(ApiKey(key_hash=key_hash, name="pro-key", tier="pro"))
+    db.add(ApiKey(key_hash=key_hash, name="pro-key", tier="pro", account_id=_fresh_account_id()))
     db.commit()
     db.close()
     return raw_key

@@ -97,7 +97,7 @@ def test_track_idempotency_returns_existing(client, auth_headers):
 
 def test_track_idempotency_scoped_per_key(client, auth_headers):
     _track(client, auth_headers, idempotency_key="shared")
-    key_b = client.post("/api/keys/register", json={"name": "b", "tier": "free"}).json()["api_key"]
+    key_b = client.post("/api/keys/provision", json={"name": "b", "tier": "free", "account_id": "acct_mt_b"}, headers={"X-Provision-Secret": "test-provision-secret"}).json()["api_key"]
     headers_b = {"Authorization": f"Bearer {key_b}"}
     _track(client, headers_b, idempotency_key="shared")
     assert client.get("/api/meter/events", headers=auth_headers).json()["total"] == 1

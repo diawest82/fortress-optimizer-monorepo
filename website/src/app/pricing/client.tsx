@@ -191,7 +191,7 @@ export default function PricingClient() {
               {loading === "Free" ? "Processing..." : "Get Early Access"}
             </button>
             <div className="space-y-4">
-              {["50K tokens/month", "5 core integration channels", "Basic metrics dashboard", "Community support via Discord"].map((f) => (
+              {["10K tokens/month", "One free key per account", "5 core integration channels", "Basic metrics dashboard", "Community support via Discord"].map((f) => (
                 <div key={f} className="flex items-center gap-3"><CheckIcon /><span className="text-slate-300">{f}</span></div>
               ))}
             </div>

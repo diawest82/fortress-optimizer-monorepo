@@ -141,7 +141,7 @@ class TestLargePayloads:
         assert resp.status_code == 422
 
     def test_very_long_key_name(self, client):
-        resp = client.post("/api/keys/register", json={"name": "a" * 101})
+        resp = client.post("/api/keys/provision", json={"name": "a" * 101, "account_id": "acct_x"}, headers={"X-Provision-Secret": "test-provision-secret"})
         assert resp.status_code == 422
 
 

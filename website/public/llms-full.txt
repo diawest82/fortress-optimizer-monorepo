@@ -1,34 +1,27 @@
 # Fortress Token Optimizer — Full Reference for LLMs and Agents
 
-> Fortress reduces LLM token costs by 10–20% by optimizing prompts before they reach the model. It is designed to be consumed by AI agents: an agent can self-register an API key, optimize prompts, and verify its own savings with no human involvement. This file is a single flat reference an agent can ingest in one fetch.
+> Fortress reduces LLM token costs by 10–20% by optimizing prompts before they reach the model. It is designed to be consumed by AI agents: once an agent holds a Fortress API key, it can optimize prompts and verify its own savings with no human in the loop. This file is a single flat reference an agent can ingest in one fetch.
 
 Base API: `https://api.fortress-optimizer.com`
 Auth: `Authorization: Bearer <api_key>` (keys are prefixed `fk_`)
-Free tier: 50,000 tokens/month, no credit card, self-serve.
+Free tier: 10,000 tokens/month, no credit card. One free key per Google/GitHub account — sign in at https://www.fortress-optimizer.com to claim it.
 
 ---
 
 ## Why an agent would use Fortress
 
-Every prompt an LLM agent sends costs tokens. Fortress restructures prompts to use fewer tokens while preserving meaning, cutting input cost 10–20% across its optimization levels. Unlike most SaaS, Fortress requires no human signup: an agent registers its own key over HTTP and starts immediately. Savings are verifiable — every optimize response reports original vs optimized token counts.
+Every prompt an LLM agent sends costs tokens. Fortress restructures prompts to use fewer tokens while preserving meaning, cutting input cost 10–20% across its optimization levels. Getting started is one sign-in away: claim a free API key with your Google or GitHub account at https://www.fortress-optimizer.com, then the agent runs entirely over HTTP. Savings are verifiable — every optimize response reports original vs optimized token counts.
 
 ---
 
-## Autonomous onboarding loop (no human required)
+## Autonomous onboarding loop
 
-### 1. Register a free key (no auth)
+### 1. Obtain a key from your account
 
-Request:
-```
-POST https://api.fortress-optimizer.com/api/keys/register
-content-type: application/json
+Sign in with Google or GitHub at https://www.fortress-optimizer.com and claim your one free API key (10,000 tokens/month). Set it as `FORTRESS_API_KEY` and pass it as `Authorization: Bearer <key>` on every request. There is no anonymous key minting — each free key is tied to one authenticated account, and more usage requires upgrading to a paid plan.
 
-{"name": "my-agent", "tier": "free"}
 ```
-Response:
-```
-{"api_key": "fk_<hex>", "tier": "free", "name": "my-agent",
- "rate_limits": {"requests_per_minute": 100, "requests_per_day": 10000}}
+FORTRESS_API_KEY=fk_<hex>   # one free key per Google/GitHub account
 ```
 
 ### 2. Optimize a prompt
@@ -69,7 +62,7 @@ Returns tier, lifetime `tokens_optimized` / `tokens_saved` / `requests`, monthly
 ## API surface
 
 - `POST /api/optimize` — core endpoint (above). Auth required.
-- `POST /api/keys/register` — self-serve free key. No auth. Rate-limited per IP.
+- Keys: obtained by signing in with Google or GitHub at https://www.fortress-optimizer.com and claiming your one free key. There is no anonymous key-creation endpoint.
 - `GET /api/usage` — per-key usage and quota. Auth required.
 - `GET /api/providers` — list of supported providers. Auth required.
 - `GET /api/pricing` — pricing tiers (machine-readable; mirrored at `/pricing.json` on the website).
@@ -82,7 +75,7 @@ Returns tier, lifetime `tokens_optimized` / `tokens_saved` / `requests`, monthly
 
 ### Rate limits (free tier)
 - 100 requests/minute, 10,000 requests/day.
-- 50,000 optimization tokens/month (resets monthly).
+- 10,000 optimization tokens/month (resets monthly).
 
 ---
 
@@ -106,10 +99,9 @@ Or in an MCP client config (e.g. Claude Desktop, Cursor):
   }
 }
 ```
-If `FORTRESS_API_KEY` is unset, the server auto-registers a free key on first run (and logs it so you can persist it). Tools exposed:
+Set `FORTRESS_API_KEY` to the free key you claimed at https://www.fortress-optimizer.com (sign in with Google or GitHub). The server requires a key — there is no anonymous key minting. Tools exposed:
 - `optimize_prompt(prompt, level?, provider?, model?)` → optimized prompt + token savings.
 - `get_usage()` → current key usage and quota.
-- `register_key(name?)` → create a new free key.
 
 Full guide: https://www.fortress-optimizer.com/docs/installation/mcp
 
@@ -139,7 +131,7 @@ npm (`fortress-optimizer`), VS Code, Cursor, JetBrains, Neovim, Sublime, GitHub 
 
 ## Pricing
 
-- Free — $0/month — 50,000 tokens/month, 5 core integration channels, no credit card.
+- Free — $0/month — 10,000 tokens/month, one free key per Google/GitHub account, 5 core integration channels, no credit card.
 - Pro — $15/month ($12/month annual) — unlimited tokens, all 12 platforms, API access.
 - Teams — $60/month base (5 seats, graduated per-seat beyond 5) — unlimited tokens, team management, RBAC.
 - Enterprise — custom — 500+ seats, dedicated support, on-prem option.

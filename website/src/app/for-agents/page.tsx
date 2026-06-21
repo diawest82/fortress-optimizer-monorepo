@@ -7,22 +7,17 @@ const API = 'https://api.fortress-optimizer.com';
 export const metadata: Metadata = {
   title: 'For Agents | Fortress Token Optimizer — autonomous LLM cost optimization',
   description:
-    `Fortress is built for AI agents: register your own API key with no human, optimize prompts, and cut LLM token costs ${SAVINGS_DISPLAY}. Copy-paste curl, MCP server, and a verifiable savings API.`,
+    `Fortress is built for AI agents: claim one free API key with your Google or GitHub account, optimize prompts, and cut LLM token costs ${SAVINGS_DISPLAY}. Copy-paste curl, MCP server, and a verifiable savings API.`,
   alternates: { canonical: 'https://fortress-optimizer.com/for-agents' },
   robots: { index: true, follow: true },
   openGraph: {
     title: 'Fortress for AI Agents — autonomous token-cost optimization',
     description:
-      'Self-register an API key, optimize a prompt, verify your own savings. No signup form, no human in the loop.',
+      'Claim your free API key with Google or GitHub, optimize a prompt, verify your own savings. The optimize/verify loop runs with no human in the loop.',
     type: 'website',
     locale: 'en_US',
   },
 };
-
-const registerCurl = `curl -X POST ${API}/api/keys/register \\
-  -H 'content-type: application/json' \\
-  -d '{"name":"my-agent","tier":"free"}'
-# -> {"api_key":"fk_...","tier":"free", ...}`;
 
 const optimizeCurl = `curl -X POST ${API}/api/optimize \\
   -H 'authorization: Bearer fk_...' \\
@@ -46,8 +41,8 @@ const mcpConfig = `{
 
 const faq = [
   {
-    q: 'Can an agent use Fortress without a human?',
-    a: 'Yes. POST /api/keys/register issues a free API key with no authentication and no signup form. An agent can register a key, optimize prompts, and read its own usage entirely over HTTP.',
+    q: 'How does an agent get a key?',
+    a: 'Sign in with Google or GitHub at https://www.fortress-optimizer.com and claim your one free API key (10,000 tokens/month). There is no anonymous key minting — each free key is tied to an authenticated account. Once the agent holds the key, it can optimize prompts and read its own usage entirely over HTTP.',
   },
   {
     q: 'How much does it save and is that verifiable?',
@@ -55,7 +50,7 @@ const faq = [
   },
   {
     q: 'What does it cost?',
-    a: 'Free tier is 50,000 tokens/month with no credit card. Pro is $15/month for unlimited tokens. Structured pricing is at /pricing.json.',
+    a: 'Free tier is 10,000 tokens/month with no credit card (one free key per Google/GitHub account). For more usage, upgrade to Pro at $15/month for unlimited tokens. Structured pricing is at /pricing.json.',
   },
   {
     q: 'How does an agent call it as a tool?',
@@ -96,8 +91,9 @@ export default function ForAgentsPage() {
         </h1>
         <p className="text-lg text-zinc-300">
           Fortress reduces LLM token costs by {SAVINGS_DISPLAY} by optimizing prompts before they
-          reach the model. It is built to be used by an agent: register your own key, optimize a
-          prompt, and verify the savings — the entire loop is automatable over HTTP.
+          reach the model. It is built to be used by an agent: claim one free key with your Google
+          or GitHub account, optimize a prompt, and verify the savings — the optimize/verify loop is
+          automatable over HTTP.
         </p>
         <p className="mt-3 text-sm text-zinc-400">
           Machine-readable overview:{' '}
@@ -108,11 +104,18 @@ export default function ForAgentsPage() {
       </header>
 
       <section className="mb-10">
-        <h2 className="text-2xl font-semibold mb-3">1. Register your own key (no auth)</h2>
+        <h2 className="text-2xl font-semibold mb-3">1. Obtain a key from your account</h2>
         <p className="text-zinc-300 mb-3">
-          No signup form. The free tier gives 50,000 tokens/month with no credit card.
+          Sign in with Google or GitHub at{' '}
+          <a className="text-blue-400 hover:underline" href="https://www.fortress-optimizer.com">
+            www.fortress-optimizer.com
+          </a>{' '}
+          and claim your one free API key — 10,000 tokens/month, no credit card. There is no
+          anonymous key minting: each free key is tied to one authenticated account. Set the key as{' '}
+          <code className="text-zinc-100">FORTRESS_API_KEY</code> and pass it as{' '}
+          <code className="text-zinc-100">Authorization: Bearer &lt;key&gt;</code> on every request.
+          Need more than the free trial? Upgrade to Pro.
         </p>
-        <Code>{registerCurl}</Code>
       </section>
 
       <section className="mb-10">
@@ -141,8 +144,9 @@ export default function ForAgentsPage() {
             Fortress MCP server
           </Link>{' '}
           exposes an <code className="text-zinc-100">optimize_prompt</code> tool to MCP hosts
-          (Claude Desktop, Cursor, etc.). If <code className="text-zinc-100">FORTRESS_API_KEY</code>{' '}
-          is unset it auto-registers a free key on first run.
+          (Claude Desktop, Cursor, etc.). Set{' '}
+          <code className="text-zinc-100">FORTRESS_API_KEY</code> to the free key you claimed with
+          your Google or GitHub account.
         </p>
         <Code>{mcpConfig}</Code>
       </section>
@@ -160,7 +164,7 @@ export default function ForAgentsPage() {
       <section className="mb-10">
         <h2 className="text-2xl font-semibold mb-3">Limits &amp; errors</h2>
         <ul className="text-zinc-300 space-y-1 list-disc pl-5">
-          <li>Free tier: 100 req/min, 10,000 req/day, 50,000 optimization tokens/month.</li>
+          <li>Free tier: 100 req/min, 10,000 req/day, 10,000 optimization tokens/month.</li>
           <li><code className="text-zinc-100">401</code> — missing/invalid key.</li>
           <li><code className="text-zinc-100">403</code> — read-only key attempted a write.</li>
           <li><code className="text-zinc-100">429</code> — rate or monthly token limit reached.</li>

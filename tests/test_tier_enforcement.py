@@ -14,16 +14,21 @@ from main import _hash_key
 
 def _register_key(client, name="test", tier="free"):
     if tier != "free":
-        # Non-free tiers can't be self-registered; insert directly into DB
+        # Non-free tiers inserted directly into DB for simplicity.
         import uuid
         raw_key = f"fk_{uuid.uuid4().hex}"
         key_hash = _hash_key(raw_key)
         db = database.SessionLocal()
-        db.add(models.ApiKey(key_hash=key_hash, name=name, tier=tier))
+        db.add(models.ApiKey(key_hash=key_hash, name=name, tier=tier, account_id=f"acct_{uuid.uuid4().hex}"))
         db.commit()
         db.close()
         return raw_key
-    resp = client.post("/api/keys/register", json={"name": name, "tier": tier})
+    import uuid
+    resp = client.post(
+        "/api/keys/provision",
+        json={"name": name, "tier": tier, "account_id": f"acct_{uuid.uuid4().hex}"},
+        headers={"X-Provision-Secret": "test-provision-secret"},
+    )
     assert resp.status_code == 200
     return resp.json()["api_key"]
 
@@ -73,7 +78,7 @@ class TestFreeTierEnforcement:
 
     def test_free_tier_blocks_over_limit(self, client):
         key = _register_key(client, tier="free")
-        _set_tokens(key, 50001)
+        _set_tokens(key, 10001)
         resp = client.post("/api/optimize",
                            json={"prompt": "This should be blocked"},
                            headers=_auth_headers(key))
@@ -81,7 +86,7 @@ class TestFreeTierEnforcement:
 
     def test_free_tier_blocks_at_exact_limit(self, client):
         key = _register_key(client, tier="free")
-        _set_tokens(key, 50000)
+        _set_tokens(key, 10000)
         resp = client.post("/api/optimize",
                            json={"prompt": "At the limit"},
                            headers=_auth_headers(key))
@@ -89,7 +94,7 @@ class TestFreeTierEnforcement:
 
     def test_free_tier_allows_just_under_limit(self, client):
         key = _register_key(client, tier="free")
-        _set_tokens(key, 49999)
+        _set_tokens(key, 9999)
         resp = client.post("/api/optimize",
                            json={"prompt": "Just under the limit"},
                            headers=_auth_headers(key))
