@@ -16,6 +16,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
 import { getUserIdFromRequest } from '@/lib/jwt-auth';
 import { prisma } from '@/lib/prisma';
+import { sendFreeKeyEmail } from '@/lib/email';
 
 const BACKEND_API =
   process.env.FORTRESS_API_URL ||
@@ -48,6 +49,7 @@ export async function POST(req: NextRequest) {
       where: { id: userId },
       select: {
         id: true,
+        email: true,
         freeKeyClaimedAt: true,
         accounts: { select: { provider: true, type: true } },
       },
@@ -125,6 +127,13 @@ export async function POST(req: NextRequest) {
         },
       })
       .catch(() => null);
+
+    // Email the key (fire-and-forget) — only recovery copy (backend stores a hash).
+    if (user.email) {
+      sendFreeKeyEmail(user.email, data.api_key).catch((e) =>
+        console.error('free-key email failed:', e)
+      );
+    }
 
     const response = NextResponse.json(
       {
