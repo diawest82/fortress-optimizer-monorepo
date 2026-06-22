@@ -58,12 +58,29 @@ export default function RootLayout({
               description: "AI prompt optimization platform that reduces token costs by 10-20%",
               url: "https://fortress-optimizer.com",
               applicationCategory: "DeveloperApplication",
-              offers: {
-                "@type": "Offer",
-                price: "0",
-                priceCurrency: "USD",
-                description: "Free tier with 50k tokens/month",
-              },
+              offers: [
+                {
+                  "@type": "Offer",
+                  name: "Free",
+                  price: "0",
+                  priceCurrency: "USD",
+                  description: "50,000 tokens/month, no credit card",
+                },
+                {
+                  "@type": "Offer",
+                  name: "Pro",
+                  price: "15",
+                  priceCurrency: "USD",
+                  description: "Unlimited tokens, all integrations, API access",
+                  priceSpecification: {
+                    "@type": "UnitPriceSpecification",
+                    price: "15",
+                    priceCurrency: "USD",
+                    billingDuration: 1,
+                    unitCode: "MON",
+                  },
+                },
+              ],
               // aggregateRating removed — will add when real reviews exist
               screenshot: "/og-image.png",
             }),

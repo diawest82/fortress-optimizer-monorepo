@@ -22,6 +22,13 @@ model User {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
+  // Free API key claim — enforces ONE free key per user (account-gated free tier).
+  // freeKeyClaimedAt is the single source of truth for "has this user already
+  // claimed their one free key". freeKeyHash stores a SHA256 of the issued key
+  // (NOT the raw key) so we can reference/audit it without storing the secret.
+  freeKeyClaimedAt DateTime?
+  freeKeyHash      String?
+
   // Subscription
   tier          String    @default("free") // free, starter, teams, enterprise
   subscriptionStatus String @default("active") // active, cancelled, suspended

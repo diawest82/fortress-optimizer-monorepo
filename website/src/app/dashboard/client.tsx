@@ -1,7 +1,116 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { TrendingUp, Users, Zap, DollarSign, Clock, BarChart3 } from 'lucide-react';
+import { TrendingUp, Zap, DollarSign, Clock, BarChart3, Key, Copy, Check } from 'lucide-react';
+
+// ─── Free API Key Claim ──────────────────────────────────────────
+// One free key per authenticated OAuth (Google/GitHub) account.
+// Calls POST /api/keys/claim-free, which provisions on the backend and
+// shows the raw key exactly ONCE. More usage requires upgrading to Pro.
+
+function ApiKeySection() {
+  const [apiKey, setApiKey] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [upgradeUrl, setUpgradeUrl] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
+
+  const claimFreeKey = async () => {
+    setLoading(true);
+    setError(null);
+    setUpgradeUrl(null);
+    try {
+      const res = await fetch('/api/keys/claim-free', {
+        method: 'POST',
+        credentials: 'include',
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok && data.api_key) {
+        setApiKey(data.api_key);
+      } else {
+        setError(data.message || data.error || 'Failed to claim free API key.');
+        if (data.upgradeUrl) setUpgradeUrl(data.upgradeUrl);
+      }
+    } catch {
+      setError('Network error. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const copyKey = async () => {
+    if (!apiKey) return;
+    try {
+      await navigator.clipboard.writeText(apiKey);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      /* clipboard unavailable */
+    }
+  };
+
+  return (
+    <section className="rounded-2xl border border-zinc-800 bg-zinc-900/50 p-6 mb-8">
+      <div className="flex items-center gap-2 mb-2">
+        <Key className="w-5 h-5 text-blue-400" />
+        <h2 className="text-lg font-semibold text-white">Your Free API Key</h2>
+      </div>
+      <p className="text-sm text-zinc-400 mb-4">
+        One free key per account — 10K tokens/month. Authenticate your agent
+        with <code className="text-blue-300">Authorization: Bearer &lt;key&gt;</code>.
+        Need more? Upgrade to Pro for unlimited usage.
+      </p>
+
+      {apiKey ? (
+        <div className="space-y-3">
+          <div className="flex items-center gap-2 rounded-lg border border-emerald-500/30 bg-emerald-950/20 p-3">
+            <code className="flex-1 text-sm text-emerald-300 break-all font-mono">{apiKey}</code>
+            <button
+              onClick={copyKey}
+              className="flex-shrink-0 rounded-md bg-zinc-800 hover:bg-zinc-700 p-2 text-zinc-300 transition"
+              aria-label="Copy API key"
+            >
+              {copied ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
+            </button>
+          </div>
+          <p className="text-xs text-yellow-300">
+            Save this key now — you will not be able to see it again.
+          </p>
+        </div>
+      ) : (
+        <div className="flex flex-wrap items-center gap-3">
+          <button
+            onClick={claimFreeKey}
+            disabled={loading}
+            className="rounded-lg bg-blue-600 hover:bg-blue-500 disabled:opacity-50 px-5 py-2.5 text-sm font-semibold text-white transition"
+          >
+            {loading ? 'Claiming…' : 'Get your free API key'}
+          </button>
+          <a
+            href="/pricing"
+            className="rounded-lg border border-purple-500/40 bg-purple-950/20 hover:bg-purple-900/30 px-5 py-2.5 text-sm font-semibold text-purple-200 transition"
+          >
+            Upgrade to Pro
+          </a>
+        </div>
+      )}
+
+      {error && (
+        <div className="mt-4 rounded-lg border border-red-500/30 bg-red-950/20 px-4 py-3">
+          <p className="text-sm text-red-300">{error}</p>
+          {upgradeUrl && (
+            <a
+              href={upgradeUrl}
+              className="mt-2 inline-block text-sm font-semibold text-purple-300 hover:text-purple-200"
+            >
+              Upgrade to Pro →
+            </a>
+          )}
+        </div>
+      )}
+    </section>
+  );
+}
 
 type ToolSavings = {
   source: string;
@@ -221,6 +330,9 @@ export default function Dashboard() {
             </a>
           </div>
         )}
+
+        {/* Free API Key */}
+        <ApiKeySection />
 
         {/* Time Range + Platform Filters */}
         <div className="flex flex-col sm:flex-row gap-4 mb-8">

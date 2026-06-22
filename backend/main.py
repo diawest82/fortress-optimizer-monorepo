@@ -84,6 +84,68 @@ def _hash_key(key: str) -> str:
 
 
 # ============================================================================
+# Key Provisioning (server-to-server; website calls this after OAuth sign-in)
+# ============================================================================
+
+# Default test/dev secret. In production PROVISION_SECRET MUST be set or the
+# provision endpoint fails closed (503) — see _resolve_provision_secret().
+_DEFAULT_PROVISION_SECRET = "fortress-dev-provision-secret"
+
+
+def _is_production_env() -> bool:
+    return os.getenv("FORTRESS_ENV", os.getenv("ENVIRONMENT", "development")) == "production"
+
+
+def _resolve_provision_secret() -> Optional[str]:
+    """Return the expected X-Provision-Secret, or None if misconfigured.
+
+    In production PROVISION_SECRET must be explicitly set; otherwise we return
+    None so the endpoint can fail closed with 503. In dev/test a default secret
+    is acceptable so the suite and local website can provision keys."""
+    secret = os.getenv("PROVISION_SECRET")
+    if secret:
+        return secret
+    if _is_production_env():
+        return None
+    return _DEFAULT_PROVISION_SECRET
+
+
+# Global daily ceiling on free-key provisioning (cost control). Counted in
+# Redis when REDIS_URL is set, else in-memory. Read lazily so tests can patch
+# the env var per-test.
+def _max_free_provisions_per_day() -> int:
+    try:
+        return int(os.getenv("FORTRESS_MAX_FREE_PROVISIONS_PER_DAY", "1000"))
+    except (TypeError, ValueError):
+        return 1000
+
+
+# In-memory fallback counter: {"YYYY-MM-DD": count}
+_free_provision_counts: Dict[str, int] = defaultdict(int)
+
+
+def _incr_free_provision_count() -> int:
+    """Atomically increment today's free-provision counter and return the new
+    total. Uses Redis when REDIS_URL is set (key reg:free:<UTC-date>, TTL
+    ~90000s); falls back to an in-memory per-process counter otherwise."""
+    day = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    redis_url = os.getenv("REDIS_URL")
+    if redis_url:
+        try:
+            import redis as _redis
+            r = _redis.from_url(redis_url, socket_connect_timeout=2)
+            redis_key = f"reg:free:{day}"
+            new_total = r.incr(redis_key)
+            if new_total == 1:
+                r.expire(redis_key, 90000)
+            return int(new_total)
+        except Exception as e:
+            logger.warning(f"Redis unavailable for free-provision counter, using in-memory: {e}")
+    _free_provision_counts[day] += 1
+    return _free_provision_counts[day]
+
+
+# ============================================================================
 # Rate Limiter (in-memory — ephemeral by design, resets are safe)
 # ============================================================================
 
@@ -386,14 +448,14 @@ class ProvidersResponse(BaseModel):
     count: int
 
 
-class RegisterKeyRequest(BaseModel):
-    """Request to register a new API key"""
+class ProvisionKeyRequest(BaseModel):
+    """Server-to-server request to provision an API key for an authenticated
+    OAuth account. Called by the website after Google/GitHub sign-in. There is
+    no anonymous key-minting path — every key is tied to an account_id."""
 
     name: str = Field(..., min_length=1, max_length=100)
-    tier: Literal["free"] = "free"  # Only free tier via self-service; paid tiers require Stripe
-    key_type: Literal["standard", "team_seat", "read_only"] = "standard"
-    team_id: str | None = None  # Required for team_seat keys
-    member_email: str | None = None  # Required for team_seat keys
+    tier: Literal["free", "pro", "team", "enterprise"] = "free"
+    account_id: str = Field(..., min_length=1, max_length=255)
 
 
 # ============================================================================
@@ -1068,10 +1130,10 @@ async def get_pricing():
     return {
         "tiers": {
             "free": {
-                "tokens_per_month": 50000,
+                "tokens_per_month": 10000,
                 "price_monthly": 0,
                 "max_seats": 1,
-                "features": ["50K tokens/month", "5 core integration channels", "Basic metrics dashboard", "Community support"],
+                "features": ["10K tokens/month", "5 core integration channels", "Basic metrics dashboard", "Community support"],
             },
             "pro": {
                 "tokens_per_month": "unlimited",
@@ -1120,60 +1182,103 @@ async def get_pricing():
     }
 
 
-# Simple IP-based rate limit for key registration (max per hour per IP)
-MAX_REGISTRATIONS_PER_HOUR = 5
-_registration_tracker: Dict[str, list] = defaultdict(list)
-
-
-@app.post("/api/keys/register")
-async def register_api_key(
-    request: RegisterKeyRequest,
-    req: Request,
+@app.post("/api/keys/provision")
+async def provision_api_key(
+    request: ProvisionKeyRequest,
+    x_provision_secret: Optional[str] = Header(None),
     db: Session = Depends(get_db),
 ):
-    """Register a new API key (self-service)"""
-    # Rate limit: max 5 registrations per hour per IP
-    client_ip = req.client.host if req.client else "unknown"
-    now = time.time()
-    hour_ago = now - 3600
-    _registration_tracker[client_ip] = [
-        t for t in _registration_tracker[client_ip] if t > hour_ago
-    ]
-    if len(_registration_tracker[client_ip]) >= MAX_REGISTRATIONS_PER_HOUR:
-        raise HTTPException(
-            status_code=429,
-            detail=f"Too many key registrations. Max {MAX_REGISTRATIONS_PER_HOUR} per hour.",
+    """Provision an API key for an authenticated OAuth account (server-to-server).
+
+    There is NO anonymous key minting. The website calls this after a Google/
+    GitHub sign-in, passing the shared PROVISION_SECRET and the account id.
+
+    - Auth: X-Provision-Secret must equal env PROVISION_SECRET (or the dev
+      default outside production). Missing/mismatch -> 403. Unset in
+      production -> 503 (fail closed).
+    - tier "free": at most ONE active free key per account_id (409 on dup),
+      and a global daily ceiling (429 when exceeded).
+    """
+    expected_secret = _resolve_provision_secret()
+    if expected_secret is None:
+        # Production with no PROVISION_SECRET configured: fail closed.
+        logger.error(
+            "Provision endpoint misconfigured: PROVISION_SECRET unset in production",
+            extra={"event": "provision_misconfigured"},
         )
-    _registration_tracker[client_ip].append(now)
+        raise HTTPException(status_code=503, detail="Key provisioning is misconfigured")
 
-    # Key prefix indicates type: fk_ = standard, fkt_ = team seat, fkr_ = read-only
-    prefix_map = {"standard": "fk_", "team_seat": "fkt_", "read_only": "fkr_"}
-    prefix = prefix_map.get(request.key_type, "fk_")
-    new_key = f"{prefix}{uuid.uuid4().hex}"
+    if not x_provision_secret or x_provision_secret != expected_secret:
+        raise HTTPException(status_code=403, detail="Invalid or missing provisioning secret")
+
+    is_free = request.tier == "free"
+
+    # Pre-check: one active free key per account_id (DB unique index is the
+    # backstop; this gives a clean 409 instead of an IntegrityError).
+    if is_free:
+        existing = (
+            db.query(ApiKey)
+            .filter(
+                ApiKey.account_id == request.account_id,
+                ApiKey.tier == "free",
+                ApiKey.is_active == True,
+            )
+            .first()
+        )
+        if existing:
+            raise HTTPException(
+                status_code=409,
+                detail="free key already provisioned for this account",
+            )
+
+        # Global daily ceiling on free provisioning (cost control).
+        ceiling = _max_free_provisions_per_day()
+        new_total = _incr_free_provision_count()
+        if new_total > ceiling:
+            logger.error(
+                "Free provisioning daily ceiling exceeded",
+                extra={
+                    "event": "free_provision_ceiling",
+                    "count": new_total,
+                    "ceiling": ceiling,
+                },
+            )
+            raise HTTPException(
+                status_code=429,
+                detail="Daily free-provisioning limit reached. Try again tomorrow.",
+            )
+
+    new_key = f"fk_{uuid.uuid4().hex}"
     key_hash = _hash_key(new_key)
-
-    key_name = request.name
-    if request.key_type == "team_seat" and request.member_email:
-        key_name = f"{request.name} ({request.member_email})"
 
     db_key = ApiKey(
         key_hash=key_hash,
-        name=key_name,
+        name=request.name,
         tier=request.tier,
+        account_id=request.account_id,
     )
     db.add(db_key)
-    db.commit()
+    try:
+        db.commit()
+    except IntegrityError:
+        # Lost a race to the partial unique index — surface the same 409.
+        db.rollback()
+        if is_free:
+            raise HTTPException(
+                status_code=409,
+                detail="free key already provisioned for this account",
+            )
+        raise
 
-    logger.info(f"New API key registered: {new_key[:12]}... (name={key_name}, tier={request.tier}, type={request.key_type})")
+    logger.info(
+        f"API key provisioned: {new_key[:12]}... "
+        f"(name={request.name}, tier={request.tier}, account_id={request.account_id})"
+    )
 
     return {
         "api_key": new_key,
         "tier": request.tier,
-        "name": request.name,
-        "rate_limits": {
-            "requests_per_minute": 100,
-            "requests_per_day": 10000,
-        },
+        "account_id": request.account_id,
     }
 
 

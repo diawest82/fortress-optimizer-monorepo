@@ -9,13 +9,13 @@ export const PRICING = {
     name: 'Free',
     monthly: 0,
     annual: 0,
-    tokens: 50_000,
-    tokensDisplay: '50K',
+    tokens: 10_000,
+    tokensDisplay: '10K',
     unlimited: false,
     channels: 5,
     channelsDisplay: '5 core integration channels',
     features: [
-      `50K tokens/month`,
+      `10K tokens/month`,
       '5 core integration channels',
       'Basic metrics dashboard',
       'Community support',
@@ -183,6 +183,6 @@ export const MARKETING = {
   optimizationLatencyMs: 68,
   savingsMultiplier: { low: 0.80, high: 0.90 }, // 1 - max/min savings
   platformCount: '12+',
-  freeTokens: '50K',
+  freeTokens: '10K',
   noCardRequired: true,
 } as const;

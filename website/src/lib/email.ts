@@ -204,12 +204,81 @@ export async function sendTeamInviteEmail(
     html: `
       <h2>Team Invitation</h2>
       <p>${inviterName} has invited you to join the <strong>${teamName}</strong> team on Fortress Token Optimizer.</p>
-      
+
       <p><a href="${inviteLink}" style="background-color: #0ea5e9; color: white; padding: 10px 20px; border-radius: 6px; text-decoration: none; display: inline-block;">Accept Invitation</a></p>
-      
+
       <p>Or copy this link: ${inviteLink}</p>
-      
+
       <p>Questions? Reply to this email or visit our support page.</p>
+    `,
+  });
+}
+
+// ── Free-tier flow (onboarding + paid conversion) ──────────────────────────
+
+/**
+ * Sent when a user claims their one free API key. Includes the key because the
+ * backend stores only a SHA-256 hash — this email is the user's only recovery
+ * copy. (Free tier only; treat the inbox copy as the key of record.)
+ */
+export async function sendFreeKeyEmail(email: string, apiKey: string) {
+  return sendEmail({
+    to: email,
+    subject: 'Your Fortress free API key',
+    html: `
+      <h2>Your free API key is ready</h2>
+      <p>Here is your Fortress API key. Save it now — for security we only store a
+      hash, so this email is your only copy.</p>
+
+      <p style="font-family: monospace; background:#0b1020; color:#9be7a0; padding:12px 16px; border-radius:8px; word-break:break-all;">${apiKey}</p>
+
+      <h3>Use it</h3>
+      <p>Set it as <code>FORTRESS_API_KEY</code>, or pass it as a Bearer token:</p>
+      <p style="font-family: monospace; background:#0b1020; color:#cbd5e1; padding:12px 16px; border-radius:8px; word-break:break-all;">Authorization: Bearer ${apiKey}</p>
+
+      <ul>
+        <li>Free tier: <strong>10,000 tokens/month</strong></li>
+        <li><a href="https://www.fortress-optimizer.com/docs/getting-started">Getting started</a> · <a href="https://www.fortress-optimizer.com/install">Integrations</a></li>
+      </ul>
+
+      <p>Need more than the free trial?
+        <a href="https://www.fortress-optimizer.com/pricing" style="background-color:#0ea5e9; color:white; padding:10px 20px; border-radius:6px; text-decoration:none; display:inline-block;">Upgrade to Pro</a>
+      </p>
+
+      <p>Happy optimizing!<br />The Fortress Team</p>
+    `,
+  });
+}
+
+/** Nudge when a free user crosses ~80% of their monthly token grant. */
+export async function sendUsageWarningEmail(email: string, used: number, limit: number) {
+  const pct = Math.min(100, Math.round((used / limit) * 100));
+  return sendEmail({
+    to: email,
+    subject: `You've used ${pct}% of your free Fortress tokens`,
+    html: `
+      <h2>You're at ${pct}% of your free tokens</h2>
+      <p>You've used <strong>${used.toLocaleString()}</strong> of your
+      <strong>${limit.toLocaleString()}</strong> monthly tokens on the free plan.</p>
+      <p>Upgrade to Pro for <strong>unlimited tokens</strong> so your optimization never pauses.</p>
+      <p><a href="https://www.fortress-optimizer.com/pricing" style="background-color:#0ea5e9; color:white; padding:10px 20px; border-radius:6px; text-decoration:none; display:inline-block;">Upgrade to Pro — $15/mo</a></p>
+      <p>The Fortress Team</p>
+    `,
+  });
+}
+
+/** Sent when a free user hits their monthly token limit. */
+export async function sendUsageLimitEmail(email: string, limit: number) {
+  return sendEmail({
+    to: email,
+    subject: "You've hit your free Fortress limit — upgrade for unlimited",
+    html: `
+      <h2>Free limit reached</h2>
+      <p>You've used all <strong>${limit.toLocaleString()}</strong> of your free monthly tokens.
+      Optimization is paused until your monthly reset.</p>
+      <p>Upgrade to Pro for <strong>unlimited tokens</strong> and keep going now:</p>
+      <p><a href="https://www.fortress-optimizer.com/pricing" style="background-color:#0ea5e9; color:white; padding:10px 20px; border-radius:6px; text-decoration:none; display:inline-block;">Upgrade to Pro — $15/mo</a></p>
+      <p>The Fortress Team</p>
     `,
   });
 }

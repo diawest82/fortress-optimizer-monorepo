@@ -1,0 +1,42 @@
+{
+  "name": "@fortress-optimizer/mcp-server",
+  "version": "1.0.0",
+  "description": "Model Context Protocol server for Fortress Token Optimizer — optimize prompts to cut LLM token costs, callable as an agent tool.",
+  "type": "module",
+  "bin": {
+    "fortress-mcp": "dist/index.js"
+  },
+  "main": "dist/index.js",
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "prepublishOnly": "npm run build"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "fortress",
+    "token-optimizer",
+    "llm",
+    "tokens",
+    "cost-optimization",
+    "ai-agent"
+  ],
+  "license": "MIT",
+  "homepage": "https://www.fortress-optimizer.com/docs/installation/mcp",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "typescript": "^5.5.0"
+  }
+}

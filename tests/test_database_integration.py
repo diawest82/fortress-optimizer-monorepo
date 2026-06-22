@@ -31,7 +31,7 @@ class TestDataPersistence:
     """Test that data persists across requests within a session."""
 
     def test_registered_key_can_be_used(self, client):
-        resp = client.post("/api/keys/register", json={"name": "persist-test"})
+        resp = client.post("/api/keys/provision", json={"name": "persist-test", "account_id": "acct_db_persist"}, headers={"X-Provision-Secret": "test-provision-secret"})
         assert resp.status_code == 200
         key = resp.json()["api_key"]
 
@@ -50,8 +50,8 @@ class TestDataPersistence:
         assert usage["tokens_optimized"] > 0
 
     def test_multiple_keys_independent(self, client):
-        k1 = client.post("/api/keys/register", json={"name": "p1"}).json()["api_key"]
-        k2 = client.post("/api/keys/register", json={"name": "p2"}).json()["api_key"]
+        k1 = client.post("/api/keys/provision", json={"name": "p1", "account_id": "acct_db_p1"}, headers={"X-Provision-Secret": "test-provision-secret"}).json()["api_key"]
+        k2 = client.post("/api/keys/provision", json={"name": "p2", "account_id": "acct_db_p2"}, headers={"X-Provision-Secret": "test-provision-secret"}).json()["api_key"]
 
         client.post(
             "/api/optimize",
@@ -69,15 +69,15 @@ class TestSchemaValidation:
     """Test that the API enforces schema constraints."""
 
     def test_register_rejects_empty_name(self, client):
-        resp = client.post("/api/keys/register", json={"name": ""})
+        resp = client.post("/api/keys/provision", json={"name": "", "account_id": "acct_x"}, headers={"X-Provision-Secret": "test-provision-secret"})
         assert resp.status_code == 422
 
     def test_register_rejects_missing_name(self, client):
-        resp = client.post("/api/keys/register", json={"tier": "free"})
+        resp = client.post("/api/keys/provision", json={"tier": "free", "account_id": "acct_x"}, headers={"X-Provision-Secret": "test-provision-secret"})
         assert resp.status_code == 422
 
     def test_register_rejects_invalid_tier(self, client):
-        resp = client.post("/api/keys/register", json={"name": "t", "tier": "platinum"})
+        resp = client.post("/api/keys/provision", json={"name": "t", "tier": "platinum", "account_id": "acct_x"}, headers={"X-Provision-Secret": "test-provision-secret"})
         assert resp.status_code == 422
 
     def test_optimize_rejects_empty_prompt(self, client, api_key):

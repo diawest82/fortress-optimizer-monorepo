@@ -47,7 +47,7 @@ class TestOptimizationLevels:
         ).json()
 
         # Re-register key to avoid usage overlap
-        key2 = client.post("/api/keys/register", json={"name": "agg-test"}).json()["api_key"]
+        key2 = client.post("/api/keys/provision", json={"name": "agg-test", "account_id": "acct_sb_agg"}, headers={"X-Provision-Secret": "test-provision-secret"}).json()["api_key"]
         aggressive = client.post(
             "/api/optimize",
             json={
@@ -88,10 +88,10 @@ class TestTierSavings:
         assert resp.status_code == 200
 
     def test_free_tier_usage_limit(self, client):
-        resp = client.post("/api/keys/register", json={"name": "limit-test", "tier": "free"})
+        resp = client.post("/api/keys/provision", json={"name": "limit-test", "tier": "free", "account_id": "acct_sb_limit"}, headers={"X-Provision-Secret": "test-provision-secret"})
         key = resp.json()["api_key"]
         usage = client.get("/api/usage", headers={"Authorization": f"Bearer {key}"}).json()
-        assert usage["tokens_limit"] == 50000
+        assert usage["tokens_limit"] == 10000
 
     def test_pro_tier_unlimited(self, client, pro_key):
         usage = client.get("/api/usage", headers={"Authorization": f"Bearer {pro_key}"}).json()

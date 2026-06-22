@@ -133,21 +133,24 @@ class TestKeyRegistrationEdgeCases:
 
     def test_very_long_name_rejected(self, client):
         resp = client.post(
-            "/api/keys/register",
-            json={"name": "a" * 101},
+            "/api/keys/provision",
+            json={"name": "a" * 101, "account_id": "acct_x"},
+            headers={"X-Provision-Secret": "test-provision-secret"},
         )
         assert resp.status_code == 422
 
     def test_empty_name_rejected(self, client):
         resp = client.post(
-            "/api/keys/register",
-            json={"name": ""},
+            "/api/keys/provision",
+            json={"name": "", "account_id": "acct_x"},
+            headers={"X-Provision-Secret": "test-provision-secret"},
         )
         assert resp.status_code == 422
 
     def test_invalid_tier_rejected(self, client):
         resp = client.post(
-            "/api/keys/register",
-            json={"name": "test", "tier": "nonexistent"},
+            "/api/keys/provision",
+            json={"name": "test", "tier": "nonexistent", "account_id": "acct_x"},
+            headers={"X-Provision-Secret": "test-provision-secret"},
         )
         assert resp.status_code == 422

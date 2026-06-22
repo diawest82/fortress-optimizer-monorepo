@@ -53,7 +53,11 @@ async def test_50_concurrent_optimize_requests(async_client, api_key):
 async def test_20_concurrent_key_registrations(async_client):
     """Register 20 keys simultaneously. All should succeed with unique keys."""
     tasks = [
-        async_client.post("/api/keys/register", json={"name": f"concurrent-{i}", "tier": "free"})
+        async_client.post(
+            "/api/keys/provision",
+            json={"name": f"concurrent-{i}", "tier": "free", "account_id": f"acct_load_{i}"},
+            headers={"X-Provision-Secret": "test-provision-secret"},
+        )
         for i in range(20)
     ]
     responses = await asyncio.gather(*tasks, return_exceptions=True)
@@ -120,7 +124,11 @@ def test_sequential_rapid_fire(client, api_key):
 async def test_rate_limiter_triggers_under_load(async_client):
     """Register a free key and send 120 rapid requests. Some should be rate-limited."""
     # Register a fresh free-tier key
-    reg = await async_client.post("/api/keys/register", json={"name": "rate-limit-test", "tier": "free"})
+    reg = await async_client.post(
+        "/api/keys/provision",
+        json={"name": "rate-limit-test", "tier": "free", "account_id": "acct_load_ratelimit"},
+        headers={"X-Provision-Secret": "test-provision-secret"},
+    )
     assert reg.status_code == 200
     key = reg.json()["api_key"]
 

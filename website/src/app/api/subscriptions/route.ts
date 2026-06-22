@@ -11,7 +11,7 @@ import type Stripe from 'stripe';
 
 function getTierFeatures(tier: string) {
   const features: Record<string, string[]> = {
-    free: ['50K tokens/month', '5 core integration channels', 'Basic metrics dashboard', 'Community support'],
+    free: ['10K tokens/month', '5 core integration channels', 'Basic metrics dashboard', 'Community support'],
     individual: ['Unlimited tokens', 'All 12 integration platforms', 'Real-time optimization', 'Advanced analytics', 'Email support', 'API access'],
     teams: ['Unlimited tokens', 'Team seat management', 'Advanced analytics', 'Priority support', 'Slack integration'],
     enterprise: ['Unlimited everything', 'Custom integrations', 'Dedicated account manager', '24/7 priority support'],

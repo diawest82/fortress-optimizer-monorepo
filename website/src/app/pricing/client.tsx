@@ -191,7 +191,7 @@ export default function PricingClient() {
               {loading === "Free" ? "Processing..." : "Get Early Access"}
             </button>
             <div className="space-y-4">
-              {["50K tokens/month", "5 core integration channels", "Basic metrics dashboard", "Community support via Discord"].map((f) => (
+              {["10K tokens/month", "One free key per account", "5 core integration channels", "Basic metrics dashboard", "Community support via Discord"].map((f) => (
                 <div key={f} className="flex items-center gap-3"><CheckIcon /><span className="text-slate-300">{f}</span></div>
               ))}
             </div>
@@ -455,11 +455,11 @@ export default function PricingClient() {
 
         <div className="grid md:grid-cols-5 gap-4">
           {[
-            { emoji: "📦", name: "npm Package", desc: "JavaScript/TypeScript projects", users: "1M+" },
-            { emoji: "⚙️", name: "VS Code Extension", desc: "Native editor integration", users: "500K+" },
-            { emoji: "🤖", name: "GitHub Copilot", desc: "AI code assistant integration", users: "200K+" },
-            { emoji: "💬", name: "Slack Bot", desc: "Team collaboration platform", users: "100K+" },
-            { emoji: "🌫️", name: "Claude Desktop", desc: "Anthropic Claude client", users: "50K+" },
+            { emoji: "📦", name: "npm Package", desc: "JavaScript/TypeScript projects" },
+            { emoji: "⚙️", name: "VS Code Extension", desc: "Native editor integration" },
+            { emoji: "🤖", name: "GitHub Copilot", desc: "AI code assistant integration" },
+            { emoji: "💬", name: "Slack Bot", desc: "Team collaboration platform" },
+            { emoji: "🌫️", name: "Claude Desktop", desc: "Anthropic Claude client" },
           ].map((channel, idx) => (
             <div
               key={idx}
@@ -468,7 +468,6 @@ export default function PricingClient() {
               <div className="text-3xl mb-2">{channel.emoji}</div>
               <h4 className="font-semibold text-white text-sm mb-1">{channel.name}</h4>
               <p className="text-xs text-slate-400 mb-2">{channel.desc}</p>
-              <p className="text-xs text-blue-300 font-semibold">{channel.users} users</p>
             </div>
           ))}
         </div>

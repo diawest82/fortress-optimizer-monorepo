@@ -151,7 +151,7 @@ export const authConfig: NextAuthOptions = {
     async jwt({ token, user, account }) {
       if (user) {
         token.sub = user.id;
-        token.role = (user as any).role;
+        token.role = (user as { role?: string }).role;
       }
       // For OAuth users, fetch role from DB (since authorize() isn't called)
       if (account?.type === "oauth" && token.sub) {
